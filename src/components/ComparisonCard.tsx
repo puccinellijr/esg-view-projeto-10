@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Info, ShieldAlert, Users } from "lucide-react";
@@ -57,23 +56,23 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
   
   return (
     <Card className="flex flex-col h-full overflow-hidden">
-      <div className={`flex items-center gap-2 p-3 ${getBgColor()}`}>
+      <div className={`flex items-center gap-2 p-2 ${getBgColor()}`}>
         {getCategoryIcon()}
-        <h3 className="text-white font-bold text-sm uppercase">{title.replace("_", " ")}</h3>
+        <h3 className="text-white font-bold text-sm uppercase truncate">{title.replace("_", " ")}</h3>
       </div>
       
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-3 flex flex-col flex-grow">
         <p className="text-sm mb-1">
           <strong>Período 1:</strong> {value1.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
         <p className="text-sm mb-1">
           <strong>Período 2:</strong> {value2.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
-        <p className="text-sm mb-3 flex items-center">
+        <p className="text-sm mb-2 flex items-center">
           <strong>Variação:</strong> {getComparisonIcon()}
         </p>
         
-        <div className="w-full h-36 relative mt-auto">
+        <div className="w-full h-32 relative mt-auto">
           <canvas id={`chart-${title}`} className="w-full h-full"></canvas>
         </div>
       </div>
