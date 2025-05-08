@@ -35,20 +35,13 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
+    --sidebar-background: 211 74% 27%; /* #104379 */
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -80,7 +73,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 211 74% 27%; /* #104379 */
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -116,5 +109,5 @@
 }
 
 .comparison-icon.up { color: #27ae60; }
-.comparison-icon.down { color: #c0392b; }
-.comparison-icon.equal { color: #7f8c8d; }
+.comparison-icon.down { color: #dc072c; } /* Updated to match our custom red */
+.comparison-icon.equal { color: #5c5c5c; } /* Updated to match our custom gray */

@@ -8,18 +8,18 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ username }: DashboardHeaderProps) => {
   return (
-    <header className="bg-white shadow-sm p-4 flex items-center justify-between h-16">
+    <header className="bg-white shadow-md p-4 flex items-center justify-between h-16 border-b border-gray-200">
       <div className="flex items-center gap-4">
-        <SidebarTrigger />
+        <SidebarTrigger className="text-custom-blue hover:text-custom-blue/80" />
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Logo" className="h-8 w-auto" onError={(e) => {
             e.currentTarget.src = 'https://via.placeholder.com/40x40?text=Logo';
           }} />
-          <span className="text-lg font-medium">ESG Analytics</span>
+          <span className="text-lg font-medium text-custom-blue">ESG Analytics</span>
         </div>
       </div>
       <div className="text-right">
-        <p className="text-gray-600">Bem-vindo, <span className="font-semibold">{username}</span></p>
+        <p className="text-custom-gray">Bem-vindo, <span className="font-semibold text-custom-blue">{username}</span></p>
       </div>
     </header>
   );

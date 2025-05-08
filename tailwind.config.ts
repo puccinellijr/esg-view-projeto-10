@@ -68,6 +68,13 @@ export default {
 					environmental: '#A9DFBF',
 					governance: '#F5B7B1',
 					social: '#A9CCE3',
+				},
+				// Custom color scheme
+				custom: {
+					blue: '#104379',
+					gray: '#5c5c5c',
+					red: '#dc072c',
+					yellow: '#f9f309',
 				}
 			},
 			borderRadius: {

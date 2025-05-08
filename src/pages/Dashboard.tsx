@@ -10,7 +10,7 @@ const Dashboard = () => {
   
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-100">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <DashboardSidebar />
         <div className="flex flex-col flex-1">
           <DashboardHeader username={username} />
