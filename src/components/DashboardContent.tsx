@@ -10,8 +10,8 @@ import {
   Percent, 
   AlertTriangle, 
   Bandage, 
-  Handshake, 
   Users, 
+  Handshake, 
   Gavel, 
   Bell,
   Server
@@ -23,17 +23,17 @@ const DashboardContent = () => {
       <h1 className="text-2xl font-semibold mb-6 text-custom-blue">Visão Geral</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="shadow-lg border-t-4 border-t-custom-blue">
+        <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Ambientais</CardTitle>
           </CardHeader>
-          <CardContent className="pt-2">
+          <CardContent className="pt-2 flex-grow flex flex-col">
             <div className="text-2xl font-bold text-custom-blue">85%</div>
             <p className="text-xs text-custom-gray mb-4">
               +2.1% em relação ao período anterior
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
                 <Droplet size={18} className="text-custom-blue" />
                 <span className="text-sm">Litro / TM</span>
@@ -71,17 +71,17 @@ const DashboardContent = () => {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg border-t-4 border-t-custom-yellow">
+        <Card className="shadow-lg border-t-4 border-t-custom-yellow min-h-[500px] flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Sociais</CardTitle>
           </CardHeader>
-          <CardContent className="pt-2">
+          <CardContent className="pt-2 flex-grow flex flex-col">
             <div className="text-2xl font-bold text-custom-yellow">72%</div>
             <p className="text-xs text-custom-gray mb-4">
               +0.9% em relação ao período anterior
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={18} className="text-custom-yellow" />
                 <span className="text-sm">Incidentes de Processo</span>
@@ -112,17 +112,17 @@ const DashboardContent = () => {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg border-t-4 border-t-custom-red">
+        <Card className="shadow-lg border-t-4 border-t-custom-red min-h-[500px] flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores de Governança</CardTitle>
           </CardHeader>
-          <CardContent className="pt-2">
+          <CardContent className="pt-2 flex-grow flex flex-col">
             <div className="text-2xl font-bold text-custom-red">93%</div>
             <p className="text-xs text-custom-gray mb-4">
               +5.4% em relação ao período anterior
             </p>
             
-            <div className="space-y-3">
+            <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
                 <Gavel size={18} className="text-custom-red" />
                 <span className="text-sm">Denúncias por Corrupção</span>
