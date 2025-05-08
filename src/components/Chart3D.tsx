@@ -64,8 +64,6 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
             color="black" 
             fontSize={0.18}
             fontWeight="bold"
-            backgroundColor="#ffffffcc"
-            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`Período 1: ${(value1 / total * 100).toFixed(1)}%`}
@@ -76,8 +74,6 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
             color="black" 
             fontSize={0.18}
             fontWeight="bold"
-            backgroundColor="#ffffffcc"
-            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`Período 2: ${(value2 / total * 100).toFixed(1)}%`}
@@ -134,8 +130,6 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
             color="black" 
             fontSize={0.18}
             fontWeight="bold"
-            backgroundColor="#ffffffcc"
-            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`P1: ${value1.toFixed(2)}`}
@@ -145,8 +139,6 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
             color="black" 
             fontSize={0.18}
             fontWeight="bold"
-            backgroundColor="#ffffffcc"
-            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`P2: ${value2.toFixed(2)}`}
