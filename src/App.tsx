@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import OperationalForm from "./pages/OperationalForm";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,11 @@ const App = () => (
             {/* Protected routes */}
             <Route element={<ProtectedRoute requiredLevel="viewer" />}>
               <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
+
+            {/* Operational routes - only for operational users and higher */}
+            <Route element={<ProtectedRoute requiredLevel="operational" />}>
+              <Route path="/operational-form" element={<OperationalForm />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, BarChart2, LayoutDashboard, Settings, LogOut } from 'lucide-react';
+import { Home, BarChart2, LayoutDashboard, Settings, LogOut, FileText } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Sidebar, 
   SidebarContent,
@@ -13,6 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const DashboardSidebar = () => {
+  const { logout, hasAccess } = useAuth();
+
   return (
     <Sidebar className="bg-custom-blue text-white">
       <SidebarHeader className="p-4">
@@ -37,6 +40,19 @@ const DashboardSidebar = () => {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          
+          {/* Show operational form only for operational users and higher */}
+          {hasAccess('operational') && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Formulário" className="hover:bg-white/10">
+                <Link to="/operational-form" className="text-white">
+                  <FileText />
+                  <span>Formulário</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Relatórios" className="hover:bg-white/10">
               <Link to="/relatorios" className="text-white">
@@ -65,7 +81,7 @@ const DashboardSidebar = () => {
       </SidebarContent>
       <SidebarFooter className="p-4 mt-auto">
         <SidebarMenuButton asChild tooltip="Sair" className="hover:bg-custom-red/90">
-          <button className="w-full flex items-center gap-2 text-white">
+          <button onClick={logout} className="w-full flex items-center gap-2 text-white">
             <LogOut />
             <span>Sair</span>
           </button>
