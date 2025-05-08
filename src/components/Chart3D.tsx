@@ -22,17 +22,17 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
   const total = value1 + value2;
   const angle1 = (value1 / total) * Math.PI * 2;
   
-  // Definir cores mais contrastantes baseadas na categoria
+  // Definir cores mais contrastantes com vermelho e amarelo
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#34D399', color2: '#047857' }; // Verde claro e verde escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       case 'governance':
-        return { color1: '#60A5FA', color2: '#1E40AF' }; // Azul claro e azul escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       case 'social':
-        return { color1: '#F472B6', color2: '#BE185D' }; // Rosa claro e rosa escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       default:
-        return { color1: '#34D399', color2: '#047857' };
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
     }
   };
 
@@ -89,17 +89,17 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
   const normalizedValue1 = value1 / maxValue;
   const normalizedValue2 = value2 / maxValue;
   
-  // Definir cores mais contrastantes baseadas na categoria
+  // Definir cores mais contrastantes com vermelho e amarelo
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#34D399', color2: '#047857' }; // Verde claro e verde escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       case 'governance':
-        return { color1: '#60A5FA', color2: '#1E40AF' }; // Azul claro e azul escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       case 'social':
-        return { color1: '#F472B6', color2: '#BE185D' }; // Rosa claro e rosa escuro
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
       default:
-        return { color1: '#34D399', color2: '#047857' };
+        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
     }
   };
 
