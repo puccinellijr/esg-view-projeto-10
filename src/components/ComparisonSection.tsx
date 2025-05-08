@@ -16,8 +16,8 @@ interface ComparisonSectionProps {
 const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, category }) => {
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 justify-center">
         {Object.entries(data).map(([key, values]) => (
           <ComparisonCard
             key={key}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Info, ShieldAlert, Users } from "lucide-react";
@@ -55,20 +56,20 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
   const percent2 = total ? (value2 / total) * 100 : 0;
   
   return (
-    <Card className="flex flex-col h-full overflow-hidden">
-      <div className={`flex items-center gap-2 p-2 ${getBgColor()}`}>
+    <Card className="flex flex-col h-full overflow-hidden text-center">
+      <div className={`flex items-center justify-center gap-2 p-2 ${getBgColor()}`}>
         {getCategoryIcon()}
         <h3 className="text-white font-bold text-sm uppercase truncate">{title.replace("_", " ")}</h3>
       </div>
       
-      <div className="p-3 flex flex-col flex-grow">
-        <p className="text-sm mb-1">
+      <div className="p-3 flex flex-col flex-grow items-center">
+        <p className="text-sm mb-1 w-full">
           <strong>Período 1:</strong> {value1.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
-        <p className="text-sm mb-1">
+        <p className="text-sm mb-1 w-full">
           <strong>Período 2:</strong> {value2.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
-        <p className="text-sm mb-2 flex items-center">
+        <p className="text-sm mb-2 flex items-center justify-center w-full">
           <strong>Variação:</strong> {getComparisonIcon()}
         </p>
         
