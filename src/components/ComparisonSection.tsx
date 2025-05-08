@@ -75,44 +75,20 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
         </p>
       </div>
       <div className="flex justify-center">
-        {/* For governance cards, align with the incident card position */}
-        {category === 'governance' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl">
-            {/* Dynamically add empty placeholder cells based on incident card position */}
-            {Array.from({ length: incidentCardPosition() }).map((_, index) => (
-              <div key={`placeholder-${index}`} className="w-full hidden sm:block"></div>
-            ))}
-            
-            {/* Render the actual cards */}
-            {entries.map(([key, values]) => (
-              <div key={key} className="w-full flex justify-center">
-                <div className="w-full max-w-xs">
-                  <ComparisonCard
-                    title={key}
-                    value1={values.value1}
-                    value2={values.value2}
-                    category={category}
-                  />
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl mx-auto">
+          {entries.map(([key, values]) => (
+            <div key={key} className="w-full flex justify-center">
+              <div className="w-full max-w-xs">
+                <ComparisonCard
+                  title={key}
+                  value1={values.value1}
+                  value2={values.value2}
+                  category={category}
+                />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl">
-            {entries.map(([key, values]) => (
-              <div key={key} className="w-full flex justify-center">
-                <div className="w-full max-w-xs">
-                  <ComparisonCard
-                    title={key}
-                    value1={values.value1}
-                    value2={values.value2}
-                    category={category}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
