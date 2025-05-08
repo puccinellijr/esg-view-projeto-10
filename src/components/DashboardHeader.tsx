@@ -1,34 +1,38 @@
 
-import React from 'react';
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
+import { toast } from "sonner";
 
-interface DashboardHeaderProps {
-  username: string;
-}
-
-const DashboardHeader = ({ username }: DashboardHeaderProps) => {
-  const { state } = useSidebar();
-  const isExpanded = state === "expanded";
+const DashboardHeader = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
+  const handleLogout = () => {
+    logout();
+    toast.success("Successfully logged out");
+    navigate("/login");
+  };
+
   return (
-    <header className="bg-custom-blue text-white shadow-md p-4 flex items-center justify-between h-16 border-b border-gray-200">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background px-4 md:px-6">
+      <h1 className="text-lg font-medium md:text-xl">ESG Card Visualizer</h1>
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-white hover:text-white/80" />
-        {!isExpanded && (
-          <div className="flex items-center gap-2">
-            <img 
-              src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
-              alt="Odjell Terminals Granel Química Logo" 
-              className="h-10 w-auto" 
-              onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/120x60?text=Odjell+Terminals';
-              }} 
-            />
-          </div>
-        )}
-      </div>
-      <div className="text-right">
-        <p className="text-white">Bem-vindo, <span className="font-semibold">{username}</span></p>
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4" />
+          <span className="text-sm text-black">
+            {user?.email} ({user?.accessLevel})
+          </span>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4" /> Logout
+        </Button>
       </div>
     </header>
   );
