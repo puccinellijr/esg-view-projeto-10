@@ -3,6 +3,7 @@ import React from 'react';
 import TerminalSelector from '../components/TerminalSelector';
 import PeriodComparisonForm from '../components/PeriodComparisonForm';
 import ComparisonSection from '../components/ComparisonSection';
+import ExportButton from '../components/ExportButton';
 import { useESGData } from '../hooks/useESGData';
 import { Loader2 } from 'lucide-react';
 
@@ -23,9 +24,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          Terminal {terminal}
-        </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-center">
+            Terminal {terminal}
+          </h1>
+          <div className="mt-4 sm:mt-0">
+            <ExportButton />
+          </div>
+        </div>
         
         <div className="max-w-3xl mx-auto">
           <TerminalSelector 
