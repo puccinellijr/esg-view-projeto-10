@@ -1,5 +1,4 @@
 // Data service to fetch ESG data from PHP API
-// When in development mode, we can use mock data by setting useMockData to true
 
 interface ESGData {
   environmental: {
@@ -22,10 +21,10 @@ interface ESGData {
   };
 }
 
-// Set to true to use mock data instead of real API
-const useMockData = true;
+// Set to false to use the real PHP API instead of mock data
+const useMockData = false;
 
-// Generate random data for mock mode
+// Generate random data for mock mode or development
 const generateRandomValue = (min: number, max: number): number => {
   return parseFloat((Math.random() * (max - min) + min).toFixed(4));
 };
@@ -101,12 +100,14 @@ export const fetchESGData = async (
     return generateMockData();
   }
 
-  // Otherwise, fetch from the actual API
+  // Otherwise, fetch from the XAMPP PHP API
   try {
-    // Construct API URL with parameters
-    const apiUrl = `http://localhost/esg_api/get_esg_data.php?terminal=${encodeURIComponent(terminal)}&mes1=${period1.month}&ano1=${period1.year}&mes2=${period2.month}&ano2=${period2.year}`;
+    const terminalCode = terminal === 'Rio Grande' ? 'rg' : 'sp';
     
-    console.log("Fetching data from API:", apiUrl);
+    // Construct API URL with parameters - path for XAMPP
+    const apiUrl = `/esg-api/get_esg_data.php?terminal=${encodeURIComponent(terminal)}&mes1=${period1.month}&ano1=${period1.year}&mes2=${period2.month}&ano2=${period2.year}`;
+    
+    console.log("Fetching data from XAMPP API:", apiUrl);
     
     const response = await fetch(apiUrl);
     

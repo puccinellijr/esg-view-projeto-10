@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/use-toast";
 
 const ExportButton: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -238,205 +239,110 @@ echo json_encode($response);
       const apiFolder = zip.folder("esg-api");
       apiFolder.file("get_esg_data.php", phpApi);
       
-      // Adicionar arquivos do projeto React
+      // Adicionar arquivos React do projeto
       const appFolder = zip.folder("esg-app");
       
-      // Arquivo esgDataService.ts atualizado para apontar para a API PHP
-      const esgDataService = `// Data service to fetch ESG data from PHP API
-// When in development mode, we can use mock data by setting useMockData to true
+      // Arquivo .htaccess para roteamento correto no XAMPP
+      const htaccess = `<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /esg-app/
+  RewriteRule ^index\\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /esg-app/index.html [L]
+</IfModule>`;
 
-interface ESGData {
-  environmental: {
-    [key: string]: {
-      value1: number;
-      value2: number;
-    };
-  };
-  governance: {
-    [key: string]: {
-      value1: number;
-      value2: number;
-    };
-  };
-  social: {
-    [key: string]: {
-      value1: number;
-      value2: number;
-    };
-  };
-}
-
-// Set to false to use real API instead of mock data
-const useMockData = false;
-
-// Generate random data for mock mode
-const generateRandomValue = (min: number, max: number): number => {
-  return parseFloat((Math.random() * (max - min) + min).toFixed(4));
-};
-
-// Generate mock data
-const generateMockData = (): ESGData => {
-  return {
-    environmental: {
-      litro_tm: {
-        value1: generateRandomValue(10, 50),
-        value2: generateRandomValue(10, 50)
-      },
-      kg_tm: {
-        value1: generateRandomValue(5, 25),
-        value2: generateRandomValue(5, 25)
-      },
-      kwh_tm: {
-        value1: generateRandomValue(100, 500),
-        value2: generateRandomValue(100, 500)
-      },
-      litro_combustivel_tm: {
-        value1: generateRandomValue(20, 80),
-        value2: generateRandomValue(20, 80)
-      },
-      residuo_tm: {
-        value1: generateRandomValue(2, 15),
-        value2: generateRandomValue(2, 15)
-      },
-    },
-    governance: {
-      denuncia_corrupcao: {
-        value1: generateRandomValue(0, 5),
-        value2: generateRandomValue(0, 5)
-      },
-      reclamacao_vizinho: {
-        value1: generateRandomValue(0, 10),
-        value2: generateRandomValue(0, 10)
-      },
-      incidente_cibernetico: {
-        value1: generateRandomValue(0, 3),
-        value2: generateRandomValue(0, 3)
-      },
-    },
-    social: {
-      incidente: {
-        value1: generateRandomValue(0, 8),
-        value2: generateRandomValue(0, 8)
-      },
-      acidente: {
-        value1: generateRandomValue(0, 5),
-        value2: generateRandomValue(0, 5)
-      },
-      denuncia_discriminacao: {
-        value1: generateRandomValue(0, 3),
-        value2: generateRandomValue(0, 3)
-      },
-      mulher_trabalho: {
-        value1: generateRandomValue(20, 50),
-        value2: generateRandomValue(20, 50)
-      },
-    }
-  };
-};
-
-export const fetchESGData = async (
-  terminal: string,
-  period1: { month: string; year: string },
-  period2: { month: string; year: string }
-): Promise<ESGData> => {
-  // If using mock data, return randomly generated data after simulated delay
-  if (useMockData) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return generateMockData();
-  }
-
-  // Otherwise, fetch from the actual API
-  try {
-    // Construct API URL with parameters - update this to your server path
-    const apiUrl = \`/esg-api/get_esg_data.php?terminal=\${encodeURIComponent(terminal)}&mes1=\${period1.month}&ano1=\${period1.year}&mes2=\${period2.month}&ano2=\${period2.year}\`;
-    
-    console.log("Fetching data from API:", apiUrl);
-    
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      throw new Error(\`API error: \${response.status} \${response.statusText}\`);
-    }
-    
-    const data = await response.json();
-    console.log("API response:", data);
-    
-    return data as ESGData;
-  } catch (error) {
-    console.error("Error fetching from API:", error);
-    
-    // Fall back to mock data if API call fails
-    console.log("Falling back to mock data");
-    return generateMockData();
-  }
-};`;
-
-      appFolder.file("src/services/esgDataService.ts", esgDataService);
+      appFolder.file(".htaccess", htaccess);
       
-      // Adicionar arquivo README com instruções para o frontend
-      const frontendReadme = `# Aplicação de Visualização de Indicadores ESG
+      // Arquivo index.html para produção no XAMPP
+      const indexHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ESG Visualizador</title>
+    <script>
+      // Configuração base para XAMPP
+      window.xamppBasePath = '/esg-app/';
+    </script>
+    <base href="/esg-app/" />
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>`;
 
-Esta aplicação foi desenvolvida para visualizar e comparar indicadores ESG (Environmental, Social, Governance) entre diferentes períodos e terminais.
+      appFolder.file("index.html", indexHtml);
+      
+      // Adicionar script de configuração para produção XAMPP
+      const viteConfig = `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-## Configuração do Frontend
+export default defineConfig({
+  plugins: [react()],
+  base: '/esg-app/',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    outDir: 'dist',
+  },
+});`;
 
-1. Certifique-se de ter Node.js instalado (versão 14 ou superior)
-2. Instale as dependências:
-   \`\`\`
-   npm install
-   \`\`\`
-3. Para desenvolvimento local:
-   \`\`\`
-   npm run dev
-   \`\`\`
-4. Para construir para produção:
+      appFolder.file("vite.config.js", viteConfig);
+      
+      // Adicionar instruções de deploy específicas para XAMPP
+      const deployReadme = `# Instruções de Deploy para XAMPP
+
+## Preparando os arquivos para produção
+
+1. Execute o comando de build:
    \`\`\`
    npm run build
    \`\`\`
-5. Os arquivos de produção estarão na pasta 'dist' e podem ser copiados para o XAMPP
 
-## Integrando com o Backend
+2. Copie todo o conteúdo da pasta 'dist' para a pasta 'esg-app' dentro do diretório 'htdocs' do XAMPP.
 
-O arquivo 'src/services/esgDataService.ts' está configurado para acessar a API PHP.
-Se necessário, ajuste o caminho da API conforme sua configuração do servidor.
+3. Copie a pasta 'esg-api' para o diretório 'htdocs' do XAMPP.
 
-## Estrutura de Dados
+4. Certifique-se de que o arquivo .htaccess foi copiado corretamente para a pasta 'esg-app'.
 
-A aplicação espera que a API retorne dados no seguinte formato:
+## Configurando o MySQL
 
-\`\`\`json
-{
-  "environmental": {
-    "litro_tm": { "value1": 20.5, "value2": 22.1 },
-    "kg_tm": { "value1": 10.3, "value2": 9.8 },
-    ...
-  },
-  "governance": {
-    "denuncia_corrupcao": { "value1": 2, "value2": 1 },
-    ...
-  },
-  "social": {
-    "incidente": { "value1": 5, "value2": 3 },
-    ...
-  }
-}
-\`\`\`
+1. Inicie o XAMPP e ative os serviços Apache e MySQL.
 
-Onde value1 representa o valor do primeiro período selecionado e value2 o segundo período.
+2. Acesse o phpMyAdmin através de http://localhost/phpmyadmin
+
+3. Crie um novo banco de dados chamado 'esg_data'
+
+4. Importe o arquivo esg_database.sql para criar a estrutura das 6 tabelas.
+
+## Acessando a aplicação
+
+Acesse a aplicação através de: http://localhost/esg-app/
 `;
 
-      appFolder.file("README.md", frontendReadme);
+      appFolder.file("DEPLOY_XAMPP.md", deployReadme);
       
       // Gerar o arquivo ZIP
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, 'esg-visualizador-xampp.zip');
       
-      toast.success("Exportação concluída com sucesso!", {
+      toast({
+        title: "Exportação concluída com sucesso!",
         description: "O arquivo ZIP contém o código fonte e as instruções para instalação no XAMPP."
       });
     } catch (error) {
       console.error("Erro durante a exportação:", error);
-      toast.error("Erro ao exportar os arquivos", {
+      toast({
+        variant: "destructive",
+        title: "Erro ao exportar os arquivos",
         description: "Ocorreu um problema durante a exportação. Por favor, tente novamente."
       });
     } finally {
@@ -453,7 +359,7 @@ Onde value1 representa o valor do primeiro período selecionado e value2 o segun
       {isExporting ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Exportando...
+          Exportando para XAMPP...
         </>
       ) : (
         <>
