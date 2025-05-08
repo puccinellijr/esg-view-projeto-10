@@ -22,17 +22,17 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
   const total = value1 + value2;
   const angle1 = (value1 / total) * Math.PI * 2;
   
-  // Definir cores mais contrastantes com vermelho e amarelo
+  // Definir cores mais vibrantes para melhor visualização
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
       case 'governance':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#FFA500', color2: '#8B5CF6' }; // Laranja vibrante e roxo vibrante
       case 'social':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#0EA5E9', color2: '#D946EF' }; // Azul vibrante e magenta vibrante
       default:
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
     }
   };
 
@@ -49,13 +49,13 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
       {/* Primeiro segmento do gráfico */}
       <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
         <cylinderGeometry args={[1, 1, 0.2, 32, 1, false, 0, angle1]} />
-        <meshStandardMaterial color={color1} />
+        <meshStandardMaterial color={color1} emissive={color1} emissiveIntensity={0.2} />
       </mesh>
       
       {/* Segundo segmento do gráfico */}
       <mesh position={[0, 0, 0]} rotation={[0, angle1, 0]}>
         <cylinderGeometry args={[1, 1, 0.2, 32, 1, false, 0, Math.PI * 2 - angle1]} />
-        <meshStandardMaterial color={color2} />
+        <meshStandardMaterial color={color2} emissive={color2} emissiveIntensity={0.2} />
       </mesh>
       
       {/* Legendas melhoradas */}
@@ -89,17 +89,17 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
   const normalizedValue1 = value1 / maxValue;
   const normalizedValue2 = value2 / maxValue;
   
-  // Definir cores mais contrastantes com vermelho e amarelo
+  // Definir cores mais vibrantes para melhor visualização
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
       case 'governance':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#FFA500', color2: '#8B5CF6' }; // Laranja vibrante e roxo vibrante
       case 'social':
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#0EA5E9', color2: '#D946EF' }; // Azul vibrante e magenta vibrante
       default:
-        return { color1: '#f9f309', color2: '#dc072c' }; // Amarelo e vermelho
+        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
     }
   };
 
@@ -116,13 +116,13 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
       {/* Primeira barra */}
       <mesh position={[-0.6, normalizedValue1 / 2, 0]}>
         <boxGeometry args={[0.4, normalizedValue1, 0.4]} />
-        <meshStandardMaterial color={color1} />
+        <meshStandardMaterial color={color1} emissive={color1} emissiveIntensity={0.2} />
       </mesh>
       
       {/* Segunda barra */}
       <mesh position={[0.6, normalizedValue2 / 2, 0]}>
         <boxGeometry args={[0.4, normalizedValue2, 0.4]} />
-        <meshStandardMaterial color={color2} />
+        <meshStandardMaterial color={color2} emissive={color2} emissiveIntensity={0.2} />
       </mesh>
       
       {/* Legendas melhoradas */}
