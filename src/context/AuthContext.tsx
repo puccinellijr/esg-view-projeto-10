@@ -13,6 +13,8 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   hasAccess: (requiredLevel: AccessLevel) => boolean;
+  resetPassword: (email: string) => Promise<boolean>;
+  updatePassword: (email: string, newPassword: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,11 +62,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return userLevelIndex >= requiredLevelIndex;
   };
 
+  // For password reset functionality
+  const resetPassword = async (email: string): Promise<boolean> => {
+    // In a real app, this would call an API to send a reset email
+    // For this demo, we'll simulate it with a success response
+    return new Promise(resolve => {
+      // Check if the user exists
+      const users = [
+        { email: "admin@example.com" },
+        { email: "viewer@example.com" },
+        { email: "operator@example.com" }
+      ];
+      
+      const userExists = users.some(user => user.email === email);
+      
+      if (userExists) {
+        // Generate a reset token and store it
+        const resetToken = Math.random().toString(36).substring(2, 15);
+        sessionStorage.setItem(`reset_${email}`, resetToken);
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  };
+
+  const updatePassword = async (email: string, newPassword: string): Promise<boolean> => {
+    // In a real app, this would call an API to update the user's password
+    // For this demo, we'll simulate it with a success response
+    return new Promise(resolve => {
+      // In a real application, we'd verify the user exists and update their password in the database
+      // Here we'll just return success
+      resolve(true);
+    });
+  };
+
   const value = {
     user,
     login,
     logout,
-    hasAccess
+    hasAccess,
+    resetPassword,
+    updatePassword
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

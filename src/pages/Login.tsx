@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,11 @@ export default function Login() {
                 className="border-gray-300"
                 required
               />
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-sm text-custom-blue hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
             
             <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
