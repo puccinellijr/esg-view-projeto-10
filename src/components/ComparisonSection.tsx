@@ -44,6 +44,28 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
     }
   };
   
+  // Find if "incidente" card exists in social section to align governance cards properly
+  const hasIncidentCard = category === 'social' && 
+    entries.some(([key]) => 
+      key.toLowerCase().includes('incidente') || 
+      key.toLowerCase().includes('incident')
+    );
+  
+  // Calculate the position of the incident card in the grid
+  const incidentCardPosition = () => {
+    if (category === 'social') {
+      const incidentIndex = entries.findIndex(([key]) => 
+        key.toLowerCase().includes('incidente') || 
+        key.toLowerCase().includes('incident')
+      );
+      
+      if (incidentIndex !== -1) {
+        return incidentIndex % 5; // Assuming 5 columns max (xl:grid-cols-5)
+      }
+    }
+    return 2; // Default position (3rd column)
+  };
+  
   return (
     <div className={`mt-10 mb-12 py-8 px-4 rounded-lg ${getSectionBgColor()}`}>
       <div className="text-center mb-6">
@@ -53,12 +75,14 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
         </p>
       </div>
       <div className="flex justify-center">
-        {/* For governance cards, start from the position of the accident card in Social section */}
+        {/* For governance cards, align with the incident card position */}
         {category === 'governance' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl">
-            {/* Conditionally add empty placeholder cells to align with the accident card */}
-            <div className="w-full hidden sm:block"></div>
-            <div className="w-full hidden md:block"></div>
+            {/* Dynamically add empty placeholder cells based on incident card position */}
+            {Array.from({ length: incidentCardPosition() }).map((_, index) => (
+              <div key={`placeholder-${index}`} className="w-full hidden sm:block"></div>
+            ))}
+            
             {/* Render the actual cards */}
             {entries.map(([key, values]) => (
               <div key={key} className="w-full flex justify-center">
