@@ -14,7 +14,9 @@ import {
   Handshake, 
   Gavel, 
   Bell,
-  Server
+  Server,
+  Leaf,
+  Shield
 } from 'lucide-react';
 
 const DashboardContent = () => {
@@ -23,7 +25,11 @@ const DashboardContent = () => {
       <h1 className="text-2xl font-semibold mb-6 text-custom-blue">Visão Geral</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col">
+        <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col overflow-hidden">
+          <div className="bg-[#F2FCE2] p-4 w-full flex items-center gap-2">
+            <Leaf className="text-custom-blue h-5 w-5" />
+            <h2 className="text-custom-blue font-bold">Dimensão Ambiental</h2>
+          </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Ambientais</CardTitle>
           </CardHeader>
@@ -71,7 +77,11 @@ const DashboardContent = () => {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg border-t-4 border-t-custom-yellow min-h-[500px] flex flex-col">
+        <Card className="shadow-lg border-t-4 border-t-custom-yellow min-h-[500px] flex flex-col overflow-hidden">
+          <div className="bg-[#ea384c]/10 p-4 w-full flex items-center gap-2">
+            <Users className="text-custom-yellow h-5 w-5" />
+            <h2 className="text-custom-yellow font-bold">Dimensão Social</h2>
+          </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Sociais</CardTitle>
           </CardHeader>
@@ -112,7 +122,11 @@ const DashboardContent = () => {
           </CardContent>
         </Card>
         
-        <Card className="shadow-lg border-t-4 border-t-custom-red min-h-[500px] flex flex-col">
+        <Card className="shadow-lg border-t-4 border-t-custom-red min-h-[500px] flex flex-col overflow-hidden">
+          <div className="bg-[#D3E4FD] p-4 w-full flex items-center gap-2">
+            <Shield className="text-custom-red h-5 w-5" />
+            <h2 className="text-custom-red font-bold">Dimensão Governança</h2>
+          </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-custom-gray">Indicadores de Governança</CardTitle>
           </CardHeader>
