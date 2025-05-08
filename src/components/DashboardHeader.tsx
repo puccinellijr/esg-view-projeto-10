@@ -12,10 +12,14 @@ const DashboardHeader = ({ username }: DashboardHeaderProps) => {
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-white hover:text-white/80" />
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="h-8 w-auto" onError={(e) => {
-            e.currentTarget.src = 'https://via.placeholder.com/40x40?text=Logo';
-          }} />
-          <span className="text-lg font-medium text-white">ESG Analytics</span>
+          <img 
+            src="/logo.png" 
+            alt="Granel Química Logo" 
+            className="h-8 w-auto" 
+            onError={(e) => {
+              e.currentTarget.src = 'https://via.placeholder.com/40x40?text=Granel+Química';
+            }} 
+          />
         </div>
       </div>
       <div className="text-right">

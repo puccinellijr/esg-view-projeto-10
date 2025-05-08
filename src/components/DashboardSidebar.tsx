@@ -16,10 +16,19 @@ const DashboardSidebar = () => {
   return (
     <Sidebar className="bg-custom-blue text-white">
       <SidebarHeader className="p-4">
-        <div className="text-xl font-bold text-white">ESG Analytics</div>
+        <div className="flex items-center justify-center mb-4">
+          <img 
+            src="/logo.png" 
+            alt="Granel Química Logo" 
+            className="h-12 w-auto" 
+            onError={(e) => {
+              e.currentTarget.src = 'https://via.placeholder.com/120x60?text=Granel+Química';
+            }} 
+          />
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
+        <SidebarMenu className="space-y-4 px-2">
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Home" className="hover:bg-white/10">
               <Link to="/dashboard" className="text-white">
@@ -54,7 +63,7 @@ const DashboardSidebar = () => {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 mt-auto">
         <SidebarMenuButton asChild tooltip="Sair" className="hover:bg-custom-red/90">
           <button className="w-full flex items-center gap-2 text-white">
             <LogOut />
