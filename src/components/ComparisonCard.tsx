@@ -56,7 +56,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
   const percent2 = total ? (value2 / total) * 100 : 0;
   
   return (
-    <Card className="flex flex-col min-w-[250px] max-w-[300px] overflow-hidden mx-1 my-2">
+    <Card className="flex flex-col w-full sm:w-[calc(50%-0.5rem)] md:w-[300px] max-w-full overflow-hidden m-2">
       <div className={`flex items-center gap-2 p-3 ${getBgColor()}`}>
         {getCategoryIcon()}
         <h3 className="text-white font-bold text-sm uppercase">{title.replace("_", " ")}</h3>

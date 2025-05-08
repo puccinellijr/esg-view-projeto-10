@@ -34,7 +34,7 @@ const Index = () => {
 
   // Create charts when data is available
   useEffect(() => {
-    if (esgData && window.Chart) {
+    if (esgData && typeof window !== 'undefined' && window.Chart) {
       // Create environmental charts
       Object.entries(esgData.environmental).forEach(([key, values]) => {
         createPieChart(`chart-${key}`, values.value1, values.value2);
@@ -60,56 +60,60 @@ const Index = () => {
     const percent1 = total ? (value1 / total) * 100 : 0;
     const percent2 = total ? (value2 / total) * 100 : 0;
     
-    // @ts-ignore - Chart is loaded dynamically
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Período 1', 'Período 2'],
-        datasets: [{
-          data: [percent1, percent2],
-          backgroundColor: ['#3498db', '#e74c3c'],
-          borderColor: ['#2980b9', '#c0392b'],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context: any) {
-                return context.raw.toFixed(2) + '%';
+    if (typeof window !== 'undefined' && window.Chart) {
+      // @ts-ignore - Chart is loaded dynamically
+      new window.Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Período 1', 'Período 2'],
+          datasets: [{
+            data: [percent1, percent2],
+            backgroundColor: ['#3498db', '#e74c3c'],
+            borderColor: ['#2980b9', '#c0392b'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context: any) {
+                  return context.raw.toFixed(2) + '%';
+                }
               }
             }
-          }
-        },
-        aspectRatio: 1,  // Maintain chart proportion
-      }
-    });
+          },
+          aspectRatio: 1,  // Maintain chart proportion
+        }
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="container py-8">
+      <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-center mb-6">
           Terminal {terminal}
         </h1>
         
-        <TerminalSelector 
-          selectedTerminal={terminal} 
-          onTerminalChange={setTerminal} 
-        />
-        
-        <PeriodComparisonForm
-          period1={period1}
-          period2={period2}
-          onPeriod1Change={updatePeriod1}
-          onPeriod2Change={updatePeriod2}
-          onCompare={fetchData}
-        />
+        <div className="max-w-3xl mx-auto">
+          <TerminalSelector 
+            selectedTerminal={terminal} 
+            onTerminalChange={setTerminal} 
+          />
+          
+          <PeriodComparisonForm
+            period1={period1}
+            period2={period2}
+            onPeriod1Change={updatePeriod1}
+            onPeriod2Change={updatePeriod2}
+            onCompare={fetchData}
+          />
+        </div>
         
         {isLoading && (
           <div className="flex justify-center my-16">
@@ -118,7 +122,7 @@ const Index = () => {
         )}
         
         {!isLoading && esgData && (
-          <>
+          <div className="max-w-6xl mx-auto">
             <ComparisonSection 
               title="Comparação de Indicadores Ambientais" 
               data={esgData.environmental} 
@@ -136,7 +140,7 @@ const Index = () => {
               data={esgData.social} 
               category="social" 
             />
-          </>
+          </div>
         )}
         
         {!isLoading && !isDataFetched && (
