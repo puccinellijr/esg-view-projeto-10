@@ -22,56 +22,56 @@ import {
 const DashboardContent = () => {
   return (
     <main className="flex-1 p-6 bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-6 text-custom-blue">Visão Geral</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-black">Visão Geral</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col overflow-hidden">
           <div className="bg-[#F2FCE2] p-4 w-full flex items-center gap-2">
-            <Leaf className="text-custom-blue h-5 w-5" />
-            <h2 className="text-custom-blue font-bold">Dimensão Ambiental</h2>
+            <Leaf className="text-black h-5 w-5" />
+            <h2 className="text-black font-bold">Dimensão Ambiental</h2>
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Ambientais</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Indicadores Ambientais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-custom-blue">85%</div>
-            <p className="text-xs text-custom-gray mb-4">
+            <div className="text-2xl font-bold text-black">85%</div>
+            <p className="text-xs text-black mb-4">
               +2.1% em relação ao período anterior
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
-                <Droplet size={18} className="text-custom-blue" />
-                <span className="text-sm">Litro / TM</span>
-                <span className="ml-auto text-sm font-medium">435 L</span>
+                <Droplet size={18} className="text-black" />
+                <span className="text-sm text-black">Litro / TM</span>
+                <span className="ml-auto text-sm font-medium text-black">435 L</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Weight size={18} className="text-custom-blue" />
-                <span className="text-sm">KG / TM</span>
-                <span className="ml-auto text-sm font-medium">1.234 kg</span>
+                <Weight size={18} className="text-black" />
+                <span className="text-sm text-black">KG / TM</span>
+                <span className="ml-auto text-sm font-medium text-black">1.234 kg</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Zap size={18} className="text-custom-blue" />
-                <span className="text-sm">KWH / TM</span>
-                <span className="ml-auto text-sm font-medium">156 kwh</span>
+                <Zap size={18} className="text-black" />
+                <span className="text-sm text-black">KWH / TM</span>
+                <span className="ml-auto text-sm font-medium text-black">156 kwh</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Fuel size={18} className="text-custom-blue" />
-                <span className="text-sm">L Combustível / TM</span>
-                <span className="ml-auto text-sm font-medium">48 L</span>
+                <Fuel size={18} className="text-black" />
+                <span className="text-sm text-black">L Combustível / TM</span>
+                <span className="ml-auto text-sm font-medium text-black">48 L</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Percent size={18} className="text-custom-blue" />
-                <span className="text-sm">% de Resíduos Gerados</span>
-                <span className="ml-auto text-sm font-medium">5.2%</span>
+                <Percent size={18} className="text-black" />
+                <span className="text-sm text-black">% de Resíduos Gerados</span>
+                <span className="ml-auto text-sm font-medium text-black">5.2%</span>
               </div>
             </div>
           </CardContent>
@@ -79,44 +79,44 @@ const DashboardContent = () => {
         
         <Card className="shadow-lg border-t-4 border-t-custom-yellow min-h-[500px] flex flex-col overflow-hidden">
           <div className="bg-[#ea384c]/10 p-4 w-full flex items-center gap-2">
-            <Users className="text-custom-yellow h-5 w-5" />
-            <h2 className="text-custom-yellow font-bold">Dimensão Social</h2>
+            <Users className="text-black h-5 w-5" />
+            <h2 className="text-black font-bold">Dimensão Social</h2>
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-custom-gray">Indicadores Sociais</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Indicadores Sociais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-custom-yellow">72%</div>
-            <p className="text-xs text-custom-gray mb-4">
+            <div className="text-2xl font-bold text-black">72%</div>
+            <p className="text-xs text-black mb-4">
               +0.9% em relação ao período anterior
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
-                <AlertTriangle size={18} className="text-custom-yellow" />
-                <span className="text-sm">Incidentes de Processo</span>
-                <span className="ml-auto text-sm font-medium">3</span>
+                <AlertTriangle size={18} className="text-black" />
+                <span className="text-sm text-black">Incidentes de Processo</span>
+                <span className="ml-auto text-sm font-medium text-black">3</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Bandage size={18} className="text-custom-yellow" />
-                <span className="text-sm">Acidentes com Afastamento</span>
-                <span className="ml-auto text-sm font-medium">1</span>
+                <Bandage size={18} className="text-black" />
+                <span className="text-sm text-black">Acidentes com Afastamento</span>
+                <span className="ml-auto text-sm font-medium text-black">1</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Users size={18} className="text-custom-yellow" />
-                <span className="text-sm">Denúncias por Discriminação</span>
-                <span className="ml-auto text-sm font-medium">0</span>
+                <Users size={18} className="text-black" />
+                <span className="text-sm text-black">Denúncias por Discriminação</span>
+                <span className="ml-auto text-sm font-medium text-black">0</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Handshake size={18} className="text-custom-yellow" />
-                <span className="text-sm">Mulheres no Trabalho</span>
-                <span className="ml-auto text-sm font-medium">42%</span>
+                <Handshake size={18} className="text-black" />
+                <span className="text-sm text-black">Mulheres no Trabalho</span>
+                <span className="ml-auto text-sm font-medium text-black">42%</span>
               </div>
             </div>
           </CardContent>
@@ -124,37 +124,37 @@ const DashboardContent = () => {
         
         <Card className="shadow-lg border-t-4 border-t-custom-red min-h-[500px] flex flex-col overflow-hidden">
           <div className="bg-[#D3E4FD] p-4 w-full flex items-center gap-2">
-            <Shield className="text-custom-red h-5 w-5" />
-            <h2 className="text-custom-red font-bold">Dimensão Governança</h2>
+            <Shield className="text-black h-5 w-5" />
+            <h2 className="text-black font-bold">Dimensão Governança</h2>
           </div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-custom-gray">Indicadores de Governança</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Indicadores de Governança</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-custom-red">93%</div>
-            <p className="text-xs text-custom-gray mb-4">
+            <div className="text-2xl font-bold text-black">93%</div>
+            <p className="text-xs text-black mb-4">
               +5.4% em relação ao período anterior
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               <div className="flex items-center gap-2">
-                <Gavel size={18} className="text-custom-red" />
-                <span className="text-sm">Denúncias por Corrupção</span>
-                <span className="ml-auto text-sm font-medium">0</span>
+                <Gavel size={18} className="text-black" />
+                <span className="text-sm text-black">Denúncias por Corrupção</span>
+                <span className="ml-auto text-sm font-medium text-black">0</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Bell size={18} className="text-custom-red" />
-                <span className="text-sm">Reclamação de Vizinhos</span>
-                <span className="ml-auto text-sm font-medium">2</span>
+                <Bell size={18} className="text-black" />
+                <span className="text-sm text-black">Reclamação de Vizinhos</span>
+                <span className="ml-auto text-sm font-medium text-black">2</span>
               </div>
               <Separator />
               
               <div className="flex items-center gap-2">
-                <Server size={18} className="text-custom-red" />
-                <span className="text-sm">Incidentes Cibernéticos</span>
-                <span className="ml-auto text-sm font-medium">1</span>
+                <Server size={18} className="text-black" />
+                <span className="text-sm text-black">Incidentes Cibernéticos</span>
+                <span className="ml-auto text-sm font-medium text-black">1</span>
               </div>
             </div>
           </CardContent>
