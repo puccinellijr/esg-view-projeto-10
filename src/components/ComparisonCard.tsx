@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
-import { Info, ShieldAlert, Users } from "lucide-react";
+import { Info, ShieldAlert, Users, PieChart, BarChartIcon } from "lucide-react";
+import Chart3D from './Chart3D';
 
 interface ComparisonCardProps {
   title: string;
@@ -11,6 +12,8 @@ interface ComparisonCardProps {
 }
 
 const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, category }) => {
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
+  
   // Calculate comparison icon
   const getComparisonIcon = () => {
     if (value1 > value2) {
@@ -50,10 +53,10 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
     }
   };
   
-  // Calculate percentages for the pie chart
-  const total = value1 + value2;
-  const percent1 = total ? (value1 / total) * 100 : 0;
-  const percent2 = total ? (value2 / total) * 100 : 0;
+  // Toggle chart type
+  const toggleChartType = () => {
+    setChartType(prev => prev === 'pie' ? 'bar' : 'pie');
+  };
   
   return (
     <Card className="flex flex-col h-full overflow-hidden text-center">
@@ -74,7 +77,26 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
         </p>
         
         <div className="w-full h-32 relative mt-auto">
-          <canvas id={`chart-${title}`} className="w-full h-full"></canvas>
+          <div className="absolute inset-0">
+            <Chart3D type={chartType} value1={value1} value2={value2} category={category} />
+          </div>
+        </div>
+        
+        <div className="mt-2 flex justify-center space-x-2">
+          <button 
+            onClick={toggleChartType}
+            className="text-xs p-1 rounded bg-gray-100 hover:bg-gray-200 transition-colors flex items-center"
+          >
+            {chartType === 'pie' ? (
+              <>
+                <BarChartIcon size={12} className="mr-1" /> Barras
+              </>
+            ) : (
+              <>
+                <PieChart size={12} className="mr-1" /> Pizza
+              </>
+            )}
+          </button>
         </div>
       </div>
     </Card>

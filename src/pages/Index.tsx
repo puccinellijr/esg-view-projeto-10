@@ -1,17 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import TerminalSelector from '../components/TerminalSelector';
 import PeriodComparisonForm from '../components/PeriodComparisonForm';
 import ComparisonSection from '../components/ComparisonSection';
 import { useESGData } from '../hooks/useESGData';
 import { Loader2 } from 'lucide-react';
-
-// Declare Chart.js to fix TypeScript error
-declare global {
-  interface Window {
-    Chart: any;
-  }
-}
 
 const Index = () => {
   const {
@@ -26,79 +19,6 @@ const Index = () => {
     isDataFetched,
     fetchData
   } = useESGData();
-
-  // Load Chart.js script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  // Create charts when data is available
-  useEffect(() => {
-    if (esgData && typeof window !== 'undefined' && window.Chart) {
-      // Create environmental charts
-      Object.entries(esgData.environmental).forEach(([key, values]) => {
-        createPieChart(`chart-${key}`, values.value1, values.value2);
-      });
-      
-      // Create governance charts
-      Object.entries(esgData.governance).forEach(([key, values]) => {
-        createPieChart(`chart-${key}`, values.value1, values.value2);
-      });
-      
-      // Create social charts
-      Object.entries(esgData.social).forEach(([key, values]) => {
-        createPieChart(`chart-${key}`, values.value1, values.value2);
-      });
-    }
-  }, [esgData]);
-
-  const createPieChart = (canvasId: string, value1: number, value2: number) => {
-    const ctx = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!ctx) return;
-
-    const total = value1 + value2;
-    const percent1 = total ? (value1 / total) * 100 : 0;
-    const percent2 = total ? (value2 / total) * 100 : 0;
-    
-    if (typeof window !== 'undefined' && window.Chart) {
-      // @ts-ignore - Chart is loaded dynamically
-      new window.Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Período 1', 'Período 2'],
-          datasets: [{
-            data: [percent1, percent2],
-            backgroundColor: ['#3498db', '#e74c3c'],
-            borderColor: ['#2980b9', '#c0392b'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context: any) {
-                  return context.raw.toFixed(2) + '%';
-                }
-              }
-            }
-          },
-          aspectRatio: 1,  // Maintain chart proportion
-        }
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -131,19 +51,19 @@ const Index = () => {
         {!isLoading && esgData && (
           <div className="max-w-6xl mx-auto">
             <ComparisonSection 
-              title="Comparação de Indicadores Ambientais" 
+              title="Indicadores Ambientais" 
               data={esgData.environmental} 
               category="environmental" 
             />
             
             <ComparisonSection 
-              title="Comparação de Indicadores de Governança" 
+              title="Indicadores de Governança" 
               data={esgData.governance} 
               category="governance" 
             />
             
             <ComparisonSection 
-              title="Comparação de Indicadores Sociais" 
+              title="Indicadores Sociais" 
               data={esgData.social} 
               category="social" 
             />
