@@ -18,11 +18,11 @@ const DashboardSidebar = () => {
       <SidebarHeader className="p-4">
         <div className="flex items-center justify-center mb-4">
           <img 
-            src="/logo.png" 
-            alt="Granel Química Logo" 
-            className="h-12 w-auto" 
+            src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+            alt="Odjell Terminals Granel Química Logo" 
+            className="h-16 w-auto" 
             onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/120x60?text=Granel+Química';
+              e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
             }} 
           />
         </div>

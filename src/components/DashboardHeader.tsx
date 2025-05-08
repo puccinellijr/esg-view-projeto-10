@@ -13,11 +13,11 @@ const DashboardHeader = ({ username }: DashboardHeaderProps) => {
         <SidebarTrigger className="text-white hover:text-white/80" />
         <div className="flex items-center gap-2">
           <img 
-            src="/logo.png" 
-            alt="Granel Química Logo" 
-            className="h-8 w-auto" 
+            src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+            alt="Odjell Terminals Granel Química Logo" 
+            className="h-10 w-auto" 
             onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/40x40?text=Granel+Química';
+              e.currentTarget.src = 'https://via.placeholder.com/120x60?text=Odjell+Terminals';
             }} 
           />
         </div>
