@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -261,7 +260,7 @@ echo json_encode($response);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ESG Visualizador</title>
+    <title>Visualizador ESG</title>
     <script>
       // Configuração base para XAMPP
       window.xamppBasePath = '/esg-app/';

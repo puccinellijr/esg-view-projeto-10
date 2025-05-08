@@ -36,10 +36,10 @@ export default function Login() {
         accessLevel: user.accessLevel,
       }));
       
-      toast.success(`Welcome! You're logged in with ${user.accessLevel} access`);
+      toast.success(`Bem-vindo! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
       navigate("/dashboard");
     } else {
-      toast.error("Invalid email or password");
+      toast.error("Email ou senha inválidos");
     }
   };
 
@@ -56,7 +56,7 @@ export default function Login() {
               <Input
                 id="email"
                 type="email"
-                placeholder="email@example.com"
+                placeholder="email@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="border-gray-300"
@@ -65,7 +65,7 @@ export default function Login() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-black">Password</Label>
+              <Label htmlFor="password" className="text-black">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -77,20 +77,20 @@ export default function Login() {
               />
               <div className="text-right">
                 <Link to="/forgot-password" className="text-sm text-custom-blue hover:underline">
-                  Forgot password?
+                  Esqueceu a senha?
                 </Link>
               </div>
             </div>
             
             <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
-              Sign In
+              Entrar
             </Button>
             
             <div className="text-center text-sm text-gray-600 mt-4">
-              <p>Demo Accounts:</p>
-              <p>admin@example.com / admin123 (Administrative)</p>
-              <p>viewer@example.com / viewer123 (Viewer)</p>
-              <p>operator@example.com / operator123 (Operational)</p>
+              <p>Contas de demonstração:</p>
+              <p>admin@example.com / admin123 (Administrativo)</p>
+              <p>viewer@example.com / viewer123 (Visualizador)</p>
+              <p>operator@example.com / operator123 (Operacional)</p>
             </div>
           </form>
         </CardContent>

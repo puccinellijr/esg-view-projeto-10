@@ -30,10 +30,10 @@ const DashboardSidebar = () => {
       <SidebarContent>
         <SidebarMenu className="space-y-4 px-2">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Home" className="hover:bg-white/10">
+            <SidebarMenuButton asChild tooltip="Início" className="hover:bg-white/10">
               <Link to="/dashboard" className="text-white">
                 <Home />
-                <span>Home</span>
+                <span>Início</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

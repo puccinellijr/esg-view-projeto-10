@@ -24,7 +24,7 @@ export default function ResetPassword() {
   useEffect(() => {
     // Verify if the token is valid
     if (!token || !email) {
-      toast.error("Invalid or expired password reset link");
+      toast.error("Link de redefinição de senha inválido ou expirado");
       navigate("/login");
       return;
     }
@@ -32,7 +32,7 @@ export default function ResetPassword() {
     const storedToken = sessionStorage.getItem(`reset_${email}`);
     
     if (storedToken !== token) {
-      toast.error("Invalid or expired password reset link");
+      toast.error("Link de redefinição de senha inválido ou expirado");
       navigate("/login");
       return;
     }
@@ -44,12 +44,12 @@ export default function ResetPassword() {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("As senhas não coincidem");
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
     
@@ -71,14 +71,14 @@ export default function ResetPassword() {
       // Remove the reset token as it's been used
       sessionStorage.removeItem(`reset_${email}`);
       
-      toast.success("Password has been successfully reset");
+      toast.success("A senha foi redefinida com sucesso");
       
       // Automatically redirect to login after a delay
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } else {
-      toast.error("Failed to reset password. User not found.");
+      toast.error("Falha ao redefinir a senha. Usuário não encontrado.");
     }
   };
 
@@ -95,13 +95,13 @@ export default function ResetPassword() {
         <CardContent className="pt-6">
           {!isReset ? (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <h1 className="text-2xl font-bold text-center text-black">Reset Your Password</h1>
+              <h1 className="text-2xl font-bold text-center text-black">Redefinir Sua Senha</h1>
               <p className="text-center text-black mb-4">
-                Please enter your new password below.
+                Por favor, digite sua nova senha abaixo.
               </p>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-black">New Password</Label>
+                <Label htmlFor="password" className="text-black">Nova Senha</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -128,7 +128,7 @@ export default function ResetPassword() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-black">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword" className="text-black">Confirmar Nova Senha</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -143,12 +143,12 @@ export default function ResetPassword() {
               </div>
               
               <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
-                Reset Password
+                Redefinir Senha
               </Button>
               
               <div className="text-center">
                 <Link to="/login" className="text-sm text-custom-blue hover:underline">
-                  Back to login
+                  Voltar ao login
                 </Link>
               </div>
             </form>
@@ -157,13 +157,13 @@ export default function ResetPassword() {
               <Alert className="bg-green-50 text-black border-green-200">
                 <Key className="h-4 w-4" />
                 <AlertDescription>
-                  Your password has been successfully reset. You can now log in with your new password.
+                  Sua senha foi redefinida com sucesso. Agora você pode fazer login com sua nova senha.
                 </AlertDescription>
               </Alert>
               
               <div className="text-center">
                 <Link to="/login" className="text-sm text-custom-blue hover:underline">
-                  Back to login
+                  Voltar ao login
                 </Link>
               </div>
             </div>

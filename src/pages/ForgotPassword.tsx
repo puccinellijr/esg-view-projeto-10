@@ -30,7 +30,7 @@ export default function ForgotPassword() {
     const userExists = users.some(user => user.email === email);
     
     if (!userExists) {
-      toast.error("No account found with this email address");
+      toast.error("Nenhuma conta encontrada com este endereço de email");
       return;
     }
     
@@ -39,7 +39,7 @@ export default function ForgotPassword() {
     sessionStorage.setItem(`reset_${email}`, resetToken);
     
     setIsSubmitted(true);
-    toast.success("Password reset instructions have been sent to your email");
+    toast.success("Instruções para redefinição de senha foram enviadas para seu email");
     
     // In a real app, the user would click a link in their email to access the reset page
     // For this demo, we'll simulate this process by automatically navigating after a delay
@@ -57,9 +57,9 @@ export default function ForgotPassword() {
         <CardContent className="pt-6">
           {!isSubmitted ? (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <h1 className="text-2xl font-bold text-center text-black">Reset Your Password</h1>
+              <h1 className="text-2xl font-bold text-center text-black">Redefinir Sua Senha</h1>
               <p className="text-center text-black mb-4">
-                Enter your email address and we'll send you instructions to reset your password.
+                Digite seu endereço de email e enviaremos instruções para redefinir sua senha.
               </p>
               
               <div className="space-y-2">
@@ -67,7 +67,7 @@ export default function ForgotPassword() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder="email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="border-gray-300"
@@ -76,12 +76,12 @@ export default function ForgotPassword() {
               </div>
               
               <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
-                Send Reset Instructions
+                Enviar Instruções de Redefinição
               </Button>
               
               <div className="text-center">
                 <Link to="/login" className="text-sm text-custom-blue hover:underline">
-                  Back to login
+                  Voltar ao login
                 </Link>
               </div>
             </form>
@@ -90,14 +90,14 @@ export default function ForgotPassword() {
               <Alert className="bg-blue-50 text-black border-blue-200">
                 <Mail className="h-4 w-4" />
                 <AlertDescription>
-                  Password reset instructions have been sent to <strong>{email}</strong>. 
-                  Please check your email and follow the instructions.
+                  Instruções de redefinição de senha foram enviadas para <strong>{email}</strong>. 
+                  Por favor, verifique seu email e siga as instruções.
                 </AlertDescription>
               </Alert>
               
               <div className="text-center">
                 <Link to="/login" className="text-sm text-custom-blue hover:underline">
-                  Back to login
+                  Voltar ao login
                 </Link>
               </div>
             </div>
