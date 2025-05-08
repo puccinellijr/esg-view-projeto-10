@@ -1,11 +1,149 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect } from 'react';
+import TerminalSelector from '../components/TerminalSelector';
+import PeriodComparisonForm from '../components/PeriodComparisonForm';
+import ComparisonSection from '../components/ComparisonSection';
+import { useESGData } from '../hooks/useESGData';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
+  const {
+    terminal,
+    setTerminal,
+    period1,
+    period2,
+    updatePeriod1,
+    updatePeriod2,
+    esgData,
+    isLoading,
+    isDataFetched,
+    fetchData
+  } = useESGData();
+
+  // Load Chart.js script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // Create charts when data is available
+  useEffect(() => {
+    if (esgData && window.Chart) {
+      // Create environmental charts
+      Object.entries(esgData.environmental).forEach(([key, values]) => {
+        createPieChart(`chart-${key}`, values.value1, values.value2);
+      });
+      
+      // Create governance charts
+      Object.entries(esgData.governance).forEach(([key, values]) => {
+        createPieChart(`chart-${key}`, values.value1, values.value2);
+      });
+      
+      // Create social charts
+      Object.entries(esgData.social).forEach(([key, values]) => {
+        createPieChart(`chart-${key}`, values.value1, values.value2);
+      });
+    }
+  }, [esgData]);
+
+  const createPieChart = (canvasId: string, value1: number, value2: number) => {
+    const ctx = document.getElementById(canvasId) as HTMLCanvasElement;
+    if (!ctx) return;
+
+    const total = value1 + value2;
+    const percent1 = total ? (value1 / total) * 100 : 0;
+    const percent2 = total ? (value2 / total) * 100 : 0;
+    
+    // @ts-ignore - Chart is loaded dynamically
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Período 1', 'Período 2'],
+        datasets: [{
+          data: [percent1, percent2],
+          backgroundColor: ['#3498db', '#e74c3c'],
+          borderColor: ['#2980b9', '#c0392b'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context: any) {
+                return context.raw.toFixed(2) + '%';
+              }
+            }
+          }
+        },
+        aspectRatio: 1,  // Maintain chart proportion
+      }
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gray-100">
+      <div className="container py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Terminal {terminal}
+        </h1>
+        
+        <TerminalSelector 
+          selectedTerminal={terminal} 
+          onTerminalChange={setTerminal} 
+        />
+        
+        <PeriodComparisonForm
+          period1={period1}
+          period2={period2}
+          onPeriod1Change={updatePeriod1}
+          onPeriod2Change={updatePeriod2}
+          onCompare={fetchData}
+        />
+        
+        {isLoading && (
+          <div className="flex justify-center my-16">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+          </div>
+        )}
+        
+        {!isLoading && esgData && (
+          <>
+            <ComparisonSection 
+              title="Comparação de Indicadores Ambientais" 
+              data={esgData.environmental} 
+              category="environmental" 
+            />
+            
+            <ComparisonSection 
+              title="Comparação de Indicadores de Governança" 
+              data={esgData.governance} 
+              category="governance" 
+            />
+            
+            <ComparisonSection 
+              title="Comparação de Indicadores Sociais" 
+              data={esgData.social} 
+              category="social" 
+            />
+          </>
+        )}
+        
+        {!isLoading && !isDataFetched && (
+          <div className="text-center my-16 text-gray-500">
+            <p className="text-lg">Selecione os períodos e clique em "Comparar" para visualizar os indicadores</p>
+          </div>
+        )}
       </div>
     </div>
   );
