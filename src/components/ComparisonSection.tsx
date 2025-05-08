@@ -14,6 +14,8 @@ interface ComparisonSectionProps {
 }
 
 const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, category }) => {
+  const entries = Object.entries(data);
+  
   return (
     <div className="mt-10 mb-12">
       <div className="text-center mb-6">
@@ -22,17 +24,21 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
           Compare os valores entre os períodos selecionados
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 justify-items-center">
-        {Object.entries(data).map(([key, values]) => (
-          <div key={key} className="w-full">
-            <ComparisonCard
-              title={key}
-              value1={values.value1}
-              value2={values.value2}
-              category={category}
-            />
-          </div>
-        ))}
+      <div className="flex justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl">
+          {entries.map(([key, values]) => (
+            <div key={key} className="w-full flex justify-center">
+              <div className="w-full max-w-xs">
+                <ComparisonCard
+                  title={key}
+                  value1={values.value1}
+                  value2={values.value2}
+                  category={category}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

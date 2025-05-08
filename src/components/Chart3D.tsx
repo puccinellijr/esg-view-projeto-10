@@ -22,17 +22,17 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
   const total = value1 + value2;
   const angle1 = (value1 / total) * Math.PI * 2;
   
-  // Definir cores baseadas na categoria
+  // Definir cores mais contrastantes baseadas na categoria
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#34D399', color2: '#059669' };
+        return { color1: '#34D399', color2: '#047857' }; // Verde claro e verde escuro
       case 'governance':
-        return { color1: '#60A5FA', color2: '#2563EB' };
+        return { color1: '#60A5FA', color2: '#1E40AF' }; // Azul claro e azul escuro
       case 'social':
-        return { color1: '#F472B6', color2: '#DB2777' };
+        return { color1: '#F472B6', color2: '#BE185D' }; // Rosa claro e rosa escuro
       default:
-        return { color1: '#34D399', color2: '#059669' };
+        return { color1: '#34D399', color2: '#047857' };
     }
   };
 
@@ -58,11 +58,14 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
         <meshStandardMaterial color={color2} />
       </mesh>
       
-      {/* Legendas */}
+      {/* Legendas melhoradas */}
       <Text position={[0, 0.5, 0]} 
             rotation={[-Math.PI / 2, 0, 0]} 
             color="black" 
-            fontSize={0.15}
+            fontSize={0.18}
+            fontWeight="bold"
+            backgroundColor="#ffffffcc"
+            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`Período 1: ${(value1 / total * 100).toFixed(1)}%`}
@@ -71,7 +74,10 @@ const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
       <Text position={[0, 0.3, 0]} 
             rotation={[-Math.PI / 2, 0, 0]} 
             color="black" 
-            fontSize={0.15}
+            fontSize={0.18}
+            fontWeight="bold"
+            backgroundColor="#ffffffcc"
+            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`Período 2: ${(value2 / total * 100).toFixed(1)}%`}
@@ -87,17 +93,17 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
   const normalizedValue1 = value1 / maxValue;
   const normalizedValue2 = value2 / maxValue;
   
-  // Definir cores baseadas na categoria
+  // Definir cores mais contrastantes baseadas na categoria
   const getCategoryColors = () => {
     switch (category) {
       case 'environmental':
-        return { color1: '#34D399', color2: '#059669' };
+        return { color1: '#34D399', color2: '#047857' }; // Verde claro e verde escuro
       case 'governance':
-        return { color1: '#60A5FA', color2: '#2563EB' };
+        return { color1: '#60A5FA', color2: '#1E40AF' }; // Azul claro e azul escuro
       case 'social':
-        return { color1: '#F472B6', color2: '#DB2777' };
+        return { color1: '#F472B6', color2: '#BE185D' }; // Rosa claro e rosa escuro
       default:
-        return { color1: '#34D399', color2: '#059669' };
+        return { color1: '#34D399', color2: '#047857' };
     }
   };
 
@@ -123,10 +129,13 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
         <meshStandardMaterial color={color2} />
       </mesh>
       
-      {/* Legendas */}
+      {/* Legendas melhoradas */}
       <Text position={[-0.6, normalizedValue1 + 0.2, 0]} 
             color="black" 
-            fontSize={0.15}
+            fontSize={0.18}
+            fontWeight="bold"
+            backgroundColor="#ffffffcc"
+            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`P1: ${value1.toFixed(2)}`}
@@ -134,7 +143,10 @@ const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
       
       <Text position={[0.6, normalizedValue2 + 0.2, 0]} 
             color="black" 
-            fontSize={0.15}
+            fontSize={0.18}
+            fontWeight="bold"
+            backgroundColor="#ffffffcc"
+            padding={0.05}
             anchorX="center" 
             anchorY="middle">
         {`P2: ${value2.toFixed(2)}`}

@@ -65,11 +65,11 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
         <h3 className="text-white font-bold text-sm uppercase truncate">{title.replace("_", " ")}</h3>
       </div>
       
-      <div className="p-3 flex flex-col flex-grow items-center">
-        <p className="text-sm mb-1 w-full">
+      <div className="p-3 flex flex-col flex-grow items-center justify-center text-center">
+        <p className="text-sm mb-1 w-full text-center">
           <strong>Período 1:</strong> {value1.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
-        <p className="text-sm mb-1 w-full">
+        <p className="text-sm mb-1 w-full text-center">
           <strong>Período 2:</strong> {value2.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
         <p className="text-sm mb-2 flex items-center justify-center w-full">
