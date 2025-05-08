@@ -6,6 +6,13 @@ import ComparisonSection from '../components/ComparisonSection';
 import { useESGData } from '../hooks/useESGData';
 import { Loader2 } from 'lucide-react';
 
+// Declare Chart.js to fix TypeScript error
+declare global {
+  interface Window {
+    Chart: any;
+  }
+}
+
 const Index = () => {
   const {
     terminal,

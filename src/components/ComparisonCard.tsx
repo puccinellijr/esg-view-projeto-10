@@ -56,13 +56,13 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
   const percent2 = total ? (value2 / total) * 100 : 0;
   
   return (
-    <Card className="flex flex-col w-full sm:w-[calc(50%-0.5rem)] md:w-[300px] max-w-full overflow-hidden m-2">
+    <Card className="flex flex-col h-full overflow-hidden">
       <div className={`flex items-center gap-2 p-3 ${getBgColor()}`}>
         {getCategoryIcon()}
         <h3 className="text-white font-bold text-sm uppercase">{title.replace("_", " ")}</h3>
       </div>
       
-      <div className="p-4 flex flex-col">
+      <div className="p-4 flex flex-col flex-grow">
         <p className="text-sm mb-1">
           <strong>Período 1:</strong> {value1.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
         </p>
@@ -73,7 +73,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
           <strong>Variação:</strong> {getComparisonIcon()}
         </p>
         
-        <div className="w-full h-36 relative">
+        <div className="w-full h-36 relative mt-auto">
           <canvas id={`chart-${title}`} className="w-full h-full"></canvas>
         </div>
       </div>
