@@ -1,6 +1,5 @@
-
-// Mock data service to simulate fetching from an API
-// In a real app, this would make actual API calls
+// Data service to fetch ESG data from PHP API
+// When in development mode, we can use mock data by setting useMockData to true
 
 interface ESGData {
   environmental: {
@@ -23,20 +22,16 @@ interface ESGData {
   };
 }
 
-// Generate random data for demo purposes
+// Set to true to use mock data instead of real API
+const useMockData = true;
+
+// Generate random data for mock mode
 const generateRandomValue = (min: number, max: number): number => {
   return parseFloat((Math.random() * (max - min) + min).toFixed(4));
 };
 
-export const fetchESGData = async (
-  terminal: string,
-  period1: { month: string; year: string },
-  period2: { month: string; year: string }
-): Promise<ESGData> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // For demo purposes, generate random data
+// Generate mock data
+const generateMockData = (): ESGData => {
   return {
     environmental: {
       litro_tm: {
@@ -93,4 +88,41 @@ export const fetchESGData = async (
       },
     }
   };
+};
+
+export const fetchESGData = async (
+  terminal: string,
+  period1: { month: string; year: string },
+  period2: { month: string; year: string }
+): Promise<ESGData> => {
+  // If using mock data, return randomly generated data after simulated delay
+  if (useMockData) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return generateMockData();
+  }
+
+  // Otherwise, fetch from the actual API
+  try {
+    // Construct API URL with parameters
+    const apiUrl = `http://localhost/esg_api/get_esg_data.php?terminal=${encodeURIComponent(terminal)}&mes1=${period1.month}&ano1=${period1.year}&mes2=${period2.month}&ano2=${period2.year}`;
+    
+    console.log("Fetching data from API:", apiUrl);
+    
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log("API response:", data);
+    
+    return data as ESGData;
+  } catch (error) {
+    console.error("Error fetching from API:", error);
+    
+    // Fall back to mock data if API call fails
+    console.log("Falling back to mock data");
+    return generateMockData();
+  }
 };
