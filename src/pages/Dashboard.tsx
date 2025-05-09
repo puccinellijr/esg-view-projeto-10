@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
-  const { hasAccess } = useAuth();
+  const { hasAccess, user } = useAuth();
   const isAdmin = hasAccess('administrative');
 
   // Generate array of months for the selector
