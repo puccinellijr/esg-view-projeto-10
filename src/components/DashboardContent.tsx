@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -62,12 +63,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         { id: 'weight', name: 'KG / TM', value: 1234, icon: <Weight size={18} className="text-black" />, category: 'environmental' },
         { id: 'energy', name: 'KWH / TM', value: 156, icon: <Zap size={18} className="text-black" />, category: 'environmental' },
         { id: 'fuel', name: 'L Combustível / TM', value: 48, icon: <Fuel size={18} className="text-black" />, category: 'environmental' },
-        { id: 'waste', name: '% de Resíduos Gerados', value: 5.2, icon: <Percent size={18} className="text-black" />, category: 'environmental' },
+        { id: 'waste', name: 'Resíduos Gerados', value: 5.2, icon: <Percent size={18} className="text-black" />, category: 'environmental' },
         
         { id: 'incidents', name: 'Incidentes de Processo', value: 3, icon: <AlertTriangle size={18} className="text-black" />, category: 'social' },
         { id: 'accidents', name: 'Acidentes com Afastamento', value: 1, icon: <Bandage size={18} className="text-black" />, category: 'social' },
         { id: 'discrimination', name: 'Denúncias por Discriminação', value: 0, icon: <Users size={18} className="text-black" />, category: 'social' },
-        { id: 'women', name: 'Mulheres no Trabalho', value: '42%', icon: <Handshake size={18} className="text-black" />, category: 'social' },
+        { id: 'women', name: 'Mulheres no Trabalho', value: 42, icon: <Handshake size={18} className="text-black" />, category: 'social' },
         
         { id: 'corruption', name: 'Denúncias por Corrupção', value: 0, icon: <Gavel size={18} className="text-black" />, category: 'governance' },
         { id: 'complaints', name: 'Reclamação de Vizinhos', value: 2, icon: <Bell size={18} className="text-black" />, category: 'governance' },
@@ -147,9 +148,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores Ambientais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">85%</div>
+            <div className="text-2xl font-bold text-black">-</div>
             <p className="text-xs text-black mb-4">
-              +2.1% em relação ao período anterior
+              Período selecionado
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
@@ -172,9 +173,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores Sociais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">72%</div>
+            <div className="text-2xl font-bold text-black">-</div>
             <p className="text-xs text-black mb-4">
-              +0.9% em relação ao período anterior
+              Período selecionado
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
@@ -197,9 +198,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores de Governança</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">93%</div>
+            <div className="text-2xl font-bold text-black">-</div>
             <p className="text-xs text-black mb-4">
-              +5.4% em relação ao período anterior
+              Período selecionado
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">

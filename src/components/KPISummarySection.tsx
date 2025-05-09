@@ -39,24 +39,7 @@ interface KPISummarySectionProps {
 const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps) => {
   // Calculate summary metrics
   const calculateSummary = () => {
-    let totalImprovement = 0;
     let totalMetrics = 0;
-    
-    // Process all categories
-    ['environmental', 'social', 'governance'].forEach(category => {
-      const categoryData = esgData[category as keyof ESGData];
-      
-      Object.values(categoryData).forEach(({ value1, value2 }) => {
-        if (value1 > 0) { // Avoid division by zero
-          const percentChange = ((value2 - value1) / value1) * 100;
-          totalImprovement += percentChange;
-          totalMetrics++;
-        }
-      });
-    });
-    
-    // Calculate average improvement
-    const averageImprovement = totalMetrics > 0 ? totalImprovement / totalMetrics : 0;
     
     // Count metrics that improved
     let improvedCount = 0;
@@ -70,11 +53,11 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
         if (value2 > value1) improvedCount++;
         else if (value2 === value1) unchangedCount++;
         else worsenedCount++;
+        totalMetrics++;
       });
     });
     
     return {
-      averageImprovement,
       improvedCount,
       unchangedCount,
       worsenedCount,
@@ -106,8 +89,7 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Variação Média</h3>
               <div className="text-3xl font-bold text-blue-600">
-                {summary.averageImprovement > 0 ? '+' : ''}
-                {summary.averageImprovement.toFixed(2)}%
+                -
               </div>
               <p className="text-sm text-gray-500 mt-2">
                 Média de variação em todos os indicadores
@@ -124,7 +106,7 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
                 {summary.improvedCount} / {summary.totalMetrics}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                {((summary.improvedCount / summary.totalMetrics) * 100).toFixed(1)}% dos indicadores melhoraram
+                Indicadores que melhoraram
               </p>
             </div>
           </CardContent>
@@ -138,7 +120,7 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
                 {summary.worsenedCount} / {summary.totalMetrics}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                {((summary.worsenedCount / summary.totalMetrics) * 100).toFixed(1)}% dos indicadores pioraram
+                Indicadores que pioraram
               </p>
             </div>
           </CardContent>
