@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
 import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import TerminalSelector from '@/components/TerminalSelector';
 
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
@@ -16,6 +17,9 @@ const Dashboard = () => {
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const { hasAccess, user } = useAuth();
   const isAdmin = hasAccess('administrative');
+  
+  // Add terminal state - default to user's assigned terminal or "Rio Grande" if not set
+  const [selectedTerminal, setSelectedTerminal] = useState<string>(user?.terminal || "Rio Grande");
 
   // Generate array of months for the selector
   const months = [
@@ -49,6 +53,14 @@ const Dashboard = () => {
         <div className="flex flex-col flex-1">
           <DashboardHeader />
           <div className="p-6 flex flex-col">
+            {/* Add TerminalSelector for viewer users */}
+            {user?.accessLevel === 'viewer' && (
+              <TerminalSelector 
+                selectedTerminal={selectedTerminal} 
+                onTerminalChange={setSelectedTerminal}
+              />
+            )}
+            
             <div className="flex flex-wrap items-center gap-4 mb-6">
               <h2 className="text-xl font-semibold text-gray-800">Período:</h2>
               <div className="w-40">
@@ -93,6 +105,7 @@ const Dashboard = () => {
               selectedYear={selectedYear}
               isEditable={isAdmin}
               refreshTrigger={refreshTrigger}
+              selectedTerminal={selectedTerminal}
             />
           </div>
         </div>

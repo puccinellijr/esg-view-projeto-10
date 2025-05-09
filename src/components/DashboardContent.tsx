@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -29,6 +28,7 @@ interface DashboardContentProps {
   selectedYear: string;
   isEditable: boolean;
   refreshTrigger?: number;
+  selectedTerminal?: string; // Added selectedTerminal prop
 }
 
 interface Indicator {
@@ -43,7 +43,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   selectedMonth, 
   selectedYear, 
   isEditable,
-  refreshTrigger = 0
+  refreshTrigger = 0,
+  selectedTerminal = "Rio Grande" // Default to Rio Grande if not provided
 }) => {
   const { toast } = useToast();
   const [indicators, setIndicators] = useState<Indicator[]>([]);
@@ -51,35 +52,108 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [newValue, setNewValue] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch data when month, year, or refreshTrigger changes
+  // Fetch data when month, year, terminal or refreshTrigger changes
   useEffect(() => {
     const fetchData = () => {
-      // Simulate API call with month and year
-      console.log(`Fetching data for month ${selectedMonth} and year ${selectedYear}, refresh: ${refreshTrigger}`);
+      // Simulate API call with month, year and terminal
+      console.log(`Fetching data for terminal: ${selectedTerminal}, month ${selectedMonth} and year ${selectedYear}, refresh: ${refreshTrigger}`);
       
-      // Simulate data from API
+      // Simulate different data based on terminal selection
       const mockData: Indicator[] = [
-        { id: 'water', name: 'Litro / TM', value: 435, icon: <Droplet size={18} className="text-black" />, category: 'environmental' },
-        { id: 'weight', name: 'KG / TM', value: 1234, icon: <Weight size={18} className="text-black" />, category: 'environmental' },
-        { id: 'energy', name: 'KWH / TM', value: 156, icon: <Zap size={18} className="text-black" />, category: 'environmental' },
-        { id: 'fuel', name: 'L Combustível / TM', value: 48, icon: <Fuel size={18} className="text-black" />, category: 'environmental' },
-        { id: 'waste', name: 'Resíduos Gerados', value: 5.2, icon: <Percent size={18} className="text-black" />, category: 'environmental' },
+        { 
+          id: 'water', 
+          name: 'Litro / TM', 
+          // Use different values based on terminal
+          value: selectedTerminal === "Rio Grande" ? 435 : 398, 
+          icon: <Droplet size={18} className="text-black" />, 
+          category: 'environmental' 
+        },
+        { 
+          id: 'weight', 
+          name: 'KG / TM', 
+          value: selectedTerminal === "Rio Grande" ? 1234 : 1412, 
+          icon: <Weight size={18} className="text-black" />, 
+          category: 'environmental' 
+        },
+        { 
+          id: 'energy', 
+          name: 'KWH / TM', 
+          value: selectedTerminal === "Rio Grande" ? 156 : 173, 
+          icon: <Zap size={18} className="text-black" />, 
+          category: 'environmental' 
+        },
+        { 
+          id: 'fuel', 
+          name: 'L Combustível / TM', 
+          value: selectedTerminal === "Rio Grande" ? 48 : 52, 
+          icon: <Fuel size={18} className="text-black" />, 
+          category: 'environmental' 
+        },
+        { 
+          id: 'waste', 
+          name: 'Resíduos Gerados', 
+          value: selectedTerminal === "Rio Grande" ? 5.2 : 6.1, 
+          icon: <Percent size={18} className="text-black" />, 
+          category: 'environmental' 
+        },
         
-        { id: 'incidents', name: 'Incidentes de Processo', value: 3, icon: <AlertTriangle size={18} className="text-black" />, category: 'social' },
-        { id: 'accidents', name: 'Acidentes com Afastamento', value: 1, icon: <Bandage size={18} className="text-black" />, category: 'social' },
-        { id: 'discrimination', name: 'Denúncias por Discriminação', value: 0, icon: <Users size={18} className="text-black" />, category: 'social' },
-        { id: 'women', name: 'Mulheres no Trabalho', value: 42, icon: <Handshake size={18} className="text-black" />, category: 'social' },
+        { 
+          id: 'incidents', 
+          name: 'Incidentes de Processo', 
+          value: selectedTerminal === "Rio Grande" ? 3 : 2, 
+          icon: <AlertTriangle size={18} className="text-black" />, 
+          category: 'social' 
+        },
+        { 
+          id: 'accidents', 
+          name: 'Acidentes com Afastamento', 
+          value: selectedTerminal === "Rio Grande" ? 1 : 0, 
+          icon: <Bandage size={18} className="text-black" />, 
+          category: 'social' 
+        },
+        { 
+          id: 'discrimination', 
+          name: 'Denúncias por Discriminação', 
+          value: 0, 
+          icon: <Users size={18} className="text-black" />, 
+          category: 'social' 
+        },
+        { 
+          id: 'women', 
+          name: 'Mulheres no Trabalho', 
+          value: selectedTerminal === "Rio Grande" ? 42 : 47, 
+          icon: <Handshake size={18} className="text-black" />, 
+          category: 'social' 
+        },
         
-        { id: 'corruption', name: 'Denúncias por Corrupção', value: 0, icon: <Gavel size={18} className="text-black" />, category: 'governance' },
-        { id: 'complaints', name: 'Reclamação de Vizinhos', value: 2, icon: <Bell size={18} className="text-black" />, category: 'governance' },
-        { id: 'cyber', name: 'Incidentes Cibernéticos', value: 1, icon: <Server size={18} className="text-black" />, category: 'governance' },
+        { 
+          id: 'corruption', 
+          name: 'Denúncias por Corrupção', 
+          value: 0, 
+          icon: <Gavel size={18} className="text-black" />, 
+          category: 'governance' 
+        },
+        { 
+          id: 'complaints', 
+          name: 'Reclamação de Vizinhos', 
+          value: selectedTerminal === "Rio Grande" ? 2 : 3, 
+          icon: <Bell size={18} className="text-black" />, 
+          category: 'governance' 
+        },
+        { 
+          id: 'cyber', 
+          name: 'Incidentes Cibernéticos', 
+          value: selectedTerminal === "Rio Grande" ? 1 : 2, 
+          icon: <Server size={18} className="text-black" />, 
+          category: 'governance' 
+        },
       ];
       
       setIndicators(mockData);
     };
     
     fetchData();
-  }, [selectedMonth, selectedYear, refreshTrigger]);
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
 
   // Filter indicators by category
   const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
@@ -136,7 +210,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   return (
     <main className="flex-1 bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-6 text-black">Visão Geral</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-black">Visão Geral - Terminal {selectedTerminal}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col overflow-hidden">

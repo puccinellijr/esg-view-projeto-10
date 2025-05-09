@@ -12,8 +12,6 @@ interface TerminalSelectorProps {
 const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, onTerminalChange }) => {
   const { user } = useAuth();
   
-  // All users can select terminals, but for non-viewer users,
-  // we show a message about their assigned terminal
   const isViewer = user?.accessLevel === 'viewer';
   
   return (
@@ -29,6 +27,12 @@ const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, o
             <SelectItem value="SP">SP</SelectItem>
           </SelectContent>
         </Select>
+        
+        {isViewer && (
+          <div className="text-sm text-blue-600">
+            (Visualizador pode acessar todos os terminais)
+          </div>
+        )}
         
         {!isViewer && user?.terminal && (
           <div className="text-sm text-gray-600 italic">
