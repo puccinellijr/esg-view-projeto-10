@@ -22,8 +22,6 @@ export default function ProtectedRoute({ requiredLevel = 'operational' }: Protec
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
   
-  // Remove the restriction that was preventing operational users from accessing the dashboard
-  // Operational users should be able to access both the operational form and the dashboard
-  
+  // Return the outlet component to render child routes
   return <Outlet />;
 }

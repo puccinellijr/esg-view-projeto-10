@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -60,12 +59,8 @@ export default function Login() {
       
       toast.success(`Bem-vindo, ${user.name}! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
       
-      // Redirect based on user access level
-      if (user.accessLevel === "operational") {
-        navigate("/operational-form");
-      } else {
-        navigate("/dashboard");
-      }
+      // Always redirect to dashboard for all user types
+      navigate("/dashboard");
     } else {
       toast.error("Email ou senha inválidos");
     }
