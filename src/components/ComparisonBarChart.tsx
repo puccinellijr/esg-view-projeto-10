@@ -2,6 +2,7 @@
 import React from 'react';
 import { ChartContainer } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from 'recharts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ESGData {
   environmental: {
@@ -32,14 +33,14 @@ interface ComparisonBarChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-4 shadow-md rounded-md border border-gray-200">
-        <p className="font-bold mb-2">{label}</p>
-        <p className="text-sm text-green-600">
-          <span className="inline-block w-3 h-3 bg-green-500 mr-2 rounded-full"></span>
+      <div className="bg-white p-2 sm:p-4 shadow-md rounded-md border border-gray-200 text-xs sm:text-sm">
+        <p className="font-bold mb-1 sm:mb-2 text-xs sm:text-sm">{label}</p>
+        <p className="text-xs sm:text-sm text-green-600">
+          <span className="inline-block w-2 h-2 sm:w-3 sm:h-3 bg-green-500 mr-1 sm:mr-2 rounded-full"></span>
           Período 1: {payload[0].value.toFixed(4)}
         </p>
-        <p className="text-sm text-blue-600">
-          <span className="inline-block w-3 h-3 bg-blue-500 mr-2 rounded-full"></span>
+        <p className="text-xs sm:text-sm text-blue-600">
+          <span className="inline-block w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 mr-1 sm:mr-2 rounded-full"></span>
           Período 2: {payload[1].value.toFixed(4)}
         </p>
       </div>
@@ -50,6 +51,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData }) => {
+  const isMobile = useIsMobile();
+  
   // Process data for the chart
   const processChartData = () => {
     const chartData: any[] = [];
@@ -108,37 +111,67 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData }) => {
     period2: { label: 'Período 2', color: '#3B82F6' },
   };
   
+  // Determine chart height based on screen size and data length
+  const getChartHeight = () => {
+    const baseHeight = isMobile ? 400 : 600;
+    const itemCount = chartData.length;
+    
+    // Adjust height based on number of items for better readability on mobile
+    if (isMobile && itemCount > 10) {
+      return Math.max(baseHeight, itemCount * 30); // 30px per item minimum on mobile
+    }
+    
+    return baseHeight;
+  };
+  
   return (
-    <div className="w-full h-[600px] p-4 comparison-bar-chart">
-      <ChartContainer config={chartConfig} className="h-full">
+    <div className="w-full h-auto p-2 sm:p-4 comparison-bar-chart">
+      <ChartContainer config={chartConfig} className="h-[400px] sm:h-[500px] md:h-[600px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 30, bottom: 100 }}
+            margin={{ 
+              top: 20, 
+              right: isMobile ? 10 : 30, 
+              left: isMobile ? 10 : 30, 
+              bottom: isMobile ? 120 : 100 
+            }}
+            barGap={isMobile ? 0 : 4}
+            barSize={isMobile ? 8 : 16}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 
               angle={-45} 
               textAnchor="end" 
-              height={100}
-              tick={{ fontSize: 12 }}
+              height={isMobile ? 120 : 100}
+              tick={{ fontSize: isMobile ? 8 : 12 }}
+              interval={0}
+              tickMargin={isMobile ? 15 : 10}
             />
-            <YAxis />
+            <YAxis 
+              tick={{ fontSize: isMobile ? 8 : 12 }}
+              width={isMobile ? 40 : 50}
+            />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend
+              wrapperStyle={{ 
+                fontSize: isMobile ? 10 : 12,
+                paddingTop: isMobile ? 5 : 10
+              }}
+            />
             <Bar 
               dataKey="periodo1" 
               name="Período 1" 
               fill="#10B981"
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
               className="animate-fade-in"
             />
             <Bar 
               dataKey="periodo2" 
               name="Período 2" 
               fill="#3B82F6"
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
               className="animate-fade-in"
             />
           </BarChart>
