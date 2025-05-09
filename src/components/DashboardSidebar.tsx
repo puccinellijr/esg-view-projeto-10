@@ -34,6 +34,10 @@ const DashboardSidebar = () => {
     navigate('/login');
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <>
       <Sidebar className="bg-custom-blue text-white">
@@ -55,7 +59,12 @@ const DashboardSidebar = () => {
           <SidebarMenu className="space-y-4 px-2">
             {/* Início/Dashboard - Available to all users */}
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Início" className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}>
+              <SidebarMenuButton 
+                asChild 
+                tooltip="Início" 
+                className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}
+                onClick={() => handleNavigate('/dashboard')}
+              >
                 <Link 
                   to="/dashboard" 
                   className="text-white"

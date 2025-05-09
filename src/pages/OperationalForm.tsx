@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useNavigate } from 'react-router-dom';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -55,6 +56,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const OperationalForm = () => {
+  const navigate = useNavigate();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,6 +84,11 @@ const OperationalForm = () => {
     console.log("Dados do formulário:", data);
     toast.success("Dados salvos com sucesso!");
     form.reset();
+  };
+
+  // Function to handle navigation back to dashboard
+  const handleGoToDashboard = () => {
+    navigate('/dashboard');
   };
 
   return (
