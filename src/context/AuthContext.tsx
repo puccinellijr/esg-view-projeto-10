@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 export type AccessLevel = "operational" | "viewer" | "administrative";
@@ -8,6 +7,7 @@ interface User {
   accessLevel: AccessLevel;
   name?: string;
   photoUrl?: string;
+  terminal?: string | null; // Added terminal property
 }
 
 interface UserUpdateData {
@@ -15,6 +15,7 @@ interface UserUpdateData {
   email?: string;
   photoUrl?: string;
   password?: string;
+  terminal?: string | null; // Added terminal property
 }
 
 interface AuthContextType {
@@ -123,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: data.name || user.name,
             email: data.email || user.email,
             photoUrl: data.photoUrl || user.photoUrl,
+            terminal: data.terminal !== undefined ? data.terminal : user.terminal,
           };
           
           setUser(updatedUser);
