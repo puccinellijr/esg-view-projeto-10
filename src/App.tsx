@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import OperationalForm from "./pages/OperationalForm";
+import Comparison from "./pages/Comparison";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               {/* Protected routes for viewers and administrative users */}
               <Route element={<ProtectedRoute requiredLevel="viewer" />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/comparison" element={<Comparison />} />
               </Route>
 
               {/* Operational route - specifically for operational users */}

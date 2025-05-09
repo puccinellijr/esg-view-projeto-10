@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, BarChart2, LayoutDashboard, Settings, LogOut, FileText } from 'lucide-react';
+import { Home, BarChart2, LayoutDashboard, Settings, LogOut, FileText, LineChart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Sidebar, 
@@ -41,6 +41,15 @@ const DashboardSidebar = () => {
               <Link to="/dashboard" className="text-white">
                 <Home />
                 <span>Início</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Comparação" className="hover:bg-white/10">
+              <Link to="/comparison" className="text-white">
+                <LineChart />
+                <span>Comparação</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
