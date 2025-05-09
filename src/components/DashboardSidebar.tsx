@@ -94,9 +94,9 @@ const DashboardSidebar = () => {
                 </SidebarMenuButton>
                 
                 {isSettingsOpen && (
-                  <SidebarMenuSub>
+                  <SidebarMenuSub className="bg-white text-black rounded-md">
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"}>
+                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"} className="text-black hover:bg-gray-100">
                         <Link to="/settings/user/create">
                           <UserPlus className="h-4 w-4" />
                           <span>Cadastrar Usuário</span>
@@ -104,7 +104,7 @@ const DashboardSidebar = () => {
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"}>
+                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"} className="text-black hover:bg-gray-100">
                         <Link to="/settings/users">
                           <Users className="h-4 w-4" />
                           <span>Gerenciar Usuários</span>
