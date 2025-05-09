@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight, LogOut } from 'lucide-react';
@@ -108,7 +109,7 @@ const DashboardSidebar = () => {
                 <>
                   <SidebarMenuButton 
                     tooltip="Configurações"
-                    className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") || isSettingsOpen ? "bg-white/20" : ""}`}
+                    className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") || isSettingsOpen ? "bg-white/30" : ""}`} // Changed bg-white/20 to bg-white/30 to make it lighter
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   >
                     <Settings />
@@ -153,7 +154,7 @@ const DashboardSidebar = () => {
               ) : (
                 <SidebarMenuButton 
                   tooltip="Configurações" 
-                  className={`hover:bg-white/10`}
+                  className={`hover:bg-white/10 bg-white/30`} // Changed to bg-white/30 to make it lighter
                   onClick={() => setIsProfileOpen(true)}
                 >
                   <Settings />
