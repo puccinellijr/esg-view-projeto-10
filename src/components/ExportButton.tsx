@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText, FileExcel, Download } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { exportToExcel, exportToPDF } from "@/utils/exportUtils";
 import {
   DropdownMenu,
@@ -102,7 +102,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={handleExportToExcel}>
-          <FileExcel className="mr-2 h-4 w-4" />
+          <Download className="mr-2 h-4 w-4" />
           Exportar para Excel
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleExportToPDF}>
