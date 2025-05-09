@@ -33,6 +33,8 @@ const formSchema = z.object({
   year: z.string({
     required_error: "Por favor selecione um ano",
   }),
+  // Tonelada movimentada
+  toneladasMovimentadas: z.string().min(1, "Campo obrigatório"),
   // Campos Ambientais
   waterPerTon: z.string().min(1, "Campo obrigatório"),
   kgPerTon: z.string().min(1, "Campo obrigatório"),
@@ -59,6 +61,7 @@ const OperationalForm = () => {
       terminal: "Rio Grande",
       period: "1",
       year: new Date().getFullYear().toString(),
+      toneladasMovimentadas: "",
       waterPerTon: "",
       kgPerTon: "",
       kwhPerTon: "",
@@ -174,6 +177,26 @@ const OperationalForm = () => {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    {/* Tonelada movimentada - new section */}
+                    <div className="border-t pt-6">
+                      <h3 className="text-lg font-medium mb-4">Dados Operacionais</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="toneladasMovimentadas"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Toneladas Movimentadas (TM)</FormLabel>
+                              <FormControl>
+                                <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
 
                     <div className="border-t pt-6">
