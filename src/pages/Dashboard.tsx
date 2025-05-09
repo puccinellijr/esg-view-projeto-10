@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import TerminalSelector from '@/components/TerminalSelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const { hasAccess, user } = useAuth();
   const isAdmin = hasAccess('administrative');
+  const isMobile = useIsMobile();
   
   // Add terminal state - default to user's assigned terminal or "Rio Grande" if not set
   const [selectedTerminal, setSelectedTerminal] = useState<string>(user?.terminal || "Rio Grande");
@@ -52,7 +54,7 @@ const Dashboard = () => {
         <DashboardSidebar />
         <div className="flex flex-col flex-1">
           <DashboardHeader />
-          <div className="p-6 flex flex-col">
+          <div className="p-3 sm:p-4 md:p-6 flex flex-col">
             {/* Add TerminalSelector for viewer users */}
             {user?.accessLevel === 'viewer' && (
               <TerminalSelector 
@@ -61,11 +63,11 @@ const Dashboard = () => {
               />
             )}
             
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">Período:</h2>
-              <div className="w-40">
+            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 w-full sm:w-auto">Período:</h2>
+              <div className="w-full sm:w-40">
                 <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione o mês" />
                   </SelectTrigger>
                   <SelectContent>
@@ -77,9 +79,9 @@ const Dashboard = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-28">
+              <div className="w-full sm:w-28">
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
                   <SelectContent>
@@ -93,7 +95,7 @@ const Dashboard = () => {
               </div>
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0"
                 onClick={handleRefreshData}
               >
                 <RefreshCw className="h-4 w-4" />
