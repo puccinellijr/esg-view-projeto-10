@@ -16,6 +16,9 @@ import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import OperationalForm from "./pages/OperationalForm";
 import Comparison from "./pages/Comparison";
+import UserProfile from "./pages/UserProfile";
+import CreateUser from "./pages/CreateUser";
+import ManageUsers from "./pages/ManageUsers";
 
 const queryClient = new QueryClient();
 
@@ -38,11 +41,23 @@ const App = () => (
               <Route element={<ProtectedRoute requiredLevel="viewer" />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/comparison" element={<Comparison />} />
+                <Route path="/reports" element={<Comparison />} />
               </Route>
 
               {/* Operational route - specifically for operational users */}
               <Route element={<ProtectedRoute requiredLevel="operational" />}>
                 <Route path="/operational-form" element={<OperationalForm />} />
+              </Route>
+              
+              {/* Profile settings - available to all authenticated users */}
+              <Route element={<ProtectedRoute requiredLevel="operational" />}>
+                <Route path="/settings/profile" element={<UserProfile />} />
+              </Route>
+              
+              {/* Admin settings - only available to administrative users */}
+              <Route element={<ProtectedRoute requiredLevel="administrative" />}>
+                <Route path="/settings/user/create" element={<CreateUser />} />
+                <Route path="/settings/users" element={<ManageUsers />} />
               </Route>
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

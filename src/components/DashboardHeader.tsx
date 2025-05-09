@@ -1,20 +1,19 @@
 
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, User } from "lucide-react";
-import { toast } from "sonner";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState } from "react";
+import UserProfileModal from "@/components/UserProfileModal";
 
 const DashboardHeader = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { toggleSidebar, state } = useSidebar();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
-  const handleLogout = () => {
-    logout();
-    toast.success("Desconectado com sucesso");
-    navigate("/login");
+  const getInitials = (email: string) => {
+    return email ? email.substring(0, 2).toUpperCase() : "U";
   };
 
   return (
@@ -50,20 +49,18 @@ const DashboardHeader = () => {
       
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          <span className="text-sm">
+          <span className="text-sm hidden md:inline">
             {user?.email} ({user?.accessLevel === "administrative" ? "Administrativo" : user?.accessLevel === "viewer" ? "Visualizador" : "Operacional"})
           </span>
+          <Avatar className="cursor-pointer h-9 w-9 border-2 border-white/20 hover:border-white transition-colors"
+                onClick={() => setIsProfileOpen(true)}>
+            <AvatarImage src={user?.photoUrl || ""} alt={user?.email || "User"} />
+            <AvatarFallback className="bg-blue-500 text-white">{getInitials(user?.email || "")}</AvatarFallback>
+          </Avatar>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1 text-white hover:text-sidebar hover:bg-white"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4" /> Sair
-        </Button>
       </div>
+
+      {isProfileOpen && <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />}
     </header>
   );
 };

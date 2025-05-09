@@ -6,6 +6,15 @@ export type AccessLevel = "operational" | "viewer" | "administrative";
 interface User {
   email: string;
   accessLevel: AccessLevel;
+  name?: string;
+  photoUrl?: string;
+}
+
+interface UserUpdateData {
+  name?: string;
+  email?: string;
+  photoUrl?: string;
+  password?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +24,7 @@ interface AuthContextType {
   hasAccess: (requiredLevel: AccessLevel) => boolean;
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (email: string, newPassword: string) => Promise<boolean>;
+  updateUserProfile: (data: UserUpdateData) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -97,13 +107,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
+    // In a real app, this would call an API to update the user profile
+    return new Promise(resolve => {
+      try {
+        if (user) {
+          const updatedUser = {
+            ...user,
+            name: data.name || user.name,
+            email: data.email || user.email,
+            photoUrl: data.photoUrl || user.photoUrl,
+          };
+          
+          setUser(updatedUser);
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        resolve(false);
+      }
+    });
+  };
+
   const value = {
     user,
     login,
     logout,
     hasAccess,
     resetPassword,
-    updatePassword
+    updatePassword,
+    updateUserProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

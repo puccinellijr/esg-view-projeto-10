@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart2, LayoutDashboard, Settings, LogOut, FileText, LineChart } from 'lucide-react';
+import { Home, FileText, Settings, ChevronDown, Users, UserPlus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Sidebar, 
@@ -12,10 +12,13 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 
 const DashboardSidebar = () => {
-  const { logout, hasAccess } = useAuth();
+  const { user, hasAccess } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
 
@@ -37,6 +40,7 @@ const DashboardSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="space-y-4 px-2">
+          {/* Início/Dashboard - Available to all users */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Início" className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}>
               <Link to="/dashboard" className="text-white">
@@ -46,16 +50,7 @@ const DashboardSidebar = () => {
             </SidebarMenuButton>
           </SidebarMenuItem>
           
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Comparação" className={`hover:bg-white/10 ${location.pathname === "/comparison" ? "bg-white/20" : ""}`}>
-              <Link to="/comparison" className="text-white">
-                <LineChart />
-                <span>Comparação</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          
-          {/* Show operational form only for operational users and higher */}
+          {/* Formulário - Available to operational users and higher */}
           {hasAccess('operational') && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Formulário" className={`hover:bg-white/10 ${location.pathname === "/operational-form" ? "bg-white/20" : ""}`}>
@@ -67,39 +62,64 @@ const DashboardSidebar = () => {
             </SidebarMenuItem>
           )}
           
+          {/* Relatórios - Only visible to viewer and administrative users */}
+          {hasAccess('viewer') && !hasAccess('operational') && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/reports" ? "bg-white/20" : ""}`}>
+                <Link to="/reports" className="text-white">
+                  <Link to="/comparison" className="text-white">
+                    <span>Relatórios</span>
+                  </Link>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          
+          {/* Settings - Available to all users but with different options */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/relatorios" ? "bg-white/20" : ""}`}>
-              <Link to="/comparison" className="text-white">
-                <BarChart2 />
-                <span>Relatórios</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Dashboards" className={`hover:bg-white/10 ${location.pathname === "/dashboards" ? "bg-white/20" : ""}`}>
-              <Link to="/dashboards" className="text-white">
-                <LayoutDashboard />
-                <span>Dashboards</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Configurações" className={`hover:bg-white/10 ${location.pathname === "/configuracoes" ? "bg-white/20" : ""}`}>
-              <Link to="/configuracoes" className="text-white">
-                <Settings />
-                <span>Configurações</span>
-              </Link>
-            </SidebarMenuButton>
+            {hasAccess('administrative') ? (
+              <>
+                <SidebarMenuButton 
+                  tooltip="Configurações"
+                  className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") ? "bg-white/20" : ""}`}
+                >
+                  <Settings />
+                  <span>Configurações</span>
+                  <ChevronDown className="ml-auto h-4 w-4" />
+                </SidebarMenuButton>
+                
+                <SidebarMenuSub>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"}>
+                      <Link to="/settings/user/create">
+                        <UserPlus className="h-4 w-4" />
+                        <span>Cadastrar Usuário</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"}>
+                      <Link to="/settings/users">
+                        <Users className="h-4 w-4" />
+                        <span>Gerenciar Usuários</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                </SidebarMenuSub>
+              </>
+            ) : (
+              <SidebarMenuButton asChild tooltip="Configurações" className={`hover:bg-white/10 ${location.pathname === "/settings/profile" ? "bg-white/20" : ""}`}>
+                <Link to="/settings/profile" className="text-white">
+                  <Settings />
+                  <span>Configurações</span>
+                </Link>
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 mt-auto">
-        <SidebarMenuButton asChild tooltip="Sair" className="hover:bg-custom-red/90">
-          <button onClick={logout} className="w-full flex items-center gap-2 text-white">
-            <LogOut />
-            <span>Sair</span>
-          </button>
-        </SidebarMenuButton>
+        {/* Footer content if needed */}
       </SidebarFooter>
     </Sidebar>
   );

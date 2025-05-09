@@ -6,21 +6,41 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
 
 // Define user access levels
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
-// Mock users for demonstration
+// Mock users for demonstration with names and photos
 const users = [
-  { email: "admin@example.com", password: "admin123", accessLevel: "administrative" as AccessLevel },
-  { email: "viewer@example.com", password: "viewer123", accessLevel: "viewer" as AccessLevel },
-  { email: "operator@example.com", password: "operator123", accessLevel: "operational" as AccessLevel },
+  { 
+    email: "admin@example.com", 
+    password: "admin123", 
+    accessLevel: "administrative" as AccessLevel,
+    name: "Admin User",
+    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com"
+  },
+  { 
+    email: "viewer@example.com", 
+    password: "viewer123", 
+    accessLevel: "viewer" as AccessLevel,
+    name: "Viewer User",
+    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com"
+  },
+  { 
+    email: "operator@example.com", 
+    password: "operator123", 
+    accessLevel: "operational" as AccessLevel,
+    name: "Operator User",
+    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com"
+  },
 ];
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,18 +50,18 @@ export default function Login() {
     );
     
     if (user) {
-      // Store user info in session storage
-      sessionStorage.setItem("user", JSON.stringify({
+      // Use the login function from AuthContext
+      login({
         email: user.email,
         accessLevel: user.accessLevel,
-      }));
+        name: user.name,
+        photoUrl: user.photoUrl
+      });
       
-      toast.success(`Bem-vindo! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
+      toast.success(`Bem-vindo, ${user.name}! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
       
       // Redirect based on user access level
-      if (user.accessLevel === "administrative") {
-        navigate("/dashboard");
-      } else if (user.accessLevel === "operational") {
+      if (user.accessLevel === "operational") {
         navigate("/operational-form");
       } else {
         navigate("/dashboard");
@@ -55,7 +75,7 @@ export default function Login() {
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-sidebar to-sidebar/70 p-4">
       <Card className="w-full max-w-md bg-white/95 shadow-lg">
         <div className="flex justify-center p-6 border-b">
-          <img src="/logo.png" alt="Logo" className="h-16 object-contain" />
+          <img src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" alt="Logo" className="h-16 object-contain" />
         </div>
         <CardContent className="pt-6">
           <form onSubmit={handleLogin} className="space-y-6">
