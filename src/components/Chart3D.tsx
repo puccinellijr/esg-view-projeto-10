@@ -1,193 +1,5 @@
 
-import React, { useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, PresentationControls } from '@react-three/drei';
-import * as THREE from 'three';
-
-interface PieChartProps {
-  value1: number;
-  value2: number;
-  category: 'environmental' | 'governance' | 'social';
-}
-
-interface BarChartProps {
-  value1: number;
-  value2: number;
-  category: 'environmental' | 'governance' | 'social';
-}
-
-// Componente 3D para Gráfico de Pizza
-const Pie3D: React.FC<PieChartProps> = ({ value1, value2, category }) => {
-  const groupRef = useRef<THREE.Group>(null);
-  const total = value1 + value2;
-  const angle1 = (value1 / total) * Math.PI * 2;
-  
-  // Definir cores mais vibrantes para melhor visualização
-  const getCategoryColors = () => {
-    switch (category) {
-      case 'environmental':
-        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
-      case 'governance':
-        return { color1: '#FFA500', color2: '#8B5CF6' }; // Laranja vibrante e roxo vibrante
-      case 'social':
-        return { color1: '#0EA5E9', color2: '#D946EF' }; // Azul vibrante e magenta vibrante
-      default:
-        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
-    }
-  };
-
-  const { color1, color2 } = getCategoryColors();
-  
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += 0.005;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      {/* Primeiro segmento do gráfico */}
-      <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[1, 1, 0.2, 32, 1, false, 0, angle1]} />
-        <meshStandardMaterial color={color1} emissive={color1} emissiveIntensity={0.2} />
-      </mesh>
-      
-      {/* Segundo segmento do gráfico */}
-      <mesh position={[0, 0, 0]} rotation={[0, angle1, 0]}>
-        <cylinderGeometry args={[1, 1, 0.2, 32, 1, false, 0, Math.PI * 2 - angle1]} />
-        <meshStandardMaterial color={color2} emissive={color2} emissiveIntensity={0.2} />
-      </mesh>
-      
-      {/* Legendas melhoradas */}
-      <Text position={[0, 0.5, 0]} 
-            rotation={[-Math.PI / 2, 0, 0]} 
-            color="black" 
-            fontSize={0.18}
-            fontWeight="bold"
-            anchorX="center" 
-            anchorY="middle">
-        {`Período 1: ${(value1 / total * 100).toFixed(1)}%`}
-      </Text>
-      
-      <Text position={[0, 0.3, 0]} 
-            rotation={[-Math.PI / 2, 0, 0]} 
-            color="black" 
-            fontSize={0.18}
-            fontWeight="bold"
-            anchorX="center" 
-            anchorY="middle">
-        {`Período 2: ${(value2 / total * 100).toFixed(1)}%`}
-      </Text>
-    </group>
-  );
-};
-
-// Componente 3D para Gráfico de Barras
-const Bars3D: React.FC<BarChartProps> = ({ value1, value2, category }) => {
-  const groupRef = useRef<THREE.Group>(null);
-  const maxValue = Math.max(value1, value2);
-  const normalizedValue1 = value1 / maxValue;
-  const normalizedValue2 = value2 / maxValue;
-  
-  // Definir cores mais vibrantes para melhor visualização
-  const getCategoryColors = () => {
-    switch (category) {
-      case 'environmental':
-        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
-      case 'governance':
-        return { color1: '#FFA500', color2: '#8B5CF6' }; // Laranja vibrante e roxo vibrante
-      case 'social':
-        return { color1: '#0EA5E9', color2: '#D946EF' }; // Azul vibrante e magenta vibrante
-      default:
-        return { color1: '#00FF00', color2: '#FF0000' }; // Verde vibrante e vermelho vibrante
-    }
-  };
-
-  const { color1, color2 } = getCategoryColors();
-  
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += 0.005;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      {/* Primeira barra */}
-      <mesh position={[-0.6, normalizedValue1 / 2, 0]}>
-        <boxGeometry args={[0.4, normalizedValue1, 0.4]} />
-        <meshStandardMaterial color={color1} emissive={color1} emissiveIntensity={0.2} />
-      </mesh>
-      
-      {/* Segunda barra */}
-      <mesh position={[0.6, normalizedValue2 / 2, 0]}>
-        <boxGeometry args={[0.4, normalizedValue2, 0.4]} />
-        <meshStandardMaterial color={color2} emissive={color2} emissiveIntensity={0.2} />
-      </mesh>
-      
-      {/* Legendas melhoradas */}
-      <Text position={[-0.6, normalizedValue1 + 0.2, 0]} 
-            color="black" 
-            fontSize={0.18}
-            fontWeight="bold"
-            anchorX="center" 
-            anchorY="middle">
-        {`P1: ${value1.toFixed(2)}`}
-      </Text>
-      
-      <Text position={[0.6, normalizedValue2 + 0.2, 0]} 
-            color="black" 
-            fontSize={0.18}
-            fontWeight="bold"
-            anchorX="center" 
-            anchorY="middle">
-        {`P2: ${value2.toFixed(2)}`}
-      </Text>
-    </group>
-  );
-};
-
-export const PieChart3D: React.FC<PieChartProps> = (props) => {
-  return (
-    <div className="w-full h-full">
-      <Canvas camera={{ position: [0, 2, 4], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-        <PresentationControls
-          global
-          config={{ mass: 2, tension: 500 }}
-          snap={{ mass: 4, tension: 1500 }}
-          rotation={[0, 0, 0]}
-          polar={[-Math.PI / 3, Math.PI / 3]}
-          azimuth={[-Math.PI / 1.4, Math.PI / 2]}>
-          <Pie3D {...props} />
-        </PresentationControls>
-        <OrbitControls enableZoom={false} />
-      </Canvas>
-    </div>
-  );
-};
-
-export const BarChart3D: React.FC<BarChartProps> = (props) => {
-  return (
-    <div className="w-full h-full">
-      <Canvas camera={{ position: [0, 1, 4], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-        <PresentationControls
-          global
-          config={{ mass: 2, tension: 500 }}
-          snap={{ mass: 4, tension: 1500 }}
-          rotation={[0, 0, 0]}
-          polar={[-Math.PI / 3, Math.PI / 3]}
-          azimuth={[-Math.PI / 1.4, Math.PI / 2]}>
-          <Bars3D {...props} />
-        </PresentationControls>
-        <OrbitControls enableZoom={false} />
-      </Canvas>
-    </div>
-  );
-};
+import React from 'react';
 
 interface Chart3DProps {
   type: 'pie' | 'bar';
@@ -196,15 +8,89 @@ interface Chart3DProps {
   category: 'environmental' | 'governance' | 'social';
 }
 
+// Simplified 2D chart implementation using SVG
 const Chart3D: React.FC<Chart3DProps> = ({ type, value1, value2, category }) => {
+  // Get category colors
+  const getCategoryColors = () => {
+    switch (category) {
+      case 'environmental':
+        return { color1: '#00c853', color2: '#2e7d32' };
+      case 'governance':
+        return { color1: '#aa00ff', color2: '#6a1b9a' };
+      case 'social':
+        return { color1: '#2196f3', color2: '#0d47a1' };
+      default:
+        return { color1: '#00c853', color2: '#2e7d32' };
+    }
+  };
+
+  const { color1, color2 } = getCategoryColors();
+  const total = value1 + value2;
+  
+  // Normalize values for visualization
+  const normalizedValue1 = value1 / Math.max(value1, value2);
+  const normalizedValue2 = value2 / Math.max(value1, value2);
+  
+  // Calculate percentages for pie chart
+  const percentage1 = ((value1 / total) * 100).toFixed(1);
+  const percentage2 = ((value2 / total) * 100).toFixed(1);
+  
+  // Render pie chart
+  if (type === 'pie') {
+    // Calculate pie chart segments
+    const startAngle1 = 0;
+    const endAngle1 = (value1 / total) * 2 * Math.PI;
+    const startAngle2 = endAngle1;
+    const endAngle2 = 2 * Math.PI;
+
+    const createPieSlice = (startAngle: number, endAngle: number, color: string) => {
+      const radius = 40;
+      const centerX = 50;
+      const centerY = 50;
+      
+      // Calculate path for arc
+      const x1 = centerX + radius * Math.cos(startAngle);
+      const y1 = centerY + radius * Math.sin(startAngle);
+      const x2 = centerX + radius * Math.cos(endAngle);
+      const y2 = centerY + radius * Math.sin(endAngle);
+      
+      const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+      
+      return `M${centerX},${centerY} L${x1},${y1} A${radius},${radius} 0 ${largeArcFlag},1 ${x2},${y2} Z`;
+    };
+    
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <svg width="100%" height="100%" viewBox="0 0 100 100">
+          {/* Pie slices */}
+          <path d={createPieSlice(startAngle1, endAngle1, color1)} fill={color1} />
+          <path d={createPieSlice(startAngle2, endAngle2, color2)} fill={color2} />
+          
+          {/* Legend */}
+          <text x="50" y="110" textAnchor="middle" fontSize="10" fill="black">
+            P1: {percentage1}% - P2: {percentage2}%
+          </text>
+        </svg>
+      </div>
+    );
+  }
+  
+  // Render bar chart
   return (
-    <>
-      {type === 'pie' ? (
-        <PieChart3D value1={value1} value2={value2} category={category} />
-      ) : (
-        <BarChart3D value1={value1} value2={value2} category={category} />
-      )}
-    </>
+    <div className="w-full h-full flex items-center justify-center">
+      <svg width="100%" height="100%" viewBox="0 0 100 100">
+        {/* Background */}
+        <rect x="0" y="0" width="100" height="100" fill="transparent" />
+        
+        {/* Bars */}
+        <rect x="20" y={80 - normalizedValue1 * 60} width="20" height={normalizedValue1 * 60} fill={color1} />
+        <rect x="60" y={80 - normalizedValue2 * 60} width="20" height={normalizedValue2 * 60} fill={color2} />
+        
+        {/* Labels */}
+        <text x="30" y="90" textAnchor="middle" fontSize="8" fill="black">P1: {value1.toFixed(2)}</text>
+        <text x="70" y="90" textAnchor="middle" fontSize="8" fill="black">P2: {value2.toFixed(2)}</text>
+      </svg>
+    </div>
   );
 };
 

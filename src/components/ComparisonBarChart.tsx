@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface ESGData {
@@ -27,6 +27,27 @@ interface ESGData {
 interface ComparisonBarChartProps {
   esgData: ESGData;
 }
+
+// Custom tooltip component for the chart
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 shadow-md rounded-md border border-gray-200">
+        <p className="font-bold mb-2">{label}</p>
+        <p className="text-sm text-green-600">
+          <span className="inline-block w-3 h-3 bg-green-500 mr-2 rounded-full"></span>
+          Período 1: {payload[0].value.toFixed(4)}
+        </p>
+        <p className="text-sm text-blue-600">
+          <span className="inline-block w-3 h-3 bg-blue-500 mr-2 rounded-full"></span>
+          Período 2: {payload[1].value.toFixed(4)}
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData }) => {
   // Process data for the chart
@@ -104,11 +125,7 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData }) => {
               tick={{ fontSize: 12 }}
             />
             <YAxis />
-            <ChartTooltip 
-              content={(props) => (
-                <ChartTooltipContent {...props} />
-              )}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Bar 
               dataKey="periodo1" 
