@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { AccessLevel } from '@/context/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ImageUpload from '@/components/ImageUpload';
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -35,15 +35,6 @@ const CreateUser = () => {
     toast.success(`Usuário ${name} criado com sucesso`);
     navigate("/settings/users");
   };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2) || "U";
-  };
   
   return (
     <div className="min-h-screen flex w-full bg-gray-50">
@@ -59,10 +50,12 @@ const CreateUser = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="flex flex-col items-center mb-4">
-                  <Avatar className="h-24 w-24 mb-2">
-                    <AvatarImage src={photoUrl} alt={name} />
-                    <AvatarFallback className="bg-blue-500 text-white text-xl">{getInitials(name)}</AvatarFallback>
-                  </Avatar>
+                  <ImageUpload
+                    value={photoUrl}
+                    onChange={setPhotoUrl}
+                    name={name}
+                    email={email}
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,16 +121,6 @@ const CreateUser = () => {
                         <SelectItem value="administrative">Administrativo</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="photoUrl">URL da Foto</Label>
-                    <Input
-                      id="photoUrl"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="https://example.com/photo.jpg"
-                    />
                   </div>
                 </div>
                 

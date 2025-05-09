@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ImageUpload from '@/components/ImageUpload';
 
 const UserProfile = () => {
   const { user, updateUserProfile, logout } = useAuth();
@@ -44,18 +44,6 @@ const UserProfile = () => {
       toast.error("Erro ao atualizar perfil");
     }
   };
-
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(' ')
-        .map((word) => word[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
-    }
-    return email ? email.substring(0, 2).toUpperCase() : "U";
-  };
   
   return (
     <div className="min-h-screen flex w-full bg-gray-50">
@@ -71,23 +59,15 @@ const UserProfile = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="flex flex-col items-center mb-4">
-                  <Avatar className="h-24 w-24 mb-2">
-                    <AvatarImage src={photoUrl} alt={name || email} />
-                    <AvatarFallback className="bg-blue-500 text-white text-xl">{getInitials(name, email)}</AvatarFallback>
-                  </Avatar>
+                  <ImageUpload
+                    value={photoUrl}
+                    onChange={setPhotoUrl}
+                    name={name}
+                    email={email}
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="photoUrl">URL da Foto</Label>
-                    <Input
-                      id="photoUrl"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="https://example.com/photo.jpg"
-                    />
-                  </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome</Label>
                     <Input

@@ -5,10 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ImageUpload from "@/components/ImageUpload";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -55,10 +55,6 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     toast.success("Desconectado com sucesso");
     navigate("/login");
   };
-
-  const getInitials = (email: string) => {
-    return email ? email.substring(0, 2).toUpperCase() : "U";
-  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -68,22 +64,12 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col items-center mb-4">
-            <Avatar className="h-24 w-24 mb-2">
-              <AvatarImage src={photoUrl} alt={name || email} />
-              <AvatarFallback className="bg-blue-500 text-white text-xl">{getInitials(email)}</AvatarFallback>
-            </Avatar>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="photoUrl">URL da Foto</Label>
-            <Input 
-              id="photoUrl" 
-              value={photoUrl} 
-              onChange={(e) => setPhotoUrl(e.target.value)}
-              placeholder="https://example.com/foto.jpg"
-            />
-          </div>
+          <ImageUpload
+            value={photoUrl}
+            onChange={setPhotoUrl}
+            name={name}
+            email={email}
+          />
           
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Pencil, Trash2, UserPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import ImageUpload from '@/components/ImageUpload';
 
 // Mock users data
 const mockUsers = [
@@ -207,22 +207,12 @@ const ManageUsers = () => {
             </DialogHeader>
             
             <div className="space-y-4">
-              <div className="flex flex-col items-center mb-4">
-                <Avatar className="h-16 w-16 mb-2">
-                  <AvatarImage src={selectedUser.photoUrl} alt={selectedUser.name} />
-                  <AvatarFallback className="bg-blue-500 text-white">{getInitials(selectedUser.name)}</AvatarFallback>
-                </Avatar>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-photoUrl">URL da Foto</Label>
-                <Input
-                  id="edit-photoUrl"
-                  value={selectedUser.photoUrl || ""}
-                  onChange={(e) => setSelectedUser({...selectedUser, photoUrl: e.target.value})}
-                  placeholder="https://example.com/photo.jpg"
-                />
-              </div>
+              <ImageUpload
+                value={selectedUser.photoUrl || ""}
+                onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
+                name={selectedUser.name}
+                email={selectedUser.email}
+              />
               
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Nome</Label>
