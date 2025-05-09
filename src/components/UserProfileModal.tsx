@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ImageUpload from "@/components/ImageUpload";
 
@@ -16,7 +16,7 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
-  const { user, logout, updateUserProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   
   const [name, setName] = useState(user?.name || "");
@@ -48,12 +48,6 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     } catch (error) {
       toast.error("Erro ao atualizar perfil");
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    toast.success("Desconectado com sucesso");
-    navigate("/login");
   };
   
   return (
@@ -131,11 +125,11 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
           <DialogFooter className="flex justify-between items-center pt-2"> {/* Reduced padding top from 4 to 2 */}
             <Button 
               type="button" 
-              variant="destructive" 
-              onClick={handleLogout}
+              variant="outline" 
+              onClick={onClose}
               className="flex items-center gap-2"
             >
-              <LogOut className="h-4 w-4" /> Sair
+              <X className="h-4 w-4" /> Cancelar
             </Button>
             <Button type="submit">Salvar Alterações</Button>
           </DialogFooter>
@@ -146,3 +140,4 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
 };
 
 export default UserProfileModal;
+
