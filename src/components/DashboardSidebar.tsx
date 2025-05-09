@@ -91,7 +91,7 @@ const DashboardSidebar = () => {
               </SidebarMenuItem>
             )}
             
-            {/* Relatórios - Visible to administrative and viewer users */}
+            {/* Relatórios - Visible to all authenticated users */}
             {hasAccess('viewer') && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/comparison" ? "bg-white/20" : ""}`}>

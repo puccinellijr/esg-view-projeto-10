@@ -44,7 +44,7 @@ const DashboardHeader = () => {
           )}
           
           <h1 className="text-lg font-medium md:text-xl">
-            Dashboard de ESG - GRANEL QUÍMICA
+            ESG - GQ
           </h1>
         </div>
         

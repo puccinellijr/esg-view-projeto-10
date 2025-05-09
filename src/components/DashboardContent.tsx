@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +27,7 @@ interface DashboardContentProps {
   selectedMonth: string;
   selectedYear: string;
   isEditable: boolean;
+  refreshTrigger?: number;
 }
 
 interface Indicator {
@@ -38,18 +38,23 @@ interface Indicator {
   category: 'environmental' | 'social' | 'governance';
 }
 
-const DashboardContent: React.FC<DashboardContentProps> = ({ selectedMonth, selectedYear, isEditable }) => {
+const DashboardContent: React.FC<DashboardContentProps> = ({ 
+  selectedMonth, 
+  selectedYear, 
+  isEditable,
+  refreshTrigger = 0
+}) => {
   const { toast } = useToast();
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [editingIndicator, setEditingIndicator] = useState<Indicator | null>(null);
   const [newValue, setNewValue] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Mock API call to get data for the selected month
+  // Fetch data when month, year, or refreshTrigger changes
   useEffect(() => {
     const fetchData = () => {
       // Simulate API call with month and year
-      console.log(`Fetching data for month ${selectedMonth} and year ${selectedYear}`);
+      console.log(`Fetching data for month ${selectedMonth} and year ${selectedYear}, refresh: ${refreshTrigger}`);
       
       // Simulate data from API
       const mockData: Indicator[] = [
@@ -73,7 +78,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({ selectedMonth, sele
     };
     
     fetchData();
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, refreshTrigger]);
 
   // Filter indicators by category
   const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');

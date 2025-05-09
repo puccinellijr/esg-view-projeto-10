@@ -1,15 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardContent from '@/components/DashboardContent';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
+import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const { hasAccess, user } = useAuth();
   const isAdmin = hasAccess('administrative');
 
@@ -32,6 +36,11 @@ const Dashboard = () => {
   // Generate array of recent years for the selector
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
+
+  const handleRefreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+    toast.success("Dados atualizados com sucesso");
+  };
 
   return (
     <SidebarProvider>
@@ -70,11 +79,20 @@ const Dashboard = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={handleRefreshData}
+              >
+                <RefreshCw className="h-4 w-4" />
+                Atualizar
+              </Button>
             </div>
             <DashboardContent 
               selectedMonth={selectedMonth} 
               selectedYear={selectedYear}
               isEditable={isAdmin}
+              refreshTrigger={refreshTrigger}
             />
           </div>
         </div>
