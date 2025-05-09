@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Settings, ChevronDown, Users, UserPlus } from 'lucide-react';
+import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Sidebar, 
@@ -21,6 +21,7 @@ const DashboardSidebar = () => {
   const { user, hasAccess } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
     <Sidebar className="bg-custom-blue text-white">
@@ -62,14 +63,13 @@ const DashboardSidebar = () => {
             </SidebarMenuItem>
           )}
           
-          {/* Relatórios - Only visible to viewer and administrative users */}
-          {hasAccess('viewer') && !hasAccess('operational') && (
+          {/* Relatórios - Visible to administrative and viewer users */}
+          {hasAccess('viewer') && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/reports" ? "bg-white/20" : ""}`}>
-                <Link to="/reports" className="text-white">
-                  <Link to="/comparison" className="text-white">
-                    <span>Relatórios</span>
-                  </Link>
+              <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/comparison" ? "bg-white/20" : ""}`}>
+                <Link to="/comparison" className="text-white">
+                  <FileText />
+                  <span>Relatórios</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -81,31 +81,38 @@ const DashboardSidebar = () => {
               <>
                 <SidebarMenuButton 
                   tooltip="Configurações"
-                  className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") ? "bg-white/20" : ""}`}
+                  className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") || isSettingsOpen ? "bg-white/20" : ""}`}
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                 >
                   <Settings />
                   <span>Configurações</span>
-                  <ChevronDown className="ml-auto h-4 w-4" />
+                  {isSettingsOpen ? (
+                    <ChevronDown className="ml-auto h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="ml-auto h-4 w-4" />
+                  )}
                 </SidebarMenuButton>
                 
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"}>
-                      <Link to="/settings/user/create">
-                        <UserPlus className="h-4 w-4" />
-                        <span>Cadastrar Usuário</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"}>
-                      <Link to="/settings/users">
-                        <Users className="h-4 w-4" />
-                        <span>Gerenciar Usuários</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
+                {isSettingsOpen && (
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"}>
+                        <Link to="/settings/user/create">
+                          <UserPlus className="h-4 w-4" />
+                          <span>Cadastrar Usuário</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"}>
+                        <Link to="/settings/users">
+                          <Users className="h-4 w-4" />
+                          <span>Gerenciar Usuários</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                )}
               </>
             ) : (
               <SidebarMenuButton asChild tooltip="Configurações" className={`hover:bg-white/10 ${location.pathname === "/settings/profile" ? "bg-white/20" : ""}`}>
