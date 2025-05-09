@@ -34,10 +34,7 @@ const Comparison = () => {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold text-black">Comparação de Períodos</h1>
               {isDataFetched && (
-                <ExportButton 
-                  data={esgData} 
-                  fileName={`comparacao-${terminal}-${period1.month}-${period1.year}_${period2.month}-${period2.year}`}
-                />
+                <ExportButton />
               )}
             </div>
             
@@ -45,8 +42,8 @@ const Comparison = () => {
               <CardContent className="pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <TerminalSelector
-                    terminal={terminal}
-                    setTerminal={setTerminal}
+                    selectedTerminal={terminal}
+                    onTerminalChange={setTerminal}
                   />
                 </div>
                 <PeriodComparisonForm
