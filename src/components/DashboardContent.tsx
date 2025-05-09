@@ -1,7 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Droplet, 
   Weight, 
@@ -16,12 +20,116 @@ import {
   Bell,
   Server,
   Leaf,
-  Shield
+  Shield,
+  Edit
 } from 'lucide-react';
 
-const DashboardContent = () => {
+interface DashboardContentProps {
+  selectedMonth: string;
+  selectedYear: string;
+  isEditable: boolean;
+}
+
+interface Indicator {
+  id: string;
+  name: string;
+  value: string | number;
+  icon: React.ReactNode;
+  category: 'environmental' | 'social' | 'governance';
+}
+
+const DashboardContent: React.FC<DashboardContentProps> = ({ selectedMonth, selectedYear, isEditable }) => {
+  const { toast } = useToast();
+  const [indicators, setIndicators] = useState<Indicator[]>([]);
+  const [editingIndicator, setEditingIndicator] = useState<Indicator | null>(null);
+  const [newValue, setNewValue] = useState<string>('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Mock API call to get data for the selected month
+  useEffect(() => {
+    const fetchData = () => {
+      // Simulate API call with month and year
+      console.log(`Fetching data for month ${selectedMonth} and year ${selectedYear}`);
+      
+      // Simulate data from API
+      const mockData: Indicator[] = [
+        { id: 'water', name: 'Litro / TM', value: 435, icon: <Droplet size={18} className="text-black" />, category: 'environmental' },
+        { id: 'weight', name: 'KG / TM', value: 1234, icon: <Weight size={18} className="text-black" />, category: 'environmental' },
+        { id: 'energy', name: 'KWH / TM', value: 156, icon: <Zap size={18} className="text-black" />, category: 'environmental' },
+        { id: 'fuel', name: 'L Combustível / TM', value: 48, icon: <Fuel size={18} className="text-black" />, category: 'environmental' },
+        { id: 'waste', name: '% de Resíduos Gerados', value: 5.2, icon: <Percent size={18} className="text-black" />, category: 'environmental' },
+        
+        { id: 'incidents', name: 'Incidentes de Processo', value: 3, icon: <AlertTriangle size={18} className="text-black" />, category: 'social' },
+        { id: 'accidents', name: 'Acidentes com Afastamento', value: 1, icon: <Bandage size={18} className="text-black" />, category: 'social' },
+        { id: 'discrimination', name: 'Denúncias por Discriminação', value: 0, icon: <Users size={18} className="text-black" />, category: 'social' },
+        { id: 'women', name: 'Mulheres no Trabalho', value: '42%', icon: <Handshake size={18} className="text-black" />, category: 'social' },
+        
+        { id: 'corruption', name: 'Denúncias por Corrupção', value: 0, icon: <Gavel size={18} className="text-black" />, category: 'governance' },
+        { id: 'complaints', name: 'Reclamação de Vizinhos', value: 2, icon: <Bell size={18} className="text-black" />, category: 'governance' },
+        { id: 'cyber', name: 'Incidentes Cibernéticos', value: 1, icon: <Server size={18} className="text-black" />, category: 'governance' },
+      ];
+      
+      setIndicators(mockData);
+    };
+    
+    fetchData();
+  }, [selectedMonth, selectedYear]);
+
+  // Filter indicators by category
+  const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
+  const socialIndicators = indicators.filter(ind => ind.category === 'social');
+  const governanceIndicators = indicators.filter(ind => ind.category === 'governance');
+
+  // Open edit dialog for an indicator
+  const handleEdit = (indicator: Indicator) => {
+    setEditingIndicator(indicator);
+    setNewValue(indicator.value.toString());
+    setIsDialogOpen(true);
+  };
+
+  // Save edited value
+  const handleSave = () => {
+    if (!editingIndicator) return;
+    
+    // Update local state
+    setIndicators(prev => prev.map(ind => 
+      ind.id === editingIndicator.id ? { ...ind, value: newValue } : ind
+    ));
+    
+    // Close dialog
+    setIsDialogOpen(false);
+    
+    // Show success toast
+    toast({
+      title: "Valor atualizado com sucesso",
+      description: `${editingIndicator.name}: ${newValue}`,
+    });
+    
+    // Reset editing state
+    setEditingIndicator(null);
+  };
+
+  // Render indicator item with optional edit button
+  const renderIndicatorItem = (indicator: Indicator) => (
+    <div key={indicator.id} className="flex items-center gap-2">
+      {indicator.icon}
+      <span className="text-sm text-black">{indicator.name}</span>
+      <span className="ml-auto text-sm font-medium text-black">{indicator.value}</span>
+      {isEditable && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="p-1 h-auto" 
+          onClick={() => handleEdit(indicator)}
+        >
+          <Edit size={16} className="text-custom-blue" />
+        </Button>
+      )}
+    </div>
+  );
+
   return (
-    <main className="flex-1 p-6 bg-gray-50">
+    <main className="flex-1 bg-gray-50">
       <h1 className="text-2xl font-semibold mb-6 text-black">Visão Geral</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -40,39 +148,12 @@ const DashboardContent = () => {
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
-              <div className="flex items-center gap-2">
-                <Droplet size={18} className="text-black" />
-                <span className="text-sm text-black">Litro / TM</span>
-                <span className="ml-auto text-sm font-medium text-black">435 L</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Weight size={18} className="text-black" />
-                <span className="text-sm text-black">KG / TM</span>
-                <span className="ml-auto text-sm font-medium text-black">1.234 kg</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Zap size={18} className="text-black" />
-                <span className="text-sm text-black">KWH / TM</span>
-                <span className="ml-auto text-sm font-medium text-black">156 kwh</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Fuel size={18} className="text-black" />
-                <span className="text-sm text-black">L Combustível / TM</span>
-                <span className="ml-auto text-sm font-medium text-black">48 L</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Percent size={18} className="text-black" />
-                <span className="text-sm text-black">% de Resíduos Gerados</span>
-                <span className="ml-auto text-sm font-medium text-black">5.2%</span>
-              </div>
+              {environmentalIndicators.map((indicator, index) => (
+                <React.Fragment key={indicator.id}>
+                  {renderIndicatorItem(indicator)}
+                  {index < environmentalIndicators.length - 1 && <Separator />}
+                </React.Fragment>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -92,32 +173,12 @@ const DashboardContent = () => {
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={18} className="text-black" />
-                <span className="text-sm text-black">Incidentes de Processo</span>
-                <span className="ml-auto text-sm font-medium text-black">3</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Bandage size={18} className="text-black" />
-                <span className="text-sm text-black">Acidentes com Afastamento</span>
-                <span className="ml-auto text-sm font-medium text-black">1</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Users size={18} className="text-black" />
-                <span className="text-sm text-black">Denúncias por Discriminação</span>
-                <span className="ml-auto text-sm font-medium text-black">0</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Handshake size={18} className="text-black" />
-                <span className="text-sm text-black">Mulheres no Trabalho</span>
-                <span className="ml-auto text-sm font-medium text-black">42%</span>
-              </div>
+              {socialIndicators.map((indicator, index) => (
+                <React.Fragment key={indicator.id}>
+                  {renderIndicatorItem(indicator)}
+                  {index < socialIndicators.length - 1 && <Separator />}
+                </React.Fragment>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -137,29 +198,36 @@ const DashboardContent = () => {
             </p>
             
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
-              <div className="flex items-center gap-2">
-                <Gavel size={18} className="text-black" />
-                <span className="text-sm text-black">Denúncias por Corrupção</span>
-                <span className="ml-auto text-sm font-medium text-black">0</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Bell size={18} className="text-black" />
-                <span className="text-sm text-black">Reclamação de Vizinhos</span>
-                <span className="ml-auto text-sm font-medium text-black">2</span>
-              </div>
-              <Separator />
-              
-              <div className="flex items-center gap-2">
-                <Server size={18} className="text-black" />
-                <span className="text-sm text-black">Incidentes Cibernéticos</span>
-                <span className="ml-auto text-sm font-medium text-black">1</span>
-              </div>
+              {governanceIndicators.map((indicator, index) => (
+                <React.Fragment key={indicator.id}>
+                  {renderIndicatorItem(indicator)}
+                  {index < governanceIndicators.length - 1 && <Separator />}
+                </React.Fragment>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar {editingIndicator?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input 
+              type="text" 
+              value={newValue} 
+              onChange={(e) => setNewValue(e.target.value)} 
+              placeholder="Novo valor" 
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
