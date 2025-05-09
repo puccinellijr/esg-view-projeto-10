@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ComparisonCard from './ComparisonCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ComparisonSectionProps {
   title: string;
@@ -14,6 +15,7 @@ interface ComparisonSectionProps {
 }
 
 const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, category }) => {
+  const isMobile = useIsMobile();
   const entries = Object.entries(data);
   
   // Generate section background color based on category
@@ -44,38 +46,16 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
     }
   };
   
-  // Find if "incidente" card exists in social section to align governance cards properly
-  const hasIncidentCard = category === 'social' && 
-    entries.some(([key]) => 
-      key.toLowerCase().includes('incidente') || 
-      key.toLowerCase().includes('incident')
-    );
-  
-  // Calculate the position of the incident card in the grid
-  const incidentCardPosition = () => {
-    if (category === 'social') {
-      const incidentIndex = entries.findIndex(([key]) => 
-        key.toLowerCase().includes('incidente') || 
-        key.toLowerCase().includes('incident')
-      );
-      
-      if (incidentIndex !== -1) {
-        return incidentIndex % 5; // Assuming 5 columns max (xl:grid-cols-5)
-      }
-    }
-    return 2; // Default position (3rd column)
-  };
-  
   return (
-    <div className={`mt-10 mb-12 py-8 px-4 rounded-lg ${getSectionBgColor()}`}>
-      <div className="text-center mb-6">
-        <h2 className={`text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
-        <p className="text-sm text-gray-500 mt-1">
+    <div className={`mt-6 sm:mt-10 mb-6 sm:mb-12 py-4 sm:py-8 px-2 sm:px-4 rounded-lg ${getSectionBgColor()}`}>
+      <div className="text-center mb-4 sm:mb-6">
+        <h2 className={`text-xl sm:text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
           Compare os valores entre os períodos selecionados
         </p>
       </div>
       <div className="flex justify-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-w-6xl mx-auto">
           {entries.map(([key, values]) => (
             <div key={key} className="w-full flex justify-center">
               <div className="w-full max-w-xs">

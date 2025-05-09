@@ -3,6 +3,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/context/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TerminalSelectorProps {
   selectedTerminal: string;
@@ -11,15 +12,16 @@ interface TerminalSelectorProps {
 
 const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, onTerminalChange }) => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   
   const isViewer = user?.accessLevel === 'viewer';
   
   return (
-    <div className="mb-8 p-4 bg-gray-50 rounded-lg shadow-sm">
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        <Label htmlFor="terminal" className="text-base font-semibold">Escolha o Terminal:</Label>
+    <div className="mb-4 sm:mb-8 p-3 sm:p-4 bg-gray-50 rounded-lg shadow-sm">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-center gap-3 sm:gap-4">
+        <Label htmlFor="terminal" className="text-sm sm:text-base font-semibold">Escolha o Terminal:</Label>
         <Select value={selectedTerminal} onValueChange={onTerminalChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Selecione o terminal" />
           </SelectTrigger>
           <SelectContent>
@@ -29,13 +31,13 @@ const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, o
         </Select>
         
         {isViewer && (
-          <div className="text-sm text-blue-600">
+          <div className="text-xs sm:text-sm text-blue-600 w-full sm:w-auto text-center sm:text-left">
             (Visualizador pode acessar todos os terminais)
           </div>
         )}
         
         {!isViewer && user?.terminal && (
-          <div className="text-sm text-gray-600 italic">
+          <div className="text-xs sm:text-sm text-gray-600 italic w-full sm:w-auto text-center sm:text-left">
             (Terminal padrão: {user.terminal})
           </div>
         )}

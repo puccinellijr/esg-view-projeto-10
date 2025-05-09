@@ -11,8 +11,10 @@ import TerminalSelector from '@/components/TerminalSelector';
 import ExportButton from '@/components/ExportButton';
 import KPISummarySection from '@/components/KPISummarySection';
 import ComparisonBarChart from '@/components/ComparisonBarChart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Comparison = () => {
+  const isMobile = useIsMobile();
   const {
     terminal,
     setTerminal,
@@ -30,24 +32,26 @@ const Comparison = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <DashboardSidebar />
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 w-full">
           <DashboardHeader />
-          <main className="flex-1 p-6 overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold text-black">Comparação de Períodos</h1>
+          <main className="flex-1 p-3 sm:p-6 overflow-y-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+              <h1 className="text-xl sm:text-2xl font-semibold text-black">Comparação de Períodos</h1>
               {isDataFetched && esgData && (
-                <ExportButton 
-                  esgData={esgData} 
-                  period1={period1} 
-                  period2={period2}
-                  terminal={terminal}
-                />
+                <div className="w-full sm:w-auto">
+                  <ExportButton 
+                    esgData={esgData} 
+                    period1={period1} 
+                    period2={period2}
+                    terminal={terminal}
+                  />
+                </div>
               )}
             </div>
             
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <Card className="mb-4 sm:mb-6">
+              <CardContent className={`pt-4 sm:pt-6 ${isMobile ? 'px-3' : 'px-6'}`}>
+                <div className="grid grid-cols-1 gap-4 mb-4">
                   <TerminalSelector
                     selectedTerminal={terminal}
                     onTerminalChange={setTerminal}
@@ -71,7 +75,6 @@ const Comparison = () => {
             
             {!isLoading && isDataFetched && esgData && (
               <div>
-                {/* KPI Summary Section - new component */}
                 <KPISummarySection 
                   esgData={esgData}
                   period1={period1}
@@ -94,9 +97,8 @@ const Comparison = () => {
                   category="governance"
                 />
 
-                {/* Summary Bar Chart - new component */}
-                <div className="mt-10 p-6 bg-white rounded-lg shadow">
-                  <h2 className="text-2xl font-bold text-center mb-6">Visão Geral de Indicadores</h2>
+                <div className="mt-6 sm:mt-10 p-3 sm:p-6 bg-white rounded-lg shadow">
+                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Visão Geral de Indicadores</h2>
                   <ComparisonBarChart esgData={esgData} />
                 </div>
               </div>
