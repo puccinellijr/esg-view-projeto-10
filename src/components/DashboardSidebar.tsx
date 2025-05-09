@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Home, BarChart2, LayoutDashboard, Settings, LogOut, FileText, LineChart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -17,6 +17,7 @@ import {
 const DashboardSidebar = () => {
   const { logout, hasAccess } = useAuth();
   const { state } = useSidebar();
+  const location = useLocation();
 
   return (
     <Sidebar className="bg-custom-blue text-white">
@@ -37,7 +38,7 @@ const DashboardSidebar = () => {
       <SidebarContent>
         <SidebarMenu className="space-y-4 px-2">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Início" className="hover:bg-white/10">
+            <SidebarMenuButton asChild tooltip="Início" className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}>
               <Link to="/dashboard" className="text-white">
                 <Home />
                 <span>Início</span>
@@ -46,7 +47,7 @@ const DashboardSidebar = () => {
           </SidebarMenuItem>
           
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Comparação" className="hover:bg-white/10">
+            <SidebarMenuButton asChild tooltip="Comparação" className={`hover:bg-white/10 ${location.pathname === "/comparison" ? "bg-white/20" : ""}`}>
               <Link to="/comparison" className="text-white">
                 <LineChart />
                 <span>Comparação</span>
@@ -57,7 +58,7 @@ const DashboardSidebar = () => {
           {/* Show operational form only for operational users and higher */}
           {hasAccess('operational') && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Formulário" className="hover:bg-white/10">
+              <SidebarMenuButton asChild tooltip="Formulário" className={`hover:bg-white/10 ${location.pathname === "/operational-form" ? "bg-white/20" : ""}`}>
                 <Link to="/operational-form" className="text-white">
                   <FileText />
                   <span>Formulário</span>
@@ -67,15 +68,15 @@ const DashboardSidebar = () => {
           )}
           
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Relatórios" className="hover:bg-white/10">
-              <Link to="/relatorios" className="text-white">
+            <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/relatorios" ? "bg-white/20" : ""}`}>
+              <Link to="/comparison" className="text-white">
                 <BarChart2 />
                 <span>Relatórios</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Dashboards" className="hover:bg-white/10">
+            <SidebarMenuButton asChild tooltip="Dashboards" className={`hover:bg-white/10 ${location.pathname === "/dashboards" ? "bg-white/20" : ""}`}>
               <Link to="/dashboards" className="text-white">
                 <LayoutDashboard />
                 <span>Dashboards</span>
@@ -83,7 +84,7 @@ const DashboardSidebar = () => {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Configurações" className="hover:bg-white/10">
+            <SidebarMenuButton asChild tooltip="Configurações" className={`hover:bg-white/10 ${location.pathname === "/configuracoes" ? "bg-white/20" : ""}`}>
               <Link to="/configuracoes" className="text-white">
                 <Settings />
                 <span>Configurações</span>

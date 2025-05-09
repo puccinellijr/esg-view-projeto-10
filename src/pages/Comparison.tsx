@@ -9,6 +9,8 @@ import { useESGData } from '@/hooks/useESGData';
 import { Card, CardContent } from '@/components/ui/card';
 import TerminalSelector from '@/components/TerminalSelector';
 import ExportButton from '@/components/ExportButton';
+import KPISummarySection from '@/components/KPISummarySection';
+import ComparisonBarChart from '@/components/ComparisonBarChart';
 
 const Comparison = () => {
   const {
@@ -64,6 +66,13 @@ const Comparison = () => {
             
             {!isLoading && isDataFetched && esgData && (
               <div>
+                {/* KPI Summary Section - new component */}
+                <KPISummarySection 
+                  esgData={esgData}
+                  period1={period1}
+                  period2={period2}
+                />
+                
                 <ComparisonSection 
                   title="Dimensão Ambiental" 
                   data={esgData.environmental} 
@@ -79,6 +88,12 @@ const Comparison = () => {
                   data={esgData.governance} 
                   category="governance"
                 />
+
+                {/* Summary Bar Chart - new component */}
+                <div className="mt-10 p-6 bg-white rounded-lg shadow">
+                  <h2 className="text-2xl font-bold text-center mb-6">Visão Geral de Indicadores</h2>
+                  <ComparisonBarChart esgData={esgData} />
+                </div>
               </div>
             )}
             
