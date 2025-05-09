@@ -40,7 +40,7 @@ export default function Login() {
       
       // Redirect based on user access level
       if (user.accessLevel === "administrative") {
-        navigate("/");
+        navigate("/dashboard");
       } else if (user.accessLevel === "operational") {
         navigate("/operational-form");
       } else {
