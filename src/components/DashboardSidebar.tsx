@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Sidebar, 
@@ -15,13 +15,22 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarSeparator
 } from "@/components/ui/sidebar";
+import { toast } from 'sonner';
 
 const DashboardSidebar = () => {
-  const { user, hasAccess } = useAuth();
+  const { user, hasAccess, logout } = useAuth();
   const { state } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Sessão encerrada com sucesso');
+    navigate('/login');
+  };
 
   return (
     <Sidebar className="bg-custom-blue text-white">
@@ -122,6 +131,21 @@ const DashboardSidebar = () => {
                 </Link>
               </SidebarMenuButton>
             )}
+          </SidebarMenuItem>
+          
+          {/* Separator before logout button */}
+          <SidebarSeparator />
+          
+          {/* Logout - Available to all users */}
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              tooltip="Sair"
+              className="hover:bg-white/10 text-white"
+              onClick={handleLogout}
+            >
+              <LogOut />
+              <span>Sair</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
