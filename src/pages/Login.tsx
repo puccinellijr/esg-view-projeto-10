@@ -38,8 +38,10 @@ export default function Login() {
       
       toast.success(`Bem-vindo! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
       
-      // Redirect operational users directly to the form
-      if (user.accessLevel === "operational") {
+      // Redirect based on user access level
+      if (user.accessLevel === "administrative") {
+        navigate("/");
+      } else if (user.accessLevel === "operational") {
         navigate("/operational-form");
       } else {
         navigate("/dashboard");
