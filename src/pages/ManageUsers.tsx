@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -201,18 +202,21 @@ const ManageUsers = () => {
       {/* Edit User Dialog */}
       {selectedUser && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-[350px]"> {/* Reduced from 425px to about 350px (30% smaller) */}
             <DialogHeader>
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4">
-              <ImageUpload
-                value={selectedUser.photoUrl || ""}
-                onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
-                name={selectedUser.name}
-                email={selectedUser.email}
-              />
+            <div className="space-y-3"> {/* Reduce space-y from 4 to 3 */}
+              <div className="flex justify-center"> {/* Wrap ImageUpload in a div with flex center */}
+                <ImageUpload
+                  value={selectedUser.photoUrl || ""}
+                  onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
+                  name={selectedUser.name}
+                  email={selectedUser.email}
+                  className="scale-90" /* Scale down the image upload component */
+                />
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Nome</Label>
@@ -250,7 +254,7 @@ const ManageUsers = () => {
               </div>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="mt-2"> {/* Added margin top to reduce spacing */}
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancelar
               </Button>

@@ -58,18 +58,21 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[350px]"> {/* Reduced from 425px to about 350px (30% smaller) */}
         <DialogHeader>
           <DialogTitle>Perfil do Usuário</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <ImageUpload
-            value={photoUrl}
-            onChange={setPhotoUrl}
-            name={name}
-            email={email}
-          />
+        <form onSubmit={handleSubmit} className="space-y-3"> {/* Reduced space-y from 4 to 3 */}
+          <div className="flex justify-center"> {/* Center the image upload */}
+            <ImageUpload
+              value={photoUrl}
+              onChange={setPhotoUrl}
+              name={name}
+              email={email}
+              className="scale-90" /* Scale down the image upload component */
+            />
+          </div>
           
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>
@@ -125,7 +128,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <DialogFooter className="flex justify-between items-center pt-4">
+          <DialogFooter className="flex justify-between items-center pt-2"> {/* Reduced padding top from 4 to 2 */}
             <Button 
               type="button" 
               variant="destructive" 
