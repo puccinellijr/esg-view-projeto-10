@@ -148,11 +148,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores Ambientais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">-</div>
-            <p className="text-xs text-black mb-4">
-              Período selecionado
-            </p>
-            
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               {environmentalIndicators.map((indicator, index) => (
                 <React.Fragment key={indicator.id}>
@@ -173,11 +168,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores Sociais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">-</div>
-            <p className="text-xs text-black mb-4">
-              Período selecionado
-            </p>
-            
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               {socialIndicators.map((indicator, index) => (
                 <React.Fragment key={indicator.id}>
@@ -198,11 +188,6 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores de Governança</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
-            <div className="text-2xl font-bold text-black">-</div>
-            <p className="text-xs text-black mb-4">
-              Período selecionado
-            </p>
-            
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               {governanceIndicators.map((indicator, index) => (
                 <React.Fragment key={indicator.id}>

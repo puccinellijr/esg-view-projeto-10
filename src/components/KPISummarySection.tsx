@@ -46,6 +46,10 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
     let unchangedCount = 0;
     let worsenedCount = 0;
     
+    // For calculating average variation
+    let totalVariationPercentage = 0;
+    let metricsWithValues = 0;
+    
     ['environmental', 'social', 'governance'].forEach(category => {
       const categoryData = esgData[category as keyof ESGData];
       
@@ -54,14 +58,25 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
         else if (value2 === value1) unchangedCount++;
         else worsenedCount++;
         totalMetrics++;
+        
+        // Calculate percentage variation for metrics with value1 > 0
+        if (value1 > 0) {
+          const variationPercent = ((value2 - value1) / value1) * 100;
+          totalVariationPercentage += variationPercent;
+          metricsWithValues++;
+        }
       });
     });
+    
+    // Calculate average variation percentage
+    const averageVariation = metricsWithValues > 0 ? totalVariationPercentage / metricsWithValues : 0;
     
     return {
       improvedCount,
       unchangedCount,
       worsenedCount,
-      totalMetrics
+      totalMetrics,
+      averageVariation
     };
   };
   
@@ -89,7 +104,7 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Variação Média</h3>
               <div className="text-3xl font-bold text-blue-600">
-                -
+                {summary.averageVariation.toFixed(2)}%
               </div>
               <p className="text-sm text-gray-500 mt-2">
                 Média de variação em todos os indicadores
