@@ -109,7 +109,7 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData }) => {
   };
   
   return (
-    <div className="w-full h-[600px] p-4">
+    <div className="w-full h-[600px] p-4 comparison-bar-chart">
       <ChartContainer config={chartConfig} className="h-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

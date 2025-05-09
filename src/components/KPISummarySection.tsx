@@ -1,11 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowUp, ArrowDown, ArrowRight, BarChart2, LineChart, PieChart } from "lucide-react";
-
-interface Period {
-  month: string;
-  year: string;
-}
+import { Card, CardContent } from '@/components/ui/card';
+import Chart3D from './Chart3D';
 
 interface ESGData {
   environmental: {
@@ -30,266 +25,167 @@ interface ESGData {
 
 interface KPISummarySectionProps {
   esgData: ESGData;
-  period1: Period;
-  period2: Period;
+  period1: {
+    month: string;
+    year: string;
+  };
+  period2: {
+    month: string;
+    year: string;
+  };
 }
 
-// Function to calculate overall trends
-const calculateTrend = (data: { [key: string]: { value1: number; value2: number } }) => {
-  let improvements = 0;
-  let declines = 0;
-  let stable = 0;
-  
-  Object.values(data).forEach(({ value1, value2 }) => {
-    const diff = value2 - value1;
-    const percentChange = value1 !== 0 ? (diff / value1) * 100 : 0;
+const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps) => {
+  // Calculate summary metrics
+  const calculateSummary = () => {
+    let totalImprovement = 0;
+    let totalMetrics = 0;
     
-    // Consider a 1% change threshold for determining if something is "stable"
-    if (Math.abs(percentChange) < 1) {
-      stable++;
-    } else if (diff > 0) {
-      improvements++;
-    } else {
-      declines++;
-    }
-  });
-  
-  return { improvements, declines, stable, total: Object.keys(data).length };
-};
-
-// Function to determine overall category direction
-const getCategoryDirection = (
-  improvements: number, 
-  declines: number, 
-  stable: number,
-  total: number
-) => {
-  // If more than 60% are improvements, it's overall improving
-  if (improvements / total >= 0.6) {
-    return 'improvement';
-  }
-  // If more than 60% are declines, it's overall declining
-  else if (declines / total >= 0.6) {
-    return 'decline';
-  }
-  // If more than 60% are stable, it's overall stable
-  else if (stable / total >= 0.6) {
-    return 'stable';
-  }
-  // If improvements are more than declines, it's slightly improving
-  else if (improvements > declines) {
-    return 'slight-improvement';
-  }
-  // If declines are more than improvements, it's slightly declining
-  else if (declines > improvements) {
-    return 'slight-decline';
-  }
-  // Otherwise it's mixed/neutral
-  else {
-    return 'mixed';
-  }
-};
-
-const KPISummarySection: React.FC<KPISummarySectionProps> = ({ esgData, period1, period2 }) => {
-  // Calculate trends for each category
-  const environmentalTrend = calculateTrend(esgData.environmental);
-  const socialTrend = calculateTrend(esgData.social);
-  const governanceTrend = calculateTrend(esgData.governance);
-  
-  // Get overall direction for each category
-  const environmentalDirection = getCategoryDirection(
-    environmentalTrend.improvements,
-    environmentalTrend.declines,
-    environmentalTrend.stable,
-    environmentalTrend.total
-  );
-  
-  const socialDirection = getCategoryDirection(
-    socialTrend.improvements,
-    socialTrend.declines,
-    socialTrend.stable,
-    socialTrend.total
-  );
-  
-  const governanceDirection = getCategoryDirection(
-    governanceTrend.improvements,
-    governanceTrend.declines,
-    governanceTrend.stable,
-    governanceTrend.total
-  );
-
-  // Get class names and icons based on direction
-  const getDirectionInfo = (direction: string) => {
-    switch (direction) {
-      case 'improvement':
-        return { 
-          icon: <ArrowUp size={28} className="text-green-500" />, 
-          bgColor: 'bg-green-50', 
-          textColor: 'text-green-700',
-          label: 'Melhoria significativa'
-        };
-      case 'slight-improvement':
-        return { 
-          icon: <ArrowUp size={28} className="text-green-400" />, 
-          bgColor: 'bg-green-50', 
-          textColor: 'text-green-600',
-          label: 'Leve melhoria'
-        };
-      case 'decline':
-        return { 
-          icon: <ArrowDown size={28} className="text-red-500" />, 
-          bgColor: 'bg-red-50', 
-          textColor: 'text-red-700',
-          label: 'Declínio significativo'
-        };
-      case 'slight-decline':
-        return { 
-          icon: <ArrowDown size={28} className="text-red-400" />, 
-          bgColor: 'bg-red-50', 
-          textColor: 'text-red-600',
-          label: 'Leve declínio'
-        };
-      case 'stable':
-        return { 
-          icon: <ArrowRight size={28} className="text-blue-500" />, 
-          bgColor: 'bg-blue-50', 
-          textColor: 'text-blue-700',
-          label: 'Estável'
-        };
-      default:
-        return { 
-          icon: <ArrowRight size={28} className="text-gray-500" />, 
-          bgColor: 'bg-gray-50', 
-          textColor: 'text-gray-700',
-          label: 'Resultados mistos'
-        };
-    }
+    // Process all categories
+    ['environmental', 'social', 'governance'].forEach(category => {
+      const categoryData = esgData[category as keyof ESGData];
+      
+      Object.values(categoryData).forEach(({ value1, value2 }) => {
+        if (value1 > 0) { // Avoid division by zero
+          const percentChange = ((value2 - value1) / value1) * 100;
+          totalImprovement += percentChange;
+          totalMetrics++;
+        }
+      });
+    });
+    
+    // Calculate average improvement
+    const averageImprovement = totalMetrics > 0 ? totalImprovement / totalMetrics : 0;
+    
+    // Count metrics that improved
+    let improvedCount = 0;
+    let unchangedCount = 0;
+    let worsenedCount = 0;
+    
+    ['environmental', 'social', 'governance'].forEach(category => {
+      const categoryData = esgData[category as keyof ESGData];
+      
+      Object.values(categoryData).forEach(({ value1, value2 }) => {
+        if (value2 > value1) improvedCount++;
+        else if (value2 === value1) unchangedCount++;
+        else worsenedCount++;
+      });
+    });
+    
+    return {
+      averageImprovement,
+      improvedCount,
+      unchangedCount,
+      worsenedCount,
+      totalMetrics
+    };
   };
   
-  const environmentalInfo = getDirectionInfo(environmentalDirection);
-  const socialInfo = getDirectionInfo(socialDirection);
-  const governanceInfo = getDirectionInfo(governanceDirection);
+  const summary = calculateSummary();
   
-  // Format period display
-  const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
-  
-  const formatPeriod = (period: Period) => {
-    const monthIndex = parseInt(period.month) - 1;
-    return `${monthNames[monthIndex]} ${period.year}`;
+  // Format months for display
+  const getMonthName = (monthIndex: string) => {
+    const months = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    return months[parseInt(monthIndex)];
   };
   
   return (
-    <div className="mb-10">
-      <h2 className="text-2xl font-bold mb-6 text-center">Resumo KPI de Comparação</h2>
-      <p className="text-center mb-6 text-gray-600">
-        Comparando {formatPeriod(period1)} com {formatPeriod(period2)}
+    <div className="mt-8 p-6 bg-white rounded-lg shadow kpi-summary-section">
+      <h2 className="text-2xl font-bold text-center mb-6">Resumo da Comparação</h2>
+      <p className="text-center text-gray-600 mb-8">
+        {getMonthName(period1.month)} {period1.year} vs {getMonthName(period2.month)} {period2.year}
       </p>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Environmental KPI Card */}
-        <Card className={`${environmentalInfo.bgColor} border-l-4 border-green-500`}>
+        <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-white shadow-sm">
-                {environmentalInfo.icon}
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Variação Média</h3>
+              <div className="text-3xl font-bold text-blue-600">
+                {summary.averageImprovement > 0 ? '+' : ''}
+                {summary.averageImprovement.toFixed(2)}%
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">Ambiental</h3>
-                <p className={`${environmentalInfo.textColor}`}>
-                  {environmentalInfo.label}
-                </p>
-                <div className="mt-2 text-sm text-gray-600">
-                  <p>
-                    <span className="font-semibold text-green-600">{environmentalTrend.improvements}</span> melhorias, 
-                    <span className="font-semibold text-red-600 ml-1">{environmentalTrend.declines}</span> declínios, 
-                    <span className="font-semibold text-blue-600 ml-1">{environmentalTrend.stable}</span> estáveis
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex gap-2 justify-end">
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <PieChart size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <BarChart2 size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <LineChart size={16} />
-              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Média de variação em todos os indicadores
+              </p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Social KPI Card */}
-        <Card className={`${socialInfo.bgColor} border-l-4 border-blue-500`}>
+        <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-white shadow-sm">
-                {socialInfo.icon}
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Indicadores Melhorados</h3>
+              <div className="text-3xl font-bold text-green-600">
+                {summary.improvedCount} / {summary.totalMetrics}
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">Social</h3>
-                <p className={`${socialInfo.textColor}`}>
-                  {socialInfo.label}
-                </p>
-                <div className="mt-2 text-sm text-gray-600">
-                  <p>
-                    <span className="font-semibold text-green-600">{socialTrend.improvements}</span> melhorias, 
-                    <span className="font-semibold text-red-600 ml-1">{socialTrend.declines}</span> declínios, 
-                    <span className="font-semibold text-blue-600 ml-1">{socialTrend.stable}</span> estáveis
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex gap-2 justify-end">
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <PieChart size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <BarChart2 size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <LineChart size={16} />
-              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                {((summary.improvedCount / summary.totalMetrics) * 100).toFixed(1)}% dos indicadores melhoraram
+              </p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Governance KPI Card */}
-        <Card className={`${governanceInfo.bgColor} border-l-4 border-purple-500`}>
+        <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-white shadow-sm">
-                {governanceInfo.icon}
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Indicadores Piorados</h3>
+              <div className="text-3xl font-bold text-red-600">
+                {summary.worsenedCount} / {summary.totalMetrics}
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">Governança</h3>
-                <p className={`${governanceInfo.textColor}`}>
-                  {governanceInfo.label}
-                </p>
-                <div className="mt-2 text-sm text-gray-600">
-                  <p>
-                    <span className="font-semibold text-green-600">{governanceTrend.improvements}</span> melhorias, 
-                    <span className="font-semibold text-red-600 ml-1">{governanceTrend.declines}</span> declínios, 
-                    <span className="font-semibold text-blue-600 ml-1">{governanceTrend.stable}</span> estáveis
-                  </p>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                {((summary.worsenedCount / summary.totalMetrics) * 100).toFixed(1)}% dos indicadores pioraram
+              </p>
             </div>
-            <div className="mt-4 flex gap-2 justify-end">
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <PieChart size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <BarChart2 size={16} />
-              </div>
-              <div className="p-1 rounded-full hover:bg-white/50 transition cursor-pointer">
-                <LineChart size={16} />
-              </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Environmental Summary */}
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-center">Ambiental</h3>
+            <div className="h-40">
+              <Chart3D 
+                type="pie" 
+                value1={Object.values(esgData.environmental).reduce((sum, { value1 }) => sum + value1, 0)} 
+                value2={Object.values(esgData.environmental).reduce((sum, { value2 }) => sum + value2, 0)}
+                category="environmental"
+              />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Social Summary */}
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-center">Social</h3>
+            <div className="h-40">
+              <Chart3D 
+                type="pie" 
+                value1={Object.values(esgData.social).reduce((sum, { value1 }) => sum + value1, 0)} 
+                value2={Object.values(esgData.social).reduce((sum, { value2 }) => sum + value2, 0)}
+                category="social"
+              />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Governance Summary */}
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-center">Governança</h3>
+            <div className="h-40">
+              <Chart3D 
+                type="pie" 
+                value1={Object.values(esgData.governance).reduce((sum, { value1 }) => sum + value1, 0)} 
+                value2={Object.values(esgData.governance).reduce((sum, { value2 }) => sum + value2, 0)}
+                category="governance"
+              />
             </div>
           </CardContent>
         </Card>

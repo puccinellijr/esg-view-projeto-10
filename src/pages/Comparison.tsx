@@ -35,8 +35,13 @@ const Comparison = () => {
           <main className="flex-1 p-6 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold text-black">Comparação de Períodos</h1>
-              {isDataFetched && (
-                <ExportButton />
+              {isDataFetched && esgData && (
+                <ExportButton 
+                  esgData={esgData} 
+                  period1={period1} 
+                  period2={period2}
+                  terminal={terminal}
+                />
               )}
             </div>
             
