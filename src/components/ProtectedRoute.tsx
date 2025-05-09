@@ -22,8 +22,11 @@ export default function ProtectedRoute({ requiredLevel = 'operational' }: Protec
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
   
-  // Special case for operational users - they should only access the operational form
-  if (user.accessLevel === 'operational' && location.pathname !== '/operational-form' && !location.pathname.startsWith('/operational-form')) {
+  // Special case for operational users - they should access dashboard and operational form
+  if (user.accessLevel === 'operational' && 
+      !location.pathname.startsWith('/operational-form') && 
+      location.pathname !== '/dashboard' && 
+      !location.pathname.startsWith('/dashboard')) {
     return <Navigate to="/operational-form" replace />;
   }
   
