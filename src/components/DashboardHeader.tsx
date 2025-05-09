@@ -16,6 +16,17 @@ const DashboardHeader = () => {
     return email ? email.substring(0, 2).toUpperCase() : "U";
   };
 
+  // Get user's first name or username for welcome message
+  const getUserDisplayName = () => {
+    if (user?.name) {
+      return user.name.split(' ')[0]; // Get first name only
+    } else if (user?.email) {
+      return user.email.split('@')[0]; // Get username from email
+    } else {
+      return 'Usuário';
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-4 md:px-6 bg-sidebar text-white">
@@ -46,9 +57,19 @@ const DashboardHeader = () => {
           <h1 className="text-lg font-medium md:text-xl">
             ESG - GQ
           </h1>
+          
+          {/* Welcome message for desktop */}
+          <div className="hidden md:flex items-center ml-4 text-sm lg:text-base font-medium">
+            <span>Bem-vindo, {getUserDisplayName()}</span>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Welcome message for mobile */}
+          <div className="md:hidden text-sm">
+            <span>Bem-vindo, {getUserDisplayName()}</span>
+          </div>
+          
           <div className="flex items-center gap-2">
             <span className="text-sm hidden md:inline">
               {user?.email} ({user?.accessLevel === "administrative" ? "Administrativo" : user?.accessLevel === "viewer" ? "Visualizador" : "Operacional"})
