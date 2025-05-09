@@ -135,14 +135,22 @@ const DashboardSidebar = () => {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4 mt-auto border-t border-white/10">
-        <SidebarMenuButton 
-          tooltip="Sair"
-          className="hover:bg-white/10 text-white w-full"
-          onClick={handleLogout}
-        >
-          <LogOut />
-          <span>Sair</span>
-        </SidebarMenuButton>
+        <div className="flex flex-col gap-4">
+          <SidebarMenuButton 
+            tooltip="Sair"
+            className="hover:bg-white/10 text-white w-full"
+            onClick={handleLogout}
+          >
+            <LogOut />
+            <span>Sair</span>
+          </SidebarMenuButton>
+          
+          {state !== "collapsed" && (
+            <div className="text-xs text-white/60 text-center">
+              Desenvolvido por TI GRANEL RIO GRANDE
+            </div>
+          )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
