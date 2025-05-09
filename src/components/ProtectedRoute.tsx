@@ -17,7 +17,11 @@ export default function ProtectedRoute({ requiredLevel = 'operational' }: Protec
   }
   
   // Check if user has required access level
-  if (!hasAccess(requiredLevel)) {
+  const hasRequiredAccess = hasAccess(requiredLevel);
+  
+  console.log(`User ${user.email} with level ${user.accessLevel} accessing route requiring ${requiredLevel} - Access granted: ${hasRequiredAccess}`);
+  
+  if (!hasRequiredAccess) {
     // Redirect to unauthorized page or dashboard with a message
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }

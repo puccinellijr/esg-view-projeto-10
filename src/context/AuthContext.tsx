@@ -45,8 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Access level hierarchy
-  const accessHierarchy: AccessLevel[] = ['operational', 'viewer', 'administrative'];
+  // Access level hierarchy from lowest to highest
+  const accessHierarchy: AccessLevel[] = ['viewer', 'operational', 'administrative'];
 
   const login = (userData: User) => {
     setUser(userData);
@@ -59,17 +59,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Check if user has sufficient access
-  const hasAccess = (requiredLevel: AccessLevel) => {
+  const hasAccess = (requiredLevel: AccessLevel): boolean => {
     if (!user) return false;
-    
-    const userLevelIndex = accessHierarchy.indexOf(user.accessLevel);
-    const requiredLevelIndex = accessHierarchy.indexOf(requiredLevel);
     
     // Administrative has access to all levels
     if (user.accessLevel === 'administrative') return true;
     
-    // For other access levels, they can only access their level or lower
-    return userLevelIndex >= requiredLevelIndex;
+    // Operational users can access operational and viewer levels
+    if (user.accessLevel === 'operational') {
+      return requiredLevel === 'operational' || requiredLevel === 'viewer';
+    }
+    
+    // Viewers can only access viewer level
+    if (user.accessLevel === 'viewer') {
+      return requiredLevel === 'viewer';
+    }
+    
+    return false;
   };
 
   // For password reset functionality

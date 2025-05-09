@@ -37,15 +37,11 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Protected routes for viewers - can only see reports/comparison */}
-              <Route element={<ProtectedRoute requiredLevel="viewer" />}>
-                <Route path="/comparison" element={<Comparison />} />
-                <Route path="/reports" element={<Comparison />} />
-              </Route>
-
               {/* Dashboard route - available for all users (viewer, operational and administrative) */}
               <Route element={<ProtectedRoute requiredLevel="viewer" />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/comparison" element={<Comparison />} />
+                <Route path="/reports" element={<Comparison />} />
               </Route>
               
               {/* Operational form route - only for operational and administrative users */}
