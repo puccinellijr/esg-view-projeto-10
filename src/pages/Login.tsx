@@ -37,7 +37,13 @@ export default function Login() {
       }));
       
       toast.success(`Bem-vindo! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
-      navigate("/dashboard");
+      
+      // Redirect operational users directly to the form
+      if (user.accessLevel === "operational") {
+        navigate("/operational-form");
+      } else {
+        navigate("/dashboard");
+      }
     } else {
       toast.error("Email ou senha inválidos");
     }

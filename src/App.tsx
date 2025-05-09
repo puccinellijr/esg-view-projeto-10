@@ -31,12 +31,12 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
-            {/* Protected routes */}
+            {/* Protected routes for viewers and administrative users */}
             <Route element={<ProtectedRoute requiredLevel="viewer" />}>
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
 
-            {/* Operational routes - only for operational users and higher */}
+            {/* Operational route - specifically for operational users */}
             <Route element={<ProtectedRoute requiredLevel="operational" />}>
               <Route path="/operational-form" element={<OperationalForm />} />
             </Route>
