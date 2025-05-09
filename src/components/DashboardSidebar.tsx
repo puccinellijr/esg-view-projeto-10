@@ -56,7 +56,10 @@ const DashboardSidebar = () => {
             {/* Início/Dashboard - Available to all users */}
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Início" className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}>
-                <Link to="/dashboard" className="text-white">
+                <Link 
+                  to="/dashboard" 
+                  className="text-white"
+                >
                   <Home />
                   <span>Início</span>
                 </Link>
