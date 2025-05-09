@@ -109,7 +109,7 @@ const DashboardSidebar = () => {
                 <>
                   <SidebarMenuButton 
                     tooltip="Configurações"
-                    className={`hover:bg-white/10 ${location.pathname.startsWith("/settings") || isSettingsOpen ? "bg-white/30" : ""}`} // Changed bg-white/20 to bg-white/30 to make it lighter
+                    className="hover:bg-white/10"
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   >
                     <Settings />
@@ -154,7 +154,7 @@ const DashboardSidebar = () => {
               ) : (
                 <SidebarMenuButton 
                   tooltip="Configurações" 
-                  className={`hover:bg-white/10 bg-white/30`} // Changed to bg-white/30 to make it lighter
+                  className="hover:bg-white/10"
                   onClick={() => setIsProfileOpen(true)}
                 >
                   <Settings />
