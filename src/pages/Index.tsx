@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -7,7 +8,7 @@ export default function Index() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, redirect to dashboard
+    // If user is already logged in, redirect to dashboard for all user types
     if (user) {
       navigate("/dashboard");
     } else {

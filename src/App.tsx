@@ -39,18 +39,14 @@ const App = () => (
               
               {/* Protected routes for viewers and administrative users */}
               <Route element={<ProtectedRoute requiredLevel="viewer" />}>
-                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/comparison" element={<Comparison />} />
                 <Route path="/reports" element={<Comparison />} />
               </Route>
 
-              {/* Operational route - specifically for operational users */}
+              {/* Dashboard route - available for operational users and above */}
               <Route element={<ProtectedRoute requiredLevel="operational" />}>
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/operational-form" element={<OperationalForm />} />
-              </Route>
-              
-              {/* Profile settings - available to all authenticated users */}
-              <Route element={<ProtectedRoute requiredLevel="operational" />}>
                 <Route path="/settings/profile" element={<UserProfile />} />
               </Route>
               
