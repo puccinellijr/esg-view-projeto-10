@@ -132,25 +132,17 @@ const DashboardSidebar = () => {
               </SidebarMenuButton>
             )}
           </SidebarMenuItem>
-          
-          {/* Separator before logout button */}
-          <SidebarSeparator />
-          
-          {/* Logout - Available to all users */}
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              tooltip="Sair"
-              className="hover:bg-white/10 text-white"
-              onClick={handleLogout}
-            >
-              <LogOut />
-              <span>Sair</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4 mt-auto">
-        {/* Footer content if needed */}
+      <SidebarFooter className="p-4 mt-auto border-t border-white/10">
+        <SidebarMenuButton 
+          tooltip="Sair"
+          className="hover:bg-white/10 text-white w-full"
+          onClick={handleLogout}
+        >
+          <LogOut />
+          <span>Sair</span>
+        </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
   );
