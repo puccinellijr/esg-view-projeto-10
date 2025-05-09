@@ -11,24 +11,28 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const DashboardSidebar = () => {
   const { logout, hasAccess } = useAuth();
+  const { state } = useSidebar();
 
   return (
     <Sidebar className="bg-custom-blue text-white">
       <SidebarHeader className="p-4">
-        <div className="flex items-center justify-center mb-4">
-          <img 
-            src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
-            alt="Odjell Terminals Granel Química Logo" 
-            className="h-16 w-auto" 
-            onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
-            }} 
-          />
-        </div>
+        {state !== "collapsed" && (
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+              alt="Odjell Terminals Granel Química Logo" 
+              className="h-16 w-auto" 
+              onError={(e) => {
+                e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
+              }} 
+            />
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="space-y-4 px-2">
