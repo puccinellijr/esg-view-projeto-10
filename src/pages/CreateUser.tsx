@@ -21,6 +21,7 @@ const CreateUser = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accessLevel, setAccessLevel] = useState<AccessLevel>("viewer");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [terminal, setTerminal] = useState("Rio Grande");
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +33,7 @@ const CreateUser = () => {
     
     // In a real app, this would call an API to create the user
     // For this demo, we'll just show a success message
-    toast.success(`Usuário ${name} criado com sucesso`);
+    toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}`);
     navigate("/settings/users");
   };
   
@@ -119,6 +120,22 @@ const CreateUser = () => {
                         <SelectItem value="operational">Operacional</SelectItem>
                         <SelectItem value="viewer">Visualizador</SelectItem>
                         <SelectItem value="administrative">Administrativo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="terminal">Terminal</Label>
+                    <Select
+                      value={terminal}
+                      onValueChange={(value) => setTerminal(value)}
+                    >
+                      <SelectTrigger id="terminal">
+                        <SelectValue placeholder="Selecione o terminal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                        <SelectItem value="SP">SP</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

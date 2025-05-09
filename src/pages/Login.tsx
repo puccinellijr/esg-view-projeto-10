@@ -18,21 +18,24 @@ const users = [
     password: "admin123", 
     accessLevel: "administrative" as AccessLevel,
     name: "Admin User",
-    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com",
+    terminal: "Rio Grande"
   },
   { 
     email: "viewer@example.com", 
     password: "viewer123", 
     accessLevel: "viewer" as AccessLevel,
     name: "Viewer User",
-    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com",
+    terminal: null // Viewers don't have a default terminal, they can choose
   },
   { 
     email: "operator@example.com", 
     password: "operator123", 
     accessLevel: "operational" as AccessLevel,
     name: "Operator User",
-    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com",
+    terminal: "SP"
   },
 ];
 
@@ -55,7 +58,8 @@ export default function Login() {
         email: user.email,
         accessLevel: user.accessLevel,
         name: user.name,
-        photoUrl: user.photoUrl
+        photoUrl: user.photoUrl,
+        terminal: user.terminal
       });
       
       toast.success(`Bem-vindo, ${user.name}! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
