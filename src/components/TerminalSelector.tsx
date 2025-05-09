@@ -15,6 +15,7 @@ const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, o
   const isMobile = useIsMobile();
   
   const isViewer = user?.accessLevel === 'viewer';
+  const isAdmin = user?.accessLevel === 'administrative';
   
   return (
     <div className="mb-4 sm:mb-8 p-3 sm:p-4 bg-gray-50 rounded-lg shadow-sm">
@@ -36,7 +37,13 @@ const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, o
           </div>
         )}
         
-        {!isViewer && user?.terminal && (
+        {isAdmin && (
+          <div className="text-xs sm:text-sm text-green-600 w-full sm:w-auto text-center sm:text-left">
+            (Administrador pode gerenciar todos os terminais)
+          </div>
+        )}
+        
+        {!isViewer && !isAdmin && user?.terminal && (
           <div className="text-xs sm:text-sm text-gray-600 italic w-full sm:w-auto text-center sm:text-left">
             (Terminal padrão: {user.terminal})
           </div>

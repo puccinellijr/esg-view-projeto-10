@@ -55,8 +55,8 @@ const Dashboard = () => {
         <div className="flex flex-col flex-1">
           <DashboardHeader />
           <div className="p-3 sm:p-4 md:p-6 flex flex-col">
-            {/* Add TerminalSelector for viewer users */}
-            {user?.accessLevel === 'viewer' && (
+            {/* Show TerminalSelector for both viewer and admin users */}
+            {(user?.accessLevel === 'viewer' || user?.accessLevel === 'administrative') && (
               <TerminalSelector 
                 selectedTerminal={selectedTerminal} 
                 onTerminalChange={setSelectedTerminal}
