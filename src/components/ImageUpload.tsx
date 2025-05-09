@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
   value: string;
@@ -10,9 +11,10 @@ interface ImageUploadProps {
   defaultImage?: string;
   name?: string;
   email?: string;
+  className?: string;
 }
 
-const ImageUpload = ({ value, onChange, defaultImage, name, email }: ImageUploadProps) => {
+const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: ImageUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(value || defaultImage || "");
 
@@ -59,7 +61,7 @@ const ImageUpload = ({ value, onChange, defaultImage, name, email }: ImageUpload
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={cn("flex flex-col items-center", className)}>
       <Avatar className="h-24 w-24 mb-2">
         <AvatarImage src={previewUrl} alt={name || email || "User"} />
         <AvatarFallback className="bg-blue-500 text-white text-xl">
