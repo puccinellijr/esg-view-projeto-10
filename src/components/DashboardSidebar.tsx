@@ -67,12 +67,14 @@ const DashboardSidebar = () => {
             {hasAccess('operational') && (
               <SidebarMenuItem>
                 <SidebarMenuButton 
+                  asChild
                   tooltip="Formulário" 
-                  className={`hover:bg-white/10 ${isProfileOpen ? "bg-white/20" : ""}`}
-                  onClick={() => setIsProfileOpen(true)}
+                  className={`hover:bg-white/10 ${location.pathname === "/operational-form" ? "bg-white/20" : ""}`}
                 >
-                  <FileText />
-                  <span>Formulário</span>
+                  <Link to="/operational-form" className="text-white">
+                    <FileText />
+                    <span>Formulário</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
@@ -125,15 +127,26 @@ const DashboardSidebar = () => {
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton 
+                          className="text-black hover:bg-gray-100"
+                          onClick={() => setIsProfileOpen(true)}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Perfil do Usuário</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
                     </SidebarMenuSub>
                   )}
                 </>
               ) : (
-                <SidebarMenuButton asChild tooltip="Configurações" className={`hover:bg-white/10 ${location.pathname === "/settings/profile" ? "bg-white/20" : ""}`}>
-                  <Link to="/settings/profile" className="text-white">
-                    <Settings />
-                    <span>Configurações</span>
-                  </Link>
+                <SidebarMenuButton 
+                  tooltip="Configurações" 
+                  className={`hover:bg-white/10`}
+                  onClick={() => setIsProfileOpen(true)}
+                >
+                  <Settings />
+                  <span>Configurações</span>
                 </SidebarMenuButton>
               )}
             </SidebarMenuItem>
@@ -165,4 +178,3 @@ const DashboardSidebar = () => {
 };
 
 export default DashboardSidebar;
-
