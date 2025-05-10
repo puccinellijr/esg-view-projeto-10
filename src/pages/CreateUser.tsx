@@ -11,9 +11,11 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { AccessLevel } from '@/context/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const CreateUser = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,12 +45,12 @@ const CreateUser = () => {
       <div className="flex flex-col flex-1">
         <DashboardHeader />
         
-        <div className="container py-6 max-w-3xl">
+        <div className="container py-4 sm:py-6 px-3 sm:px-4 max-w-3xl">
           <Card>
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle>Cadastrar Novo Usuário</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="flex flex-col items-center mb-4">
                   <ImageUpload
@@ -141,11 +143,16 @@ const CreateUser = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => navigate("/settings/users")}>
+                <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => navigate("/settings/users")}
+                    className="w-full sm:w-auto"
+                  >
                     Cancelar
                   </Button>
-                  <Button type="submit">Criar Usuário</Button>
+                  <Button type="submit" className="w-full sm:w-auto">Criar Usuário</Button>
                 </div>
               </form>
             </CardContent>

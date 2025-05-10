@@ -16,6 +16,7 @@ import { Pencil, Trash2, UserPlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import ImageUpload from '@/components/ImageUpload';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Mock users data
 const mockUsers = [
@@ -54,12 +55,110 @@ interface UserData {
   terminal?: string;
 }
 
+// Component to display user cards on mobile
+const UserCard = ({ 
+  user, 
+  onEdit, 
+  onDelete 
+}: { 
+  user: UserData, 
+  onEdit: (user: UserData) => void, 
+  onDelete: (userId: string) => void 
+}) => {
+  const getAccessLevelLabel = (level: AccessLevel) => {
+    switch (level) {
+      case "administrative": return "Administrativo";
+      case "viewer": return "Visualizador";
+      case "operational": return "Operacional";
+      default: return level;
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((word) => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2) || "U";
+  };
+
+  return (
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={user.photoUrl} alt={user.name} />
+            <AvatarFallback className="bg-blue-500 text-white">{getInitials(user.name)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="font-medium">{user.name}</h3>
+            <p className="text-sm text-gray-500">{user.email}</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+          <div>
+            <span className="font-semibold block">Nível de Acesso:</span>
+            <span>{getAccessLevelLabel(user.accessLevel)}</span>
+          </div>
+          <div>
+            <span className="font-semibold block">Terminal:</span>
+            <span>{user.terminal || "—"}</span>
+          </div>
+        </div>
+        
+        <div className="flex justify-between gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => onEdit(user)}
+            className="flex-1"
+          >
+            <Pencil className="h-4 w-4 mr-1" /> Editar
+          </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 text-red-500 mr-1" /> Excluir
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="w-[95%] max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                <AlertDialogCancel className="w-full sm:w-auto mt-0">Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => onDelete(user.id)} 
+                  className="bg-red-500 hover:bg-red-600 w-full sm:w-auto"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const ManageUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserData[]>(mockUsers);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   // Filter users based on search term
   const filteredUsers = users.filter(
@@ -115,16 +214,19 @@ const ManageUsers = () => {
       <div className="flex flex-col flex-1">
         <DashboardHeader />
         
-        <div className="container py-6">
+        <div className="p-3 sm:p-4 md:p-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 px-4 sm:py-6 sm:px-6">
               <CardTitle>Gerenciar Usuários</CardTitle>
-              <Button onClick={() => navigate("/settings/user/create")} className="flex items-center gap-2">
+              <Button 
+                onClick={() => navigate("/settings/user/create")} 
+                className="flex items-center gap-2 w-full sm:w-auto"
+              >
                 <UserPlus className="h-4 w-4" />
                 Novo Usuário
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <div className="mb-6">
                 <Input
                   placeholder="Buscar usuários..."
@@ -133,73 +235,94 @@ const ManageUsers = () => {
                 />
               </div>
               
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Usuário</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Nível de Acesso</TableHead>
-                      <TableHead>Terminal</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.length === 0 ? (
+              {isMobile ? (
+                // Mobile view - cards
+                <div className="space-y-4">
+                  {filteredUsers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Nenhum usuário encontrado
+                    </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <UserCard 
+                        key={user.id} 
+                        user={user} 
+                        onEdit={handleEditUser} 
+                        onDelete={handleDeleteUser} 
+                      />
+                    ))
+                  )}
+                </div>
+              ) : (
+                // Desktop view - table
+                <div className="border rounded-md overflow-hidden">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                          Nenhum usuário encontrado
-                        </TableCell>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Nível de Acesso</TableHead>
+                        <TableHead>Terminal</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredUsers.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={user.photoUrl} alt={user.name} />
-                                <AvatarFallback className="bg-blue-500 text-white text-xs">{getInitials(user.name)}</AvatarFallback>
-                              </Avatar>
-                              <span>{user.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>{getAccessLevelLabel(user.accessLevel)}</TableCell>
-                          <TableCell>{user.terminal || "—"}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button size="sm" variant="ghost" onClick={() => handleEditUser(user)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost">
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Você tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-red-500 hover:bg-red-600">
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                            Nenhum usuário encontrado
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ) : (
+                        filteredUsers.map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={user.photoUrl} alt={user.name} />
+                                  <AvatarFallback className="bg-blue-500 text-white text-xs">{getInitials(user.name)}</AvatarFallback>
+                                </Avatar>
+                                <span>{user.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{getAccessLevelLabel(user.accessLevel)}</TableCell>
+                            <TableCell>{user.terminal || "—"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => handleEditUser(user)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="ghost">
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Você tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteUser(user.id)} className="bg-red-500 hover:bg-red-600">
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -208,7 +331,7 @@ const ManageUsers = () => {
       {/* Edit User Dialog */}
       {selectedUser && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-[350px]">
+          <DialogContent className={`${isMobile ? 'w-[95%]' : ''} max-w-[350px]`}>
             <DialogHeader>
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
@@ -276,11 +399,18 @@ const ManageUsers = () => {
               </div>
             </div>
             
-            <DialogFooter className="mt-2">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <DialogFooter className="mt-2 flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEditDialogOpen(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancelar
               </Button>
-              <Button onClick={handleUpdateUser}>
+              <Button 
+                onClick={handleUpdateUser}
+                className="w-full sm:w-auto"
+              >
                 Salvar Alterações
               </Button>
             </DialogFooter>

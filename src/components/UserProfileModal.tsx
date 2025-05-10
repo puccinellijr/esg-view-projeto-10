@@ -10,6 +10,7 @@ import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ImageUpload from "@/components/ImageUpload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface UserProfileModalProps {
 const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const { user, updateUserProfile } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
@@ -55,7 +57,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[350px]">
+      <DialogContent className={`${isMobile ? 'w-[95%] max-w-[350px]' : 'sm:max-w-[350px]'} p-4 sm:p-6`}>
         <DialogHeader>
           <DialogTitle>Perfil do Usuário</DialogTitle>
         </DialogHeader>
@@ -143,16 +145,16 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <DialogFooter className="flex justify-between items-center pt-2">
+          <DialogFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-2">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <X className="h-4 w-4" /> Cancelar
             </Button>
-            <Button type="submit">Salvar Alterações</Button>
+            <Button type="submit" className="w-full sm:w-auto">Salvar Alterações</Button>
           </DialogFooter>
         </form>
       </DialogContent>
