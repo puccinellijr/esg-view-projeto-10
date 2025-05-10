@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ImageUpload from "@/components/ImageUpload";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
+  const [terminal, setTerminal] = useState(user?.terminal || "");
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +42,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         name,
         email,
         photoUrl,
+        terminal,
         ...(newPassword ? { password: newPassword } : {}),
       });
       
@@ -52,19 +55,19 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[350px]"> {/* Reduced from 425px to about 350px (30% smaller) */}
+      <DialogContent className="sm:max-w-[350px]">
         <DialogHeader>
           <DialogTitle>Perfil do Usuário</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-3"> {/* Reduced space-y from 4 to 3 */}
-          <div className="flex justify-center"> {/* Center the image upload */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="flex justify-center">
             <ImageUpload
               value={photoUrl}
               onChange={setPhotoUrl}
               name={name}
               email={email}
-              className="scale-90" /* Scale down the image upload component */
+              className="scale-90"
             />
           </div>
           
@@ -88,6 +91,24 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               placeholder="seu@email.com"
             />
           </div>
+          
+          {user?.accessLevel === "administrative" && (
+            <div className="space-y-2">
+              <Label htmlFor="terminal">Terminal</Label>
+              <Select
+                value={terminal}
+                onValueChange={setTerminal}
+              >
+                <SelectTrigger id="terminal">
+                  <SelectValue placeholder="Selecione o terminal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                  <SelectItem value="SP">SP</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="current-password">Senha Atual</Label>
@@ -122,7 +143,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <DialogFooter className="flex justify-between items-center pt-2"> {/* Reduced padding top from 4 to 2 */}
+          <DialogFooter className="flex justify-between items-center pt-2">
             <Button 
               type="button" 
               variant="outline" 
@@ -140,4 +161,3 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
 };
 
 export default UserProfileModal;
-

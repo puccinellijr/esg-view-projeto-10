@@ -24,21 +24,24 @@ const mockUsers = [
     name: "Admin User", 
     email: "admin@example.com", 
     accessLevel: "administrative" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com",
+    terminal: "Rio Grande"
   },
   { 
     id: "2", 
     name: "Viewer User", 
     email: "viewer@example.com", 
     accessLevel: "viewer" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com",
+    terminal: "SP"
   },
   { 
     id: "3", 
     name: "Operator User", 
     email: "operator@example.com", 
     accessLevel: "operational" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com"
+    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com",
+    terminal: "Rio Grande"
   },
 ];
 
@@ -48,6 +51,7 @@ interface UserData {
   email: string;
   accessLevel: AccessLevel;
   photoUrl?: string;
+  terminal?: string;
 }
 
 const ManageUsers = () => {
@@ -136,13 +140,14 @@ const ManageUsers = () => {
                       <TableHead>Usuário</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Nível de Acesso</TableHead>
+                      <TableHead>Terminal</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                        <TableCell colSpan={5} className="text-center py-6 text-gray-500">
                           Nenhum usuário encontrado
                         </TableCell>
                       </TableRow>
@@ -160,6 +165,7 @@ const ManageUsers = () => {
                           </TableCell>
                           <TableCell>{user.email}</TableCell>
                           <TableCell>{getAccessLevelLabel(user.accessLevel)}</TableCell>
+                          <TableCell>{user.terminal || "—"}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               <Button size="sm" variant="ghost" onClick={() => handleEditUser(user)}>
@@ -202,19 +208,19 @@ const ManageUsers = () => {
       {/* Edit User Dialog */}
       {selectedUser && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-[350px]"> {/* Reduced from 425px to about 350px (30% smaller) */}
+          <DialogContent className="max-w-[350px]">
             <DialogHeader>
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-3"> {/* Reduce space-y from 4 to 3 */}
-              <div className="flex justify-center"> {/* Wrap ImageUpload in a div with flex center */}
+            <div className="space-y-3">
+              <div className="flex justify-center">
                 <ImageUpload
                   value={selectedUser.photoUrl || ""}
                   onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
                   name={selectedUser.name}
                   email={selectedUser.email}
-                  className="scale-90" /* Scale down the image upload component */
+                  className="scale-90"
                 />
               </div>
               
@@ -252,9 +258,25 @@ const ManageUsers = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-terminal">Terminal</Label>
+                <Select
+                  value={selectedUser.terminal || ""}
+                  onValueChange={(value) => setSelectedUser({...selectedUser, terminal: value})}
+                >
+                  <SelectTrigger id="edit-terminal">
+                    <SelectValue placeholder="Selecione o terminal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                    <SelectItem value="SP">SP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            <DialogFooter className="mt-2"> {/* Added margin top to reduce spacing */}
+            <DialogFooter className="mt-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancelar
               </Button>
