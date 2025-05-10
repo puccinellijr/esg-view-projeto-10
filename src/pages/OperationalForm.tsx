@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import { useAuth } from '@/context/AuthContext';
 
 // Define the form schema for validation
 const formSchema = z.object({
@@ -57,10 +57,14 @@ type FormValues = z.infer<typeof formSchema>;
 
 const OperationalForm = () => {
   const navigate = useNavigate();
+  const { user, hasAccess } = useAuth();
+  const isAdmin = hasAccess('administrative');
+  const userTerminal = user?.terminal || "Rio Grande";
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      terminal: "Rio Grande",
+      terminal: userTerminal,
       period: "1",
       year: new Date().getFullYear().toString(),
       toneladasMovimentadas: "",
@@ -83,7 +87,25 @@ const OperationalForm = () => {
     // In a real application, here we would send the data to an API
     console.log("Dados do formulário:", data);
     toast.success("Dados salvos com sucesso!");
-    form.reset();
+    form.reset({
+      ...form.getValues(),
+      terminal: userTerminal, // Reset to user's terminal
+      period: "1",
+      year: new Date().getFullYear().toString(),
+      toneladasMovimentadas: "",
+      waterPerTon: "",
+      kgPerTon: "",
+      kwhPerTon: "",
+      fuelPerTon: "",
+      wastePercentage: "",
+      processIncidents: "",
+      accidentsWithLeave: "",
+      discriminationComplaints: "",
+      womenPercentage: "",
+      corruptionComplaints: "",
+      neighborComplaints: "",
+      cyberIncidents: "",
+    });
   };
 
   // Function to handle navigation back to dashboard
@@ -108,30 +130,54 @@ const OperationalForm = () => {
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="terminal"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Terminal</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
+                      {isAdmin ? (
+                        <FormField
+                          control={form.control}
+                          name="terminal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Terminal</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o Terminal" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                                  <SelectItem value="SP">SP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name="terminal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Terminal</FormLabel>
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o Terminal" />
-                                </SelectTrigger>
+                                <Input 
+                                  type="text" 
+                                  value={field.value} 
+                                  readOnly
+                                  className="bg-gray-100 cursor-not-allowed"
+                                />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                                <SelectItem value="SP">SP</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Terminal associado ao seu perfil
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
                       <FormField
                         control={form.control}
