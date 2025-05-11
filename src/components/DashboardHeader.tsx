@@ -31,7 +31,7 @@ const DashboardHeader = () => {
     return email ? email.substring(0, 2).toUpperCase() : "U";
   };
 
-  // Get user's first name or username for welcome message
+  // Get user's first name only for welcome message
   const getUserDisplayName = () => {
     if (user?.name) {
       return user.name.split(' ')[0]; // Get first name only
@@ -122,14 +122,14 @@ const DashboardHeader = () => {
             ESG
           </h1>
           
-          {/* Welcome message for desktop */}
+          {/* Welcome message for desktop - showing only first name */}
           <div className="hidden md:flex items-center ml-2 lg:ml-4 text-sm lg:text-base font-medium">
             <span>Bem-vindo, {getUserDisplayName()}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Welcome message for mobile */}
+          {/* Welcome message for mobile - showing only first name */}
           <div className="md:hidden text-xs sm:text-sm truncate max-w-[100px] sm:max-w-[150px]">
             <span>Bem-vindo, {getUserDisplayName()}</span>
           </div>
