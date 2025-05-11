@@ -15,7 +15,8 @@ const DashboardHeader = () => {
   // Get user's first name only for welcome message
   const getUserDisplayName = () => {
     if (user?.name) {
-      return user.name.split(' ')[0]; // Get first name only
+      const firstName = user.name.split(' ')[0]; // Get first name only
+      return firstName;
     } else if (user?.email) {
       return user.email.split('@')[0]; // Get username from email
     } else {
