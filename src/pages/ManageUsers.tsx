@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -331,23 +330,23 @@ const ManageUsers = () => {
       {/* Edit User Dialog */}
       {selectedUser && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className={`${isMobile ? 'w-[95%]' : ''} max-w-[350px]`}>
+          <DialogContent className={`${isMobile ? 'w-[95%] max-h-[70vh] overflow-y-auto' : ''} max-w-[350px]`}>
             <DialogHeader>
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex justify-center">
                 <ImageUpload
                   value={selectedUser.photoUrl || ""}
                   onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
                   name={selectedUser.name}
                   email={selectedUser.email}
-                  className="scale-90"
+                  className="scale-75"
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="edit-name">Nome</Label>
                 <Input
                   id="edit-name"
@@ -356,7 +355,7 @@ const ManageUsers = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="edit-email">Email</Label>
                 <Input
                   id="edit-email"
@@ -365,7 +364,7 @@ const ManageUsers = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="edit-accessLevel">Nível de Acesso</Label>
                 <Select
                   value={selectedUser.accessLevel}
@@ -382,7 +381,7 @@ const ManageUsers = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="edit-terminal">Terminal</Label>
                 <Select
                   value={selectedUser.terminal || ""}

@@ -57,23 +57,23 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'w-[95%] max-w-[350px]' : 'sm:max-w-[350px]'} p-4 sm:p-6`}>
+      <DialogContent className={`${isMobile ? 'w-[95%] max-w-[350px] max-h-[70vh] overflow-y-auto' : 'sm:max-w-[350px]'} p-4 sm:p-6`}>
         <DialogHeader>
           <DialogTitle>Perfil do Usuário</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div className="flex justify-center">
             <ImageUpload
               value={photoUrl}
               onChange={setPhotoUrl}
               name={name}
               email={email}
-              className="scale-90"
+              className="scale-75"
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="name">Nome</Label>
             <Input 
               id="name" 
@@ -83,7 +83,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
@@ -95,7 +95,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
           </div>
           
           {user?.accessLevel === "administrative" && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="terminal">Terminal</Label>
               <Select
                 value={terminal}
@@ -112,7 +112,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             </div>
           )}
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="current-password">Senha Atual</Label>
             <Input 
               id="current-password" 
@@ -123,7 +123,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="new-password">Nova Senha</Label>
             <Input 
               id="new-password" 
@@ -134,7 +134,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             />
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="confirm-password">Confirmar Senha</Label>
             <Input 
               id="confirm-password" 
