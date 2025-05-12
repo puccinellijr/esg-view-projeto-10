@@ -6,11 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zrlczidvxjfulcogtbxd.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGN6aWR2eGpmdWxjb2d0YnhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNjI1NTcsImV4cCI6MjA2MjYzODU1N30.CGVcBAraQKepURsahjwPZzLXwmnZqocEfJfbgIaD2Gw';
 
-// Verificar se as variáveis são válidas e imprimir para debug
-console.log('CONFIGURAÇÕES DO SUPABASE:');
-console.log('URL:', supabaseUrl);
-console.log('Chave anônima válida:', supabaseAnonKey && supabaseAnonKey.length > 20);
-
 // Criar cliente com configurações básicas
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

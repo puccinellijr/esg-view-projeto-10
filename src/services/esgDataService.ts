@@ -124,15 +124,16 @@ export const fetchESGData = async (
     };
 
     for (const category of categories) {
-      // Buscar dados do primeiro período
+      // Buscar dados do primeiro período - Usando subquery para obter os mais recentes para cada indicador
       console.log(`Buscando dados de ${category} para período 1...`);
       const { data: data1, error: error1 } = await supabase
         .from('esg_indicators')
-        .select('id, name, value')
+        .select('id, name, value, created_at')
         .eq('terminal', terminal)
         .eq('category', category)
         .eq('month', parseInt(period1.month))
-        .eq('year', parseInt(period1.year));
+        .eq('year', parseInt(period1.year))
+        .order('created_at', { ascending: false });
 
       if (error1) {
         console.error(`Erro ao buscar dados de ${category} (período 1):`, error1);
@@ -140,15 +141,16 @@ export const fetchESGData = async (
         console.log(`Dados de ${category} período 1 encontrados:`, data1?.length || 0);
       }
 
-      // Buscar dados do segundo período
+      // Buscar dados do segundo período - Usando subquery para obter os mais recentes para cada indicador
       console.log(`Buscando dados de ${category} para período 2...`);
       const { data: data2, error: error2 } = await supabase
         .from('esg_indicators')
-        .select('id, name, value')
+        .select('id, name, value, created_at')
         .eq('terminal', terminal)
         .eq('category', category)
         .eq('month', parseInt(period2.month))
-        .eq('year', parseInt(period2.year));
+        .eq('year', parseInt(period2.year))
+        .order('created_at', { ascending: false });
 
       if (error2) {
         console.error(`Erro ao buscar dados de ${category} (período 2):`, error2);
@@ -160,23 +162,44 @@ export const fetchESGData = async (
       // @ts-ignore - Adicionando dinamicamente ao objeto result
       const categoryData = result[category];
 
-      // Processar dados do primeiro período
+      // Processar dados do primeiro período - pegando apenas o mais recente para cada nome de indicador
       if (data1) {
+        // Criar um mapa para armazenar apenas o valor mais recente de cada indicador
+        const latestValues = new Map();
+        
+        // Iterar pelos dados ordenados por created_at descendente
         data1.forEach(item => {
-          if (!categoryData[item.name]) {
-            categoryData[item.name] = { value1: 0, value2: 0 };
+          // Se ainda não temos este nome de indicador no mapa, adicione-o
+          // Isso vai pegar apenas o primeiro encontrado de cada tipo, que é o mais recente
+          if (!latestValues.has(item.name)) {
+            latestValues.set(item.name, item.value);
           }
-          categoryData[item.name].value1 = item.value;
+        });
+        
+        // Adicionar os valores mais recentes ao resultado
+        latestValues.forEach((value, name) => {
+          if (!categoryData[name]) {
+            categoryData[name] = { value1: 0, value2: 0 };
+          }
+          categoryData[name].value1 = value;
         });
       }
 
-      // Processar dados do segundo período
+      // Processar dados do segundo período - similar ao primeiro período
       if (data2) {
+        const latestValues = new Map();
+        
         data2.forEach(item => {
-          if (!categoryData[item.name]) {
-            categoryData[item.name] = { value1: 0, value2: 0 };
+          if (!latestValues.has(item.name)) {
+            latestValues.set(item.name, item.value);
           }
-          categoryData[item.name].value2 = item.value;
+        });
+        
+        latestValues.forEach((value, name) => {
+          if (!categoryData[name]) {
+            categoryData[name] = { value1: 0, value2: 0 };
+          }
+          categoryData[name].value2 = value;
         });
       }
     }
@@ -223,48 +246,18 @@ export const saveESGIndicator = async (
     
     console.log("Salvando indicador ESG:", indicatorData);
     
-    // Verificar se o indicador já existe
-    const { data: existingData, error: queryError } = await supabase
+    // Em vez de verificar a existência e atualizar, sempre vamos criar um novo registro
+    // Isso mantém um histórico completo dos valores e permite sempre exibir o mais recente
+    console.log("Criando novo registro para o indicador");
+    const { error: insertError } = await supabase
       .from('esg_indicators')
-      .select('id')
-      .eq('name', indicatorData.name)
-      .eq('terminal', indicatorData.terminal)
-      .eq('month', indicatorData.month)
-      .eq('year', indicatorData.year)
-      .eq('category', indicatorData.category)
-      .maybeSingle();
+      .insert([indicatorData]);
 
-    if (queryError && queryError.code !== 'PGRST116') { // PGRST116 é "no rows found"
-      console.error("Erro ao verificar existência do indicador:", queryError);
-      throw queryError;
+    if (insertError) {
+      console.error("Erro ao inserir indicador:", insertError);
+      throw insertError;
     }
-
-    if (existingData?.id) {
-      // Atualizar indicador existente
-      console.log(`Atualizando indicador existente (ID: ${existingData.id})`);
-      const { error: updateError } = await supabase
-        .from('esg_indicators')
-        .update({ value: indicatorData.value })
-        .eq('id', existingData.id);
-
-      if (updateError) {
-        console.error("Erro ao atualizar indicador:", updateError);
-        throw updateError;
-      }
-      return { success: true, message: 'Indicador atualizado com sucesso' };
-    } else {
-      // Criar novo indicador
-      console.log("Criando novo indicador");
-      const { error: insertError } = await supabase
-        .from('esg_indicators')
-        .insert([indicatorData]);
-
-      if (insertError) {
-        console.error("Erro ao inserir indicador:", insertError);
-        throw insertError;
-      }
-      return { success: true, message: 'Indicador criado com sucesso' };
-    }
+    return { success: true, message: 'Indicador atualizado com sucesso' };
   } catch (error) {
     console.error('Erro ao salvar indicador ESG:', error);
     return { success: false, message: 'Erro ao salvar indicador: ' + (error as Error).message };

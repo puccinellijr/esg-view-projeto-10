@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -68,43 +68,51 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           .select('*')
           .eq('terminal', selectedTerminal)
           .eq('month', parseInt(selectedMonth))
-          .eq('year', parseInt(selectedYear));
+          .eq('year', parseInt(selectedYear))
+          .order('created_at', { ascending: false });
         
         if (error) {
           throw error;
         }
         
         if (data && data.length > 0) {
-          // Mapear dados do banco para o formato de indicadores com ícones
-          const mappedIndicators: Indicator[] = data.map(item => {
-            // Determinar ícone baseado no nome do indicador
-            let icon;
-            switch (item.name) {
-              case 'litro_tm': icon = <Droplet size={18} className="text-black" />; break;
-              case 'kg_tm': icon = <Weight size={18} className="text-black" />; break;
-              case 'kwh_tm': icon = <Zap size={18} className="text-black" />; break;
-              case 'litro_combustivel_tm': icon = <Fuel size={18} className="text-black" />; break;
-              case 'residuo_tm': icon = <Percent size={18} className="text-black" />; break;
-              case 'incidente': icon = <AlertTriangle size={18} className="text-black" />; break;
-              case 'acidente': icon = <Bandage size={18} className="text-black" />; break;
-              case 'denuncia_discriminacao': icon = <Users size={18} className="text-black" />; break;
-              case 'mulher_trabalho': icon = <Handshake size={18} className="text-black" />; break;
-              case 'denuncia_corrupcao': icon = <Gavel size={18} className="text-black" />; break;
-              case 'reclamacao_vizinho': icon = <Bell size={18} className="text-black" />; break;
-              case 'incidente_cibernetico': icon = <Server size={18} className="text-black" />; break;
-              default: icon = <Leaf size={18} className="text-black" />;
+          // Criar um mapa para armazenar apenas o valor mais recente de cada indicador
+          const latestIndicators = new Map();
+          
+          // Iterar pelos dados ordenados por created_at descendente
+          data.forEach(item => {
+            // Se ainda não temos este nome de indicador no mapa, adicione-o
+            // Isso vai pegar apenas o primeiro encontrado de cada tipo, que é o mais recente
+            if (!latestIndicators.has(item.name)) {
+              // Determinar ícone baseado no nome do indicador
+              let icon;
+              switch (item.name) {
+                case 'litro_tm': icon = <Droplet size={18} className="text-black" />; break;
+                case 'kg_tm': icon = <Weight size={18} className="text-black" />; break;
+                case 'kwh_tm': icon = <Zap size={18} className="text-black" />; break;
+                case 'litro_combustivel_tm': icon = <Fuel size={18} className="text-black" />; break;
+                case 'residuo_tm': icon = <Percent size={18} className="text-black" />; break;
+                case 'incidente': icon = <AlertTriangle size={18} className="text-black" />; break;
+                case 'acidente': icon = <Bandage size={18} className="text-black" />; break;
+                case 'denuncia_discriminacao': icon = <Users size={18} className="text-black" />; break;
+                case 'mulher_trabalho': icon = <Handshake size={18} className="text-black" />; break;
+                case 'denuncia_corrupcao': icon = <Gavel size={18} className="text-black" />; break;
+                case 'reclamacao_vizinho': icon = <Bell size={18} className="text-black" />; break;
+                case 'incidente_cibernetico': icon = <Server size={18} className="text-black" />; break;
+                default: icon = <Leaf size={18} className="text-black" />;
+              }
+              
+              latestIndicators.set(item.name, {
+                id: item.id,
+                name: item.name,
+                value: item.value,
+                icon,
+                category: item.category
+              });
             }
-            
-            return {
-              id: item.id,
-              name: item.name,
-              value: item.value,
-              icon,
-              category: item.category
-            };
           });
           
-          setIndicators(mappedIndicators);
+          setIndicators(Array.from(latestIndicators.values()));
         } else {
           // Se não houver dados, usar indicadores mockados para este mês
           console.log("Nenhum dado encontrado, usando indicadores padrão");
@@ -243,7 +251,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     if (!editingIndicator) return;
     
     try {
-      // Salvar valor no Supabase
+      // Salvar valor no Supabase (sempre criar novo registro)
       const result = await saveESGIndicator({
         name: editingIndicator.name,
         value: parseFloat(newValue),
@@ -254,9 +262,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       });
       
       if (result.success) {
-        // Atualizar estado local
+        // Atualizar apenas o indicador específico que foi editado
         setIndicators(prev => prev.map(ind => 
-          ind.id === editingIndicator.id ? { ...ind, value: parseFloat(newValue) } : ind
+          ind.name === editingIndicator.name 
+            ? { ...ind, value: parseFloat(newValue) } 
+            : ind
         ));
         
         // Fechar diálogo
@@ -376,6 +386,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar {editingIndicator?.name}</DialogTitle>
+            <DialogDescription>
+              Este valor será salvo como o mais recente para este indicador.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input 
