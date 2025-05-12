@@ -11,79 +11,33 @@ console.log('CONFIGURAÇÕES DO SUPABASE:');
 console.log('URL:', supabaseUrl);
 console.log('Chave anônima válida:', supabaseAnonKey && supabaseAnonKey.length > 20);
 
-if (!supabaseUrl.includes('supabase.co') || supabaseAnonKey.length < 10) {
-  console.error('Configurações do Supabase inválidas ou não encontradas. Verifique suas variáveis de ambiente.', {
-    url: supabaseUrl.substring(0, 10) + '...',
-    keyLength: supabaseAnonKey ? supabaseAnonKey.length : 0
-  });
-}
-
-// Criar cliente com tempo limite de resposta aumentado
+// Criar cliente com configurações básicas
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-  },
-  global: {
-    // Aumentar os timeouts para evitar problemas em redes lentas
-    headers: { 'x-application-name': 'esg-dashboard' }
-  },
+  }
 });
 
-// Função simplificada para testar conexão com o Supabase
-// Reduzimos a complexidade para evitar timeouts
+// Função super simplificada para testar conexão com o Supabase
 export const testSupabaseConnection = async () => {
   try {
-    console.log('>>> Iniciando diagnóstico simplificado de conexão com Supabase <<<');
-    console.log(`URL do Supabase: ${supabaseUrl.substring(0, 15)}...`);
-    console.log(`Comprimento da chave anônima: ${supabaseAnonKey.length} caracteres`);
-    
-    // Verificar formato da URL
-    if (!supabaseUrl.includes('supabase.co')) {
-      console.error('URL do Supabase inválida. Deve conter "supabase.co"');
-      return { success: false, error: 'URL_INVALID', message: 'URL do Supabase inválida' };
-    }
-    
-    // Verificar se a chave parece válida
-    if (supabaseAnonKey.length < 20) {
-      console.error('Chave anônima do Supabase parece inválida (muito curta)');
-      return { success: false, error: 'KEY_INVALID', message: 'Chave anônima do Supabase inválida' };
-    }
-    
-    // Teste simplificado: apenas verificar se consegue obter a sessão atual
-    // sem fazer várias consultas que podem causar timeout
-    try {
-      console.log('Testando conexão básica com Supabase...');
-      const { error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Erro básico de conexão:', error);
-        return { 
-          success: false, 
-          error: 'BASIC_CONNECTION', 
-          message: `Erro de conexão: ${error.message}` 
-        };
-      }
-      
-      console.log('Conexão básica com Supabase OK');
-      return { success: true };
-      
-    } catch (err) {
-      const error = err as Error;
-      console.error('Erro ao testar conexão básica:', error);
+    // Verificação mínima e rápida
+    const { error } = await supabase.auth.getSession();
+    if (error) {
       return { 
         success: false, 
         error: 'CONNECTION_ERROR', 
-        message: `Erro de conexão: ${error.message}` 
+        message: `Erro de conexão básica: ${error.message}`
       };
     }
+    return { success: true };
   } catch (err) {
     const error = err as Error;
-    console.error('>>> ERRO FATAL no diagnóstico de conexão <<<', error);
     return { 
       success: false, 
       error: 'FATAL_ERROR', 
-      message: `Erro ao testar conexão: ${error.message}` 
+      message: `Erro ao testar conexão básica: ${error.message}`
     };
   }
 };
