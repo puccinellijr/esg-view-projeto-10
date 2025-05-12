@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Usar variáveis de ambiente ou valores de teste
 // IMPORTANTE: Estes são valores de teste - substitua pelos seus valores de produção adequados
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://toitoksahfkftzydpszb.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvaXRva3NhaGZrZnR6eWRwc3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA3MDQ1MTYsImV4cCI6MjAzNjI4MDUxNn0.Ze42N9AFeGt8lcGRAihYs7gwaAJQg2sPhwe4Hab0HLE';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://djpkwwpjinznnzxkbbsf.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqcGt3d3BqaW56bm56eGtiYnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNTQ1OTAsImV4cCI6MjA2MjYzMDU5MH0.OJJwunPn_vyKdmlnxZwVtW1ITOLniXXF7KnBcMJ0F1k';
 
 // Verificar se as variáveis são válidas
 if (!supabaseUrl.includes('supabase.co') || supabaseAnonKey.length < 10) {
