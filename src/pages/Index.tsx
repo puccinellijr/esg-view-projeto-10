@@ -11,19 +11,34 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionDetails, setConnectionDetails] = useState<string | null>(null);
+  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
 
   useEffect(() => {
+    // Função para verificar o sistema com timeout global para evitar carregamento infinito
     const checkSystem = async () => {
+      // Definir um timeout global para toda a operação
+      const globalTimeout = setTimeout(() => {
+        console.error("Timeout global na inicialização do sistema");
+        setError("Timeout na inicialização. Verifique sua conexão com o Supabase.");
+        setConnectionDetails("A operação excedeu o tempo limite de 15 segundos. Verifique a conexão com o banco de dados.");
+        setLoading(false);
+      }, 15000);
+
       try {
         // Testar conexão com Supabase
         console.log("Testando conexão com Supabase...");
-        const isConnected = await testSupabaseConnection();
+        const result = await testSupabaseConnection();
         
-        if (!isConnected) {
-          console.error("Falha na conexão com Supabase");
-          setConnectionDetails(`Verifique suas credenciais do Supabase em src/lib/supabase.ts e confirme que o projeto está online.`);
+        // Armazenar diagnóstico para exibição
+        setDiagnosticResult(result);
+        
+        if (!result.success) {
+          console.error("Falha na conexão com Supabase:", result);
+          setConnectionDetails(`Erro: ${result.message || "Falha na conexão com o banco de dados"}`);
           toast.error("Erro de conexão com o banco de dados");
-          setError("Falha na conexão com o banco de dados");
+          setError(result.message || "Falha na conexão com o banco de dados");
+          clearTimeout(globalTimeout);
+          setLoading(false);
           return;
         }
 
@@ -35,10 +50,12 @@ export default function Index() {
         // Se usuário está logado, redirecionar para dashboard
         if (user) {
           console.log("Usuário logado, redirecionando para dashboard");
+          clearTimeout(globalTimeout);
           navigate("/dashboard");
         } else {
           // Caso contrário, redirecionar para login
           console.log("Usuário não logado, redirecionando para login");
+          clearTimeout(globalTimeout);
           navigate("/login");
         }
       } catch (err) {
@@ -46,7 +63,9 @@ export default function Index() {
         const errorMessage = (err as Error).message || "Erro ao inicializar o sistema";
         setError(errorMessage);
         toast.error(errorMessage);
+        clearTimeout(globalTimeout);
       } finally {
+        clearTimeout(globalTimeout);
         setLoading(false);
       }
     };
@@ -60,6 +79,7 @@ export default function Index() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-blue"></div>
         <p className="mt-4 text-gray-600">Inicializando sistema...</p>
+        <p className="mt-2 text-sm text-gray-400">Verificando conexão com o banco de dados...</p>
       </div>
     );
   }
@@ -71,6 +91,11 @@ export default function Index() {
           <p className="font-bold">Erro ao inicializar o sistema</p>
           <p>{error}</p>
           {connectionDetails && <p className="mt-2 text-sm">{connectionDetails}</p>}
+          {diagnosticResult && (
+            <div className="mt-2 p-3 bg-gray-50 rounded text-xs font-mono">
+              <pre>{JSON.stringify(diagnosticResult, null, 2)}</pre>
+            </div>
+          )}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
           <h2 className="text-xl font-semibold mb-4">Problemas comuns e soluções:</h2>
@@ -108,7 +133,10 @@ export default function Index() {
             </p>
           </div>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              console.log("Tentando reconectar...");
+              window.location.reload();
+            }}
             className="mt-6 bg-custom-blue text-white px-4 py-2 rounded hover:bg-custom-blue/80"
           >
             Tentar novamente

@@ -6,7 +6,11 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zrlczidvxjfulcogtbxd.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGN6aWR2eGpmdWxjb2d0YnhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNjI1NTcsImV4cCI6MjA2MjYzODU1N30.CGVcBAraQKepURsahjwPZzLXwmnZqocEfJfbgIaD2Gw';
 
-// Verificar se as variáveis são válidas
+// Verificar se as variáveis são válidas e imprimir para debug
+console.log('CONFIGURAÇÕES DO SUPABASE:');
+console.log('URL:', supabaseUrl);
+console.log('Chave anônima válida:', supabaseAnonKey && supabaseAnonKey.length > 20);
+
 if (!supabaseUrl.includes('supabase.co') || supabaseAnonKey.length < 10) {
   console.error('Configurações do Supabase inválidas ou não encontradas. Verifique suas variáveis de ambiente.', {
     url: supabaseUrl.substring(0, 10) + '...',
@@ -14,69 +18,111 @@ if (!supabaseUrl.includes('supabase.co') || supabaseAnonKey.length < 10) {
   });
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Criar cliente com tempo limite de resposta aumentado
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
-// Função para testar a conexão com o Supabase
+// Função melhorada para testar conexão com o Supabase
 export const testSupabaseConnection = async () => {
   try {
-    console.log('Tentando conectar ao Supabase...');
+    console.log('>>> Iniciando diagnóstico de conexão com Supabase <<<');
+    console.log(`URL do Supabase: ${supabaseUrl.substring(0, 15)}...`);
+    console.log(`Comprimento da chave anônima: ${supabaseAnonKey.length} caracteres`);
     
-    // Verificar se a URL está no formato correto
+    // Verificar formato da URL
     if (!supabaseUrl.includes('supabase.co')) {
       console.error('URL do Supabase inválida. Deve conter "supabase.co"');
-      return false;
+      return { success: false, error: 'URL_INVALID', message: 'URL do Supabase inválida' };
     }
     
     // Verificar se a chave parece válida
     if (supabaseAnonKey.length < 20) {
       console.error('Chave anônima do Supabase parece inválida (muito curta)');
-      return false;
+      return { success: false, error: 'KEY_INVALID', message: 'Chave anônima do Supabase inválida' };
     }
     
-    // Primeiro, tente uma operação mais simples que não dependa de políticas complexas
-    const { error: authError } = await supabase.auth.getSession();
-    
-    if (authError) {
-      console.error('Erro na autenticação com Supabase:', authError);
-      return false;
-    }
-    
-    // Defina um timeout para a operação de banco de dados
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout ao conectar ao Supabase')), 5000);
+    // Primeiro teste: verificar se o serviço de autenticação está acessível
+    console.log('1. Testando serviço de autenticação...');
+    const authTest = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout na autenticação')), 3000))
+    ]).catch(err => {
+      console.error('Timeout ou erro na autenticação:', err);
+      return { error: { message: err.message } };
     });
     
-    // Tente acessar a tabela com timeout
-    const dbPromise = supabase.from('user_profiles').select('count').limit(1);
-    
-    // Use Promise.race para implementar o timeout
-    const { data, error } = await Promise.race([
-      dbPromise,
-      timeoutPromise.then(() => ({ data: null, error: new Error('Timeout ao conectar ao Supabase') }))
-    ]) as any;
-    
-    if (error) {
-      console.error('Erro na conexão com tabela Supabase:', error);
-      
-      // Verificar se é um erro de políticas RLS
-      if (error.code === '42501' || (error.message && error.message.includes('permission denied'))) {
-        console.error('Erro de permissão nas políticas RLS do Supabase. Verifique suas políticas de segurança.');
-        throw new Error('Configuração incorreta nas políticas RLS da tabela user_profiles. Verifique o painel do Supabase.');
-      }
-      
-      if (error.code === '42P01') {
-        console.error('Tabela user_profiles não existe. Crie a tabela no Supabase.');
-        throw new Error('Tabela user_profiles não existe. Crie a tabela no Supabase.');
-      }
-      
-      throw error;
+    if (authTest.error) {
+      console.error('Erro no serviço de autenticação:', authTest.error);
+      return { 
+        success: false, 
+        error: 'AUTH_SERVICE', 
+        message: `Erro no serviço de autenticação: ${authTest.error.message}` 
+      };
     }
     
-    console.log('Conexão com Supabase bem-sucedida!', data);
-    return true;
+    console.log('Serviço de autenticação OK');
+    
+    // Segundo teste: verificar se a tabela user_profiles existe
+    console.log('2. Verificando existência da tabela user_profiles...');
+    try {
+      const tableTest = await Promise.race([
+        supabase.from('user_profiles').select('count'),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout ao verificar tabela')), 3000))
+      ]);
+      
+      if (tableTest.error) {
+        // Detectar erro específico de tabela inexistente
+        if (tableTest.error.code === '42P01') {
+          console.error('Tabela user_profiles não existe no banco de dados');
+          return {
+            success: false,
+            error: 'TABLE_NOT_FOUND',
+            message: 'Tabela user_profiles não existe. Crie a tabela no Supabase.'
+          };
+        }
+        
+        // Detectar erro de permissão (RLS)
+        if (tableTest.error.code === '42501' || 
+            (tableTest.error.message && tableTest.error.message.includes('permission denied'))) {
+          console.error('Erro de permissão nas políticas RLS');
+          return {
+            success: false,
+            error: 'RLS_POLICY',
+            message: 'Erro nas políticas RLS da tabela user_profiles. Verifique o painel do Supabase.'
+          };
+        }
+        
+        // Outro erro na consulta
+        console.error('Erro ao consultar tabela:', tableTest.error);
+        return {
+          success: false,
+          error: 'TABLE_QUERY',
+          message: `Erro ao acessar tabela: ${tableTest.error.message}`
+        };
+      }
+    } catch (err) {
+      console.error('Erro ao testar tabela:', err);
+      return {
+        success: false,
+        error: 'TABLE_TEST',
+        message: `Erro ao testar tabela: ${err.message}`
+      };
+    }
+    
+    console.log('>>> Diagnóstico concluído: Conexão com Supabase OK <<<');
+    return { success: true };
+    
   } catch (error) {
-    console.error('Erro ao conectar com Supabase:', error);
-    return false;
+    console.error('>>> ERRO FATAL no diagnóstico de conexão <<<', error);
+    return { 
+      success: false, 
+      error: 'FATAL_ERROR', 
+      message: `Erro fatal ao testar conexão: ${error.message}` 
+    };
   }
 };
 

@@ -24,21 +24,39 @@ export default function Login() {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        // Simples verificação de conexão
-        const { error } = await supabase.from('user_profiles').select('count');
-        if (error) {
-          console.error('Erro ao verificar conexão:', error);
-          if (error.code === '42P17') {
-            setConnectionStatus('Erro nas políticas do Supabase. Verifique as configurações RLS da tabela user_profiles.');
+        // Iniciar diagnóstico
+        console.log("Login: Verificando status da conexão");
+        
+        // Verificação mais simples e rápida
+        try {
+          const { error } = await Promise.race([
+            supabase.from('user_profiles').select('count'),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout na verificação')), 5000)
+            )
+          ]) as any;
+          
+          if (error) {
+            console.error('Login: Erro ao verificar conexão:', error);
+            
+            // Mensagens mais específicas para erros comuns
+            if (error.code === '42P01') {
+              setConnectionStatus('A tabela user_profiles não existe. Verifique se você criou todas as tabelas necessárias.');
+            } else if (error.code === '42501' || (error.message && error.message.includes('permission denied'))) {
+              setConnectionStatus('Erro nas políticas do Supabase. Verifique as configurações RLS da tabela user_profiles.');
+            } else {
+              setConnectionStatus(`Problemas de conexão com o Supabase: ${error.message}`);
+            }
           } else {
-            setConnectionStatus('Problemas de conexão com o Supabase. Verifique suas credenciais.');
+            setConnectionStatus(null);
           }
-        } else {
-          setConnectionStatus(null);
+        } catch (err) {
+          console.error('Login: Erro ao verificar status:', err);
+          setConnectionStatus('Não foi possível verificar a conexão com o Supabase. Verifique suas credenciais.');
         }
       } catch (err) {
-        console.error('Erro ao verificar status:', err);
-        setConnectionStatus('Não foi possível verificar a conexão com o Supabase.');
+        console.error('Login: Erro geral na verificação de conexão:', err);
+        setConnectionStatus('Erro na verificação de conexão.');
       }
     };
 
@@ -60,9 +78,23 @@ export default function Login() {
     try {
       console.log(`Tentando login com email: ${email}`);
       
-      // Verificar status da conexão Supabase
-      const { data: healthData } = await supabase.from('user_profiles').select('count');
-      console.log('Status da conexão:', healthData ? 'OK' : 'Falha');
+      // Verificar status da conexão Supabase com timeout
+      try {
+        const { data: healthData } = await Promise.race([
+          supabase.from('user_profiles').select('count'),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout na verificação')), 5000)
+          )
+        ]) as any;
+        
+        console.log('Status da conexão:', healthData ? 'OK' : 'Falha');
+      } catch (err) {
+        console.error('Erro ao verificar saúde da conexão:', err);
+        toast.error("Problema de conectividade com o banco de dados");
+        setErrorMessage("Não foi possível conectar ao banco de dados. Verifique suas credenciais do Supabase.");
+        setIsLoading(false);
+        return;
+      }
       
       const success = await login(email, password);
       
