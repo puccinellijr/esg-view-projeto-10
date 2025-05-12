@@ -29,36 +29,60 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (email: string, newPassword: string) => Promise<boolean>;
   updateUserProfile: (data: UserUpdateData) => Promise<boolean>;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Verificar sessão atual do usuário ao carregar
   useEffect(() => {
+    console.log("AuthProvider: Inicializando...");
+    
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        // Buscar detalhes do usuário do perfil
-        const { data: profileData, error } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .single();
-
-        if (!error && profileData) {
-          setUser({
-            email: data.session.user.email || '',
-            accessLevel: profileData.access_level as AccessLevel,
-            name: profileData.name,
-            photoUrl: profileData.photo_url,
-            terminal: profileData.terminal
-          });
-        } else {
-          console.error('Erro ao buscar perfil:', error);
+      try {
+        console.log("AuthProvider: Verificando sessão...");
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
+          setIsInitialized(true);
+          return;
         }
+
+        if (data.session?.user) {
+          console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
+          
+          // Buscar detalhes do usuário do perfil
+          const { data: profileData, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+
+          if (!error && profileData) {
+            console.log("AuthProvider: Perfil de usuário carregado:", profileData.name);
+            setUser({
+              email: data.session.user.email || '',
+              accessLevel: profileData.access_level as AccessLevel,
+              name: profileData.name,
+              photoUrl: profileData.photo_url,
+              terminal: profileData.terminal
+            });
+          } else {
+            console.error('Erro ao buscar perfil:', error);
+          }
+        } else {
+          console.log("AuthProvider: Nenhuma sessão ativa");
+        }
+      } catch (err) {
+        console.error("AuthProvider: Erro ao inicializar:", err);
+      } finally {
+        console.log("AuthProvider: Inicialização concluída");
+        setIsInitialized(true);
       }
     };
 
@@ -67,7 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Escutar mudanças na autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log(`AuthProvider: Evento de autenticação: ${event}`);
+        
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('AuthProvider: Usuário conectado:', session.user.email);
+          
           // Buscar detalhes do perfil quando o usuário faz login
           const { data: profileData, error } = await supabase
             .from('user_profiles')
@@ -83,30 +111,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               photoUrl: profileData.photo_url,
               terminal: profileData.terminal
             });
+          } else {
+            console.error('Erro ao buscar perfil após login:', error);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('AuthProvider: Usuário desconectado');
           setUser(null);
         }
       }
     );
 
     return () => {
+      console.log("AuthProvider: Limpando listener de autenticação");
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log('Tentando login para:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Erro de autenticação:', error.message);
         throw error;
       }
 
       if (data.user) {
+        console.log('Login bem-sucedido para:', data.user.email);
+        
         // Buscar detalhes do perfil após login bem-sucedido
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
@@ -119,6 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return false;
         }
 
+        console.log('Perfil carregado:', profileData?.name || 'sem nome');
+        
         setUser({
           email: data.user.email || '',
           accessLevel: profileData.access_level as AccessLevel,
@@ -263,7 +302,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasAccess,
     resetPassword,
     updatePassword,
-    updateUserProfile
+    updateUserProfile,
+    isInitialized
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

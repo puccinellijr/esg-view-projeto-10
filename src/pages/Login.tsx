@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
@@ -14,11 +15,13 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     
     // Validação básica
     if (!email || !password) {
@@ -29,17 +32,27 @@ export default function Login() {
     setIsLoading(true);
     
     try {
+      console.log(`Tentando login com email: ${email}`);
+      
+      // Verificar status da conexão Supabase
+      const { data: healthData } = await supabase.from('user_profiles').select('count');
+      console.log('Status da conexão:', healthData ? 'OK' : 'Falha');
+      
       const success = await login(email, password);
       
       if (success) {
+        console.log('Login bem-sucedido!');
         toast.success("Login realizado com sucesso!");
         navigate("/dashboard");
       } else {
+        console.error('Login falhou: credenciais inválidas');
         toast.error("Email ou senha inválidos");
+        setErrorMessage("Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.");
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       toast.error("Erro ao fazer login");
+      setErrorMessage("Ocorreu um erro durante o login. Verifique sua conexão e tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +65,12 @@ export default function Login() {
           <img src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" alt="Logo" className="h-16 object-contain" />
         </div>
         <CardContent className="pt-6">
+          {errorMessage && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+              <p>{errorMessage}</p>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-black">Email</Label>
@@ -96,6 +115,9 @@ export default function Login() {
             
             <div className="text-center text-sm text-gray-600 mt-4">
               <p>Para usar o sistema, entre em contato com o administrador para criar sua conta.</p>
+              <p className="mt-2 text-xs text-gray-500">
+                Credenciais de teste: admin@exemplo.com / senha123 (se configurado)
+              </p>
             </div>
           </form>
         </CardContent>
