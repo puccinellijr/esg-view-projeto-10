@@ -104,7 +104,7 @@ export default function Index() {
               2. Verifique se as tabelas existem em "Table Editor"<br />
               3. Em "Authentication", crie um usuário (ex: admin@exemplo.com)<br />
               4. Adicione esse usuário à tabela user_profiles com o mesmo ID<br />
-              5. Copie a URL e chave anônima do projeto em "Settings > API"
+              5. Copie a URL e chave anônima do projeto em "Settings &gt; API"
             </p>
           </div>
           <button 

@@ -20,24 +20,53 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const testSupabaseConnection = async () => {
   try {
     console.log('Tentando conectar ao Supabase...');
+    
+    // Verificar se a URL está no formato correto
+    if (!supabaseUrl.includes('supabase.co')) {
+      console.error('URL do Supabase inválida. Deve conter "supabase.co"');
+      return false;
+    }
+    
+    // Verificar se a chave parece válida
+    if (supabaseAnonKey.length < 20) {
+      console.error('Chave anônima do Supabase parece inválida (muito curta)');
+      return false;
+    }
+    
     // Primeiro, tente uma operação mais simples que não dependa de políticas complexas
-    const { data: authData, error: authError } = await supabase.auth.getSession();
+    const { error: authError } = await supabase.auth.getSession();
     
     if (authError) {
       console.error('Erro na autenticação com Supabase:', authError);
       return false;
     }
     
-    // Se a verificação auth passar, tente acessar a tabela
-    const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
+    // Defina um timeout para a operação de banco de dados
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout ao conectar ao Supabase')), 5000);
+    });
+    
+    // Tente acessar a tabela com timeout
+    const dbPromise = supabase.from('user_profiles').select('count').limit(1);
+    
+    // Use Promise.race para implementar o timeout
+    const { data, error } = await Promise.race([
+      dbPromise,
+      timeoutPromise.then(() => ({ data: null, error: new Error('Timeout ao conectar ao Supabase') }))
+    ]) as any;
     
     if (error) {
       console.error('Erro na conexão com tabela Supabase:', error);
       
       // Verificar se é um erro de políticas RLS
-      if (error.code === '42P17' && error.message.includes('infinite recursion')) {
-        console.error('Erro de configuração nas políticas RLS do Supabase. Verifique suas políticas de segurança.');
+      if (error.code === '42501' || (error.message && error.message.includes('permission denied'))) {
+        console.error('Erro de permissão nas políticas RLS do Supabase. Verifique suas políticas de segurança.');
         throw new Error('Configuração incorreta nas políticas RLS da tabela user_profiles. Verifique o painel do Supabase.');
+      }
+      
+      if (error.code === '42P01') {
+        console.error('Tabela user_profiles não existe. Crie a tabela no Supabase.');
+        throw new Error('Tabela user_profiles não existe. Crie a tabela no Supabase.');
       }
       
       throw error;
