@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -209,6 +210,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           
           // Opcional: salvar os dados mockados no Supabase para inicializar o banco
           if (isEditable) {
+            console.log(`Salvando ${mockData.length} indicadores para ${selectedTerminal}, mês ${selectedMonth}/${selectedYear}`);
             mockData.forEach(async (indicator) => {
               await saveESGIndicator({
                 name: indicator.name,

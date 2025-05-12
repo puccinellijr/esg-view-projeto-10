@@ -33,12 +33,20 @@ export default function Login() {
     try {
       console.log(`Tentando login com email: ${email}`);
       
-      const success = await login(email, password);
+      // Adicionando um timeout para garantir que o estado de loading seja exibido
+      const loginPromise = login(email, password);
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Aguardar o login e o timeout mínimo
+      const [success] = await Promise.all([loginPromise, timeoutPromise]);
       
       if (success) {
         console.log('Login bem-sucedido!');
         toast.success("Login realizado com sucesso!");
-        navigate("/dashboard");
+        // Usar um pequeno timeout antes de navegar para garantir que o toast seja exibido
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 300);
       } else {
         console.error('Login falhou: credenciais inválidas');
         toast.error("Email ou senha inválidos");

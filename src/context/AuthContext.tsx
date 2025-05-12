@@ -56,10 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.session?.user) {
           console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
           
-          // Buscar detalhes do usuário do perfil
+          // Buscar detalhes do usuário do perfil - otimizado para melhor desempenho
           const { data: profileData, error } = await supabase
             .from('user_profiles')
-            .select('*')
+            .select('name, access_level, photo_url, terminal')
             .eq('id', data.session.user.id)
             .single();
 
@@ -96,10 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('AuthProvider: Usuário conectado:', session.user.email);
           
-          // Buscar detalhes do perfil quando o usuário faz login
+          // Buscar detalhes do perfil quando o usuário faz login - otimizado
           const { data: profileData, error } = await supabase
             .from('user_profiles')
-            .select('*')
+            .select('name, access_level, photo_url, terminal')
             .eq('id', session.user.id)
             .single();
 
@@ -144,10 +144,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         console.log('Login bem-sucedido para:', data.user.email);
         
-        // Buscar detalhes do perfil após login bem-sucedido
+        // Buscar detalhes do perfil após login bem-sucedido - otimizado
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('name, access_level, photo_url, terminal')
           .eq('id', data.user.id)
           .single();
 
