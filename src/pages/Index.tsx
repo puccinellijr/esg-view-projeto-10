@@ -10,6 +10,7 @@ export default function Index() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionDetails, setConnectionDetails] = useState<string | null>(null);
 
   useEffect(() => {
     const checkSystem = async () => {
@@ -20,6 +21,7 @@ export default function Index() {
         
         if (!isConnected) {
           console.error("Falha na conexão com Supabase");
+          setConnectionDetails("Verifique se as credenciais do Supabase estão corretas em src/lib/supabase.ts");
           toast.error("Erro de conexão com o banco de dados");
           setError("Falha na conexão com o banco de dados");
           return;
@@ -67,14 +69,28 @@ export default function Index() {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4">
           <p className="font-bold">Erro ao inicializar o sistema</p>
           <p>{error}</p>
+          {connectionDetails && <p className="mt-2 text-sm">{connectionDetails}</p>}
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
           <h2 className="text-xl font-semibold mb-4">Dicas de solução:</h2>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Verifique se as variáveis de ambiente do Supabase estão configuradas corretamente</li>
+            <li>Verifique se as variáveis de ambiente do Supabase estão configuradas corretamente em <code>src/lib/supabase.ts</code></li>
             <li>Confirme que o banco de dados Supabase está acessível</li>
-            <li>As tabelas necessárias foram criadas no Supabase?</li>
+            <li>Verifique se as tabelas necessárias foram criadas no Supabase:
+              <ul className="list-disc pl-5 mt-1 text-sm">
+                <li>user_profiles</li>
+                <li>esg_indicators</li>
+              </ul>
+            </li>
+            <li>Verifique se existe pelo menos um usuário administrador criado na tabela user_profiles</li>
           </ul>
+          <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              <strong>Usuário padrão para testes:</strong><br />
+              Email: admin@exemplo.com<br />
+              Senha: senha123
+            </p>
+          </div>
           <button 
             onClick={() => window.location.reload()}
             className="mt-6 bg-custom-blue text-white px-4 py-2 rounded hover:bg-custom-blue/80"

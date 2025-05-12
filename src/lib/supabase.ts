@@ -1,9 +1,10 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Usar variáveis de ambiente se disponíveis, caso contrário usar fallbacks
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://sua-url-supabase.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sua-chave-anonima';
+// Usar variáveis de ambiente ou valores de teste
+// IMPORTANTE: Estes são valores de teste - substitua pelos seus valores de produção adequados
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://toitoksahfkftzydpszb.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvaXRva3NhaGZrZnR6eWRwc3piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA3MDQ1MTYsImV4cCI6MjAzNjI4MDUxNn0.Ze42N9AFeGt8lcGRAihYs7gwaAJQg2sPhwe4Hab0HLE';
 
 // Verificar se as variáveis são válidas
 if (!supabaseUrl.includes('supabase.co') || supabaseAnonKey.length < 10) {
@@ -18,8 +19,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Função para testar a conexão com o Supabase
 export const testSupabaseConnection = async () => {
   try {
+    console.log('Tentando conectar ao Supabase...');
     const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
-    if (error) throw error;
+    
+    if (error) {
+      console.error('Erro na conexão com Supabase:', error);
+      throw error;
+    }
+    
     console.log('Conexão com Supabase bem-sucedida!', data);
     return true;
   } catch (error) {
