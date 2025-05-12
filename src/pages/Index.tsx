@@ -25,12 +25,12 @@ export default function Index() {
         
         // Verificação simples - usuário já está logado?
         if (user) {
-          console.log("Usuário já logado, redirecionando para dashboard");
+          console.log(`Usuário já logado (${user.email}, nível: ${user.accessLevel}), redirecionando para dashboard`);
           navigate("/dashboard");
           return;
         }
         
-        // Redirecionamento básico para login se não estiver logado
+        // Redirecionamento para login se não estiver logado
         console.log("Usuário não logado, redirecionando para login");
         navigate("/login");
       } catch (err) {

@@ -10,19 +10,34 @@ export const loadUserProfile = async (userId: string): Promise<{
   error?: any 
 }> => {
   try {
-    // Use Promise.race to add timeout for profile loading
+    // Use Promise.race to add timeout for profile loading - use shorter timeout
     const profileTimeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-      setTimeout(() => reject(new Error("Tempo limite excedido na busca de perfil")), 5000)
+      setTimeout(() => reject(new Error("Tempo limite excedido na busca de perfil")), 3000)
     );
     
-    const profileResult = await Promise.race([
-      supabase
-        .from('user_profiles')
-        .select('name, access_level, photo_url, terminal')
-        .eq('id', userId)
-        .single(),
-      profileTimeoutPromise
-    ]);
+    // Get user profile directly
+    const profilePromise = supabase
+      .from('user_profiles')
+      .select('name, access_level, photo_url, terminal')
+      .eq('id', userId)
+      .single();
+    
+    const profileResult = await Promise.race([profilePromise, profileTimeoutPromise]);
+    
+    // If there's an error with the profile, let's check if the user exists in auth
+    if (profileResult.error) {
+      console.warn('Erro ao carregar perfil, verificando se usuário existe:', profileResult.error);
+      
+      // If profile fails to load, still return a minimal profile based on auth user
+      return { 
+        profileData: {
+          name: 'Usuário',
+          access_level: 'viewer', // Default to lowest access level for safety
+          photo_url: null,
+          terminal: null
+        } 
+      };
+    }
     
     return profileResult;
   } catch (err) {

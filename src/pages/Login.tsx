@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,17 @@ export default function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<"checking" | "ok" | "error">("checking");
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, user, isInitialized } = useAuth();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isInitialized && user) {
+      console.log("Login: Usuário já autenticado, redirecionando para dashboard");
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [user, isInitialized, navigate, location.state]);
 
   // Verificar conexão com Supabase ao carregar
   useEffect(() => {
@@ -64,13 +75,14 @@ export default function Login() {
     try {
       console.log(`Tentando login com email: ${email}`);
       
-      // Simplificar o processo de login para diagnosticar problemas
       const success = await login(email, password);
       
       if (success) {
         console.log('Login bem-sucedido!');
         toast.success("Login realizado com sucesso!");
-        navigate("/dashboard");
+        
+        // Não fazer redirecionamento aqui, deixar para o useEffect que monitora o usuário
+        // O redirecionamento será feito automaticamente quando o estado do usuário for atualizado
       } else {
         console.error('Login falhou: credenciais inválidas');
         toast.error("Email ou senha inválidos");

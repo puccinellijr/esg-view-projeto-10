@@ -18,18 +18,33 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
         console.log('Usuário conectado:', session.user.email);
         
         try {
-          // Get user profile data
+          // Get user profile data with a shorter timeout
           const { profileData, error } = await loadUserProfile(session.user.id);
 
           if (!error && profileData) {
+            console.log('Perfil carregado com sucesso:', profileData.name);
             onAuthStateChange(session.user, profileData);
           } else {
             console.error('Erro ao buscar perfil após login:', error);
-            onAuthStateChange(session.user, null);
+            // Create a minimal profile so the user can at least navigate
+            const minimalProfile = {
+              access_level: 'viewer', // Default to lowest access level
+              name: session.user.email?.split('@')[0] || 'Usuário',
+              photo_url: null,
+              terminal: null
+            };
+            onAuthStateChange(session.user, minimalProfile);
           }
         } catch (profileErr) {
           console.error('Exceção ao buscar perfil após login:', profileErr);
-          onAuthStateChange(session.user, null);
+          // Create a minimal profile so the user can at least navigate
+          const minimalProfile = {
+            access_level: 'viewer', // Default to lowest access level
+            name: session.user.email?.split('@')[0] || 'Usuário',
+            photo_url: null,
+            terminal: null
+          };
+          onAuthStateChange(session.user, minimalProfile);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('Usuário desconectado');
