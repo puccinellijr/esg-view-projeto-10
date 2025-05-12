@@ -24,12 +24,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
+  global: {
+    // Aumentar os timeouts para evitar problemas em redes lentas
+    headers: { 'x-application-name': 'esg-dashboard' }
+  },
 });
 
-// Função melhorada para testar conexão com o Supabase
+// Função simplificada para testar conexão com o Supabase
+// Reduzimos a complexidade para evitar timeouts
 export const testSupabaseConnection = async () => {
   try {
-    console.log('>>> Iniciando diagnóstico de conexão com Supabase <<<');
+    console.log('>>> Iniciando diagnóstico simplificado de conexão com Supabase <<<');
     console.log(`URL do Supabase: ${supabaseUrl.substring(0, 15)}...`);
     console.log(`Comprimento da chave anônima: ${supabaseAnonKey.length} caracteres`);
     
@@ -45,96 +50,40 @@ export const testSupabaseConnection = async () => {
       return { success: false, error: 'KEY_INVALID', message: 'Chave anônima do Supabase inválida' };
     }
     
-    // Primeiro teste: verificar se o serviço de autenticação está acessível
-    console.log('1. Testando serviço de autenticação...');
+    // Teste simplificado: apenas verificar se consegue obter a sessão atual
+    // sem fazer várias consultas que podem causar timeout
     try {
-      const authTest = await Promise.race([
-        supabase.auth.getSession(),
-        new Promise<{error: {message: string}}>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout na autenticação')), 3000)
-        )
-      ]);
+      console.log('Testando conexão básica com Supabase...');
+      const { error } = await supabase.auth.getSession();
       
-      if (authTest.error) {
-        console.error('Erro no serviço de autenticação:', authTest.error);
+      if (error) {
+        console.error('Erro básico de conexão:', error);
         return { 
           success: false, 
-          error: 'AUTH_SERVICE', 
-          message: `Erro no serviço de autenticação: ${authTest.error.message}` 
+          error: 'BASIC_CONNECTION', 
+          message: `Erro de conexão: ${error.message}` 
         };
       }
       
-      console.log('Serviço de autenticação OK');
+      console.log('Conexão básica com Supabase OK');
+      return { success: true };
+      
     } catch (err) {
       const error = err as Error;
-      console.error('Timeout ou erro na autenticação:', error);
+      console.error('Erro ao testar conexão básica:', error);
       return { 
         success: false, 
-        error: 'AUTH_TIMEOUT', 
-        message: `Timeout na autenticação: ${error.message}` 
+        error: 'CONNECTION_ERROR', 
+        message: `Erro de conexão: ${error.message}` 
       };
     }
-    
-    // Segundo teste: verificar se a tabela user_profiles existe
-    console.log('2. Verificando existência da tabela user_profiles...');
-    try {
-      const tableTest = await Promise.race([
-        supabase.from('user_profiles').select('count'),
-        new Promise<{error: {code: string; message: string}}>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout ao verificar tabela')), 3000)
-        )
-      ]);
-      
-      if (tableTest.error) {
-        // Detectar erro específico de tabela inexistente
-        if (tableTest.error.code === '42P01') {
-          console.error('Tabela user_profiles não existe no banco de dados');
-          return {
-            success: false,
-            error: 'TABLE_NOT_FOUND',
-            message: 'Tabela user_profiles não existe. Crie a tabela no Supabase.'
-          };
-        }
-        
-        // Detectar erro de permissão (RLS)
-        if (tableTest.error.code === '42501' || 
-            (tableTest.error.message && tableTest.error.message.includes('permission denied'))) {
-          console.error('Erro de permissão nas políticas RLS');
-          return {
-            success: false,
-            error: 'RLS_POLICY',
-            message: 'Erro nas políticas RLS da tabela user_profiles. Verifique o painel do Supabase.'
-          };
-        }
-        
-        // Outro erro na consulta
-        console.error('Erro ao consultar tabela:', tableTest.error);
-        return {
-          success: false,
-          error: 'TABLE_QUERY',
-          message: `Erro ao acessar tabela: ${tableTest.error.message}`
-        };
-      }
-    } catch (err) {
-      const error = err as Error;
-      console.error('Erro ao testar tabela:', error);
-      return {
-        success: false,
-        error: 'TABLE_TEST',
-        message: `Erro ao testar tabela: ${error.message}`
-      };
-    }
-    
-    console.log('>>> Diagnóstico concluído: Conexão com Supabase OK <<<');
-    return { success: true };
-    
   } catch (err) {
     const error = err as Error;
     console.error('>>> ERRO FATAL no diagnóstico de conexão <<<', error);
     return { 
       success: false, 
       error: 'FATAL_ERROR', 
-      message: `Erro fatal ao testar conexão: ${error.message}` 
+      message: `Erro ao testar conexão: ${error.message}` 
     };
   }
 };

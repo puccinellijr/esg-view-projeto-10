@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { supabase, testSupabaseConnection } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export default function Index() {
@@ -14,34 +14,11 @@ export default function Index() {
   const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
 
   useEffect(() => {
-    // Função para verificar o sistema com timeout global para evitar carregamento infinito
-    const checkSystem = async () => {
-      // Definir um timeout global para toda a operação
-      const globalTimeout = setTimeout(() => {
-        console.error("Timeout global na inicialização do sistema");
-        setError("Timeout na inicialização. Verifique sua conexão com o Supabase.");
-        setConnectionDetails("A operação excedeu o tempo limite de 15 segundos. Verifique a conexão com o banco de dados.");
-        setLoading(false);
-      }, 15000);
-
+    // Função para verificar se o usuário está logado e redirecionar
+    const checkUserAndRedirect = () => {
       try {
-        // Testar conexão com Supabase
-        console.log("Testando conexão com Supabase...");
-        const result = await testSupabaseConnection();
+        console.log("Index: Verificando estado do usuário para redirecionamento");
         
-        // Armazenar diagnóstico para exibição
-        setDiagnosticResult(result);
-        
-        if (!result.success) {
-          console.error("Falha na conexão com Supabase:", result);
-          setConnectionDetails(`Erro: ${result.message || "Falha na conexão com o banco de dados"}`);
-          toast.error("Erro de conexão com o banco de dados");
-          setError(result.message || "Falha na conexão com o banco de dados");
-          clearTimeout(globalTimeout);
-          setLoading(false);
-          return;
-        }
-
         // Se usuário está logado, redirecionar para dashboard
         if (user) {
           console.log("Usuário logado, redirecionando para dashboard");
@@ -51,27 +28,62 @@ export default function Index() {
           console.log("Usuário não logado, redirecionando para login");
           navigate("/login");
         }
-
-        clearTimeout(globalTimeout);
-        setLoading(false);
       } catch (err) {
-        console.error("Erro ao verificar sistema:", err);
-        const errorMessage = (err as Error).message || "Erro ao inicializar o sistema";
-        setError(errorMessage);
-        toast.error(errorMessage);
-        clearTimeout(globalTimeout);
+        console.error("Erro ao verificar usuário:", err);
+        setError("Erro ao verificar estado da autenticação");
         setLoading(false);
       }
     };
-
-    // Pequeno atraso para garantir que o AuthProvider esteja inicializado
-    const timer = setTimeout(() => {
-      checkSystem();
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
+    
+    // Verificação básica do Supabase sem depender de testSupabaseConnection
+    const basicConnectionCheck = async () => {
+      try {
+        // Teste básico sem timeout para verificar se Supabase está acessível
+        const start = Date.now();
+        console.log("Executando verificação básica do Supabase");
+        
+        try {
+          const { data, error } = await supabase.from('user_profiles').select('count');
+          const end = Date.now();
+          console.log(`Tempo de resposta da verificação básica: ${end - start}ms`);
+          
+          if (error) {
+            if (error.code === '42P01') {
+              setError("Tabela user_profiles não existe no banco de dados");
+            } else if (error.code === '42501' || error.message.includes('permission denied')) {
+              setError("Erro de permissão nas políticas RLS da tabela user_profiles");
+            } else {
+              setError(`Erro ao acessar banco de dados: ${error.message}`);
+            }
+            setDiagnosticResult({ error: error });
+          } else {
+            console.log("Verificação básica do Supabase passou com sucesso");
+            // Se tiver conexão, verificar usuário e redirecionar
+            checkUserAndRedirect();
+            return;
+          }
+        } catch (err) {
+          console.error("Erro na verificação básica:", err);
+          const errorMessage = (err as Error).message;
+          setError(`Erro de conexão com Supabase: ${errorMessage}`);
+          setDiagnosticResult({ error: errorMessage });
+        }
+        
+        setLoading(false);
+        
+      } catch (err) {
+        console.error("Erro fatal na verificação de conexão:", err);
+        setError(`Erro fatal de conexão: ${(err as Error).message}`);
+        setLoading(false);
+      }
     };
+    
+    // Executar verificação básica após pequeno delay
+    const timer = setTimeout(() => {
+      basicConnectionCheck();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [navigate, user]);
 
   // Mostrar tela de carregamento ou erro
@@ -121,6 +133,9 @@ export default function Index() {
                 <li>Adicione o mesmo ID na tabela user_profiles</li>
                 <li>Configure access_level como "administrative"</li>
               </ol>
+            </li>
+            <li>
+              <strong>Problemas de rede:</strong> Verifique sua conexão com a internet e se o servidor Supabase está online.
             </li>
           </ul>
           <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
