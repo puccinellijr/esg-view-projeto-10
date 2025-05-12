@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -54,6 +53,15 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [newValue, setNewValue] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Get month name for display
+  const getMonthName = (month: string) => {
+    const monthNames = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    return monthNames[parseInt(month)];
+  };
 
   // Buscar dados quando mês, ano, terminal ou refreshTrigger mudam
   useEffect(() => {
@@ -113,6 +121,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           });
           
           setIndicators(Array.from(latestIndicators.values()));
+          console.log(`Carregados ${latestIndicators.size} indicadores mais recentes para ${getMonthName(selectedMonth)} de ${selectedYear}`);
         } else {
           // Se não houver dados, usar indicadores mockados para este mês
           console.log("Nenhum dado encontrado, usando indicadores padrão");
@@ -312,7 +321,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       <div className="flex-1 bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando indicadores...</p>
+          <p className="text-gray-600">Carregando indicadores de {getMonthName(selectedMonth)} {selectedYear}...</p>
         </div>
       </div>
     );
@@ -320,7 +329,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   return (
     <main className="flex-1 bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-6 text-black">Visão Geral - Terminal {selectedTerminal}</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-black">
+        Visão Geral - Terminal {selectedTerminal} - {getMonthName(selectedMonth)}/{selectedYear}
+      </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="shadow-lg border-t-4 border-t-custom-blue min-h-[500px] flex flex-col overflow-hidden">

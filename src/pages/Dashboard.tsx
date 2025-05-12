@@ -48,6 +48,12 @@ const Dashboard = () => {
     toast.success("Dados atualizados com sucesso");
   };
 
+  // Get display name of the selected month
+  const getSelectedMonthName = () => {
+    const selectedMonthObj = months.find(month => month.value === selectedMonth);
+    return selectedMonthObj ? selectedMonthObj.label : "";
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -102,6 +108,14 @@ const Dashboard = () => {
                 Atualizar
               </Button>
             </div>
+            
+            {/* Display the selected period as a heading */}
+            <div className="mb-6">
+              <h2 className="text-lg font-medium text-gray-700">
+                Dados para: <span className="font-semibold text-custom-blue">{getSelectedMonthName()} de {selectedYear}</span>
+              </h2>
+            </div>
+            
             <DashboardContent 
               selectedMonth={selectedMonth} 
               selectedYear={selectedYear}
