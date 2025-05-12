@@ -77,7 +77,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         if (data && data.length > 0) {
           // Mapear dados do banco para o formato de indicadores com ícones
           const mappedIndicators: Indicator[] = data.map(item => {
-            // Determinar ícone baseado no ID do indicador
+            // Determinar ícone baseado no nome do indicador
             let icon;
             switch (item.name) {
               case 'litro_tm': icon = <Droplet size={18} className="text-black" />; break;
@@ -199,6 +199,21 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           ];
           
           setIndicators(mockData);
+          
+          // Opcional: salvar os dados mockados no Supabase para inicializar o banco
+          if (isEditable) {
+            mockData.forEach(async (indicator) => {
+              await saveESGIndicator({
+                name: indicator.name,
+                value: typeof indicator.value === 'string' ? parseFloat(indicator.value) : indicator.value,
+                category: indicator.category,
+                terminal: selectedTerminal,
+                month: parseInt(selectedMonth),
+                year: parseInt(selectedYear)
+              });
+            });
+            console.log("Dados mockados salvos no Supabase para inicializar o banco");
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
@@ -209,7 +224,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     };
     
     fetchData();
-  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, isEditable]);
 
   // Filtrar indicadores por categoria
   const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
@@ -248,9 +263,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         setIsDialogOpen(false);
         
         // Mostrar toast de sucesso
-        toast.success("Valor atualizado com sucesso");
+        toast.success(result.message || "Valor atualizado com sucesso");
       } else {
-        toast.error("Erro ao atualizar valor");
+        toast.error(result.message || "Erro ao atualizar valor");
       }
     } catch (error) {
       console.error("Erro ao salvar indicador:", error);

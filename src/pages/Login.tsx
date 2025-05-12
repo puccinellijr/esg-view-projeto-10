@@ -20,6 +20,12 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validação básica
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -32,6 +38,7 @@ export default function Login() {
         toast.error("Email ou senha inválidos");
       }
     } catch (error) {
+      console.error("Erro ao fazer login:", error);
       toast.error("Erro ao fazer login");
     } finally {
       setIsLoading(false);

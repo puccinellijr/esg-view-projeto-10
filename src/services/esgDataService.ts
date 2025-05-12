@@ -22,9 +22,9 @@ interface ESGData {
   };
 }
 
-// Definido como true apenas para fins de desenvolvimento
-// Pode ser alterado para false quando os dados do Supabase estiverem prontos
-const useMockData = true;
+// Definir como false para usar dados do Supabase
+// Mudar para true apenas se os dados do Supabase não estiverem prontos
+const useMockData = false;
 
 // Gerar dados aleatórios para modo mock ou desenvolvimento
 const generateRandomValue = (min: number, max: number): number => {
@@ -115,7 +115,7 @@ export const fetchESGData = async (
       // Buscar dados do primeiro período
       const { data: data1, error: error1 } = await supabase
         .from('esg_indicators')
-        .select('name, value')
+        .select('id, name, value')
         .eq('terminal', terminal)
         .eq('category', category)
         .eq('month', parseInt(period1.month))
@@ -124,7 +124,7 @@ export const fetchESGData = async (
       // Buscar dados do segundo período
       const { data: data2, error: error2 } = await supabase
         .from('esg_indicators')
-        .select('name, value')
+        .select('id, name, value')
         .eq('terminal', terminal)
         .eq('category', category)
         .eq('month', parseInt(period2.month))
@@ -160,12 +160,22 @@ export const fetchESGData = async (
       }
     }
 
+    // Verificar se existem dados
+    const isEmpty = Object.keys(result.environmental).length === 0 && 
+                    Object.keys(result.social).length === 0 && 
+                    Object.keys(result.governance).length === 0;
+    
+    if (isEmpty) {
+      console.log("Nenhum dado encontrado no Supabase. Usando dados mockados como fallback.");
+      return generateMockData();
+    }
+
     return result;
   } catch (error) {
     console.error("Erro ao buscar dados:", error);
     
     // Fallback para dados mockados em caso de falha
-    console.log("Recorrendo a dados mockados");
+    console.log("Recorrendo a dados mockados devido a erro");
     return generateMockData();
   }
 };
@@ -182,6 +192,12 @@ export const saveESGIndicator = async (
   }
 ) => {
   try {
+    if (useMockData) {
+      // Simular sucesso para dados mockados
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { success: true, message: 'Indicador salvo com sucesso (mock)' };
+    }
+    
     // Verificar se o indicador já existe
     const { data: existingData, error: queryError } = await supabase
       .from('esg_indicators')
@@ -191,13 +207,13 @@ export const saveESGIndicator = async (
       .eq('month', indicatorData.month)
       .eq('year', indicatorData.year)
       .eq('category', indicatorData.category)
-      .single();
+      .maybeSingle();
 
     if (queryError && queryError.code !== 'PGRST116') { // PGRST116 é "no rows found"
       throw queryError;
     }
 
-    if (existingData) {
+    if (existingData?.id) {
       // Atualizar indicador existente
       const { error: updateError } = await supabase
         .from('esg_indicators')
@@ -217,6 +233,6 @@ export const saveESGIndicator = async (
     }
   } catch (error) {
     console.error('Erro ao salvar indicador ESG:', error);
-    return { success: false, message: 'Erro ao salvar indicador' };
+    return { success: false, message: 'Erro ao salvar indicador: ' + (error as Error).message };
   }
 };

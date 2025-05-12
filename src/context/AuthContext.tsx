@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: profileData, error } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('email', data.session.user.email)
+          .eq('id', data.session.user.id)
           .single();
 
         if (!error && profileData) {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const { data: profileData, error } = await supabase
             .from('user_profiles')
             .select('*')
-            .eq('email', session.user.email)
+            .eq('id', session.user.id)
             .single();
 
           if (!error && profileData) {
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('email', data.user.email)
+          .eq('id', data.user.id)
           .single();
 
         if (profileError) {
@@ -218,6 +218,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       
+      // Obter o ID do usuário atual
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não encontrado');
+      }
+      
       // Atualizar perfil na tabela profiles
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -226,7 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           photo_url: data.photoUrl,
           terminal: data.terminal
         })
-        .eq('email', user.email);
+        .eq('id', userData.user.id);
       
       if (profileError) {
         throw profileError;
