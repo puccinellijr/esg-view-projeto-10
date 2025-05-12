@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -226,9 +225,10 @@ export const fetchESGData = async (
   }
 };
 
-// Função para salvar dados ESG no Supabase
+// Função para salvar dados ESG no Supabase - modificada para atualizar registros existentes
 export const saveESGIndicator = async (
   indicatorData: {
+    id?: string;  // ID opcional para identificar registros existentes
     name: string;
     value: number;
     category: 'environmental' | 'social' | 'governance';
@@ -246,18 +246,61 @@ export const saveESGIndicator = async (
     
     console.log("Salvando indicador ESG:", indicatorData);
     
-    // Em vez de verificar a existência e atualizar, sempre vamos criar um novo registro
-    // Isso mantém um histórico completo dos valores e permite sempre exibir o mais recente
-    console.log("Criando novo registro para o indicador");
-    const { error: insertError } = await supabase
+    // Verificar se já existe um registro para este indicador neste mês/ano/terminal
+    const { data: existingIndicators, error: queryError } = await supabase
       .from('esg_indicators')
-      .insert([indicatorData]);
+      .select('id')
+      .eq('name', indicatorData.name)
+      .eq('terminal', indicatorData.terminal)
+      .eq('month', indicatorData.month)
+      .eq('year', indicatorData.year)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    if (insertError) {
-      console.error("Erro ao inserir indicador:", insertError);
-      throw insertError;
+    if (queryError) {
+      console.error("Erro ao verificar indicador existente:", queryError);
+      throw queryError;
     }
-    return { success: true, message: 'Indicador atualizado com sucesso' };
+
+    let message = '';
+    let error = null;
+
+    // Se encontrou um registro existente, atualiza-o
+    if (existingIndicators && existingIndicators.length > 0) {
+      const existingId = existingIndicators[0].id;
+      console.log(`Atualizando indicador existente com ID: ${existingId}`);
+      
+      const { error: updateError } = await supabase
+        .from('esg_indicators')
+        .update({ value: indicatorData.value })
+        .eq('id', existingId);
+      
+      error = updateError;
+      message = 'Indicador atualizado com sucesso';
+    } else {
+      // Caso não exista, cria um novo registro
+      console.log("Criando novo registro para o indicador");
+      const { error: insertError } = await supabase
+        .from('esg_indicators')
+        .insert([{
+          name: indicatorData.name,
+          value: indicatorData.value,
+          category: indicatorData.category,
+          terminal: indicatorData.terminal,
+          month: indicatorData.month,
+          year: indicatorData.year
+        }]);
+      
+      error = insertError;
+      message = 'Indicador criado com sucesso';
+    }
+
+    if (error) {
+      console.error("Erro ao salvar indicador:", error);
+      throw error;
+    }
+    
+    return { success: true, message };
   } catch (error) {
     console.error('Erro ao salvar indicador ESG:', error);
     return { success: false, message: 'Erro ao salvar indicador: ' + (error as Error).message };

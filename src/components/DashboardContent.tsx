@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -251,8 +250,9 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     if (!editingIndicator) return;
     
     try {
-      // Salvar valor no Supabase (sempre criar novo registro)
+      // Salvar valor no Supabase (atualizar registro existente pelo ID)
       const result = await saveESGIndicator({
+        id: editingIndicator.id, // Passando o ID para identificar o registro
         name: editingIndicator.name,
         value: parseFloat(newValue),
         category: editingIndicator.category,
