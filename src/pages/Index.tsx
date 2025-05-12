@@ -21,7 +21,7 @@ export default function Index() {
         
         if (!isConnected) {
           console.error("Falha na conexão com Supabase");
-          setConnectionDetails("Verifique se as credenciais do Supabase estão corretas em src/lib/supabase.ts");
+          setConnectionDetails(`Verifique suas credenciais do Supabase em src/lib/supabase.ts e confirme que o projeto está online.`);
           toast.error("Erro de conexão com o banco de dados");
           setError("Falha na conexão com o banco de dados");
           return;
@@ -43,8 +43,9 @@ export default function Index() {
         }
       } catch (err) {
         console.error("Erro ao verificar sistema:", err);
-        setError("Erro ao inicializar o sistema");
-        toast.error("Erro ao inicializar o sistema");
+        const errorMessage = (err as Error).message || "Erro ao inicializar o sistema";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -72,23 +73,38 @@ export default function Index() {
           {connectionDetails && <p className="mt-2 text-sm">{connectionDetails}</p>}
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
-          <h2 className="text-xl font-semibold mb-4">Dicas de solução:</h2>
+          <h2 className="text-xl font-semibold mb-4">Problemas comuns e soluções:</h2>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Verifique se as variáveis de ambiente do Supabase estão configuradas corretamente em <code>src/lib/supabase.ts</code></li>
-            <li>Confirme que o banco de dados Supabase está acessível</li>
-            <li>Verifique se as tabelas necessárias foram criadas no Supabase:
+            <li>
+              <strong>Erro de política RLS:</strong> Seu projeto Supabase pode estar com políticas de Row Level Security mal configuradas. Acesse o painel do Supabase, vá para a tabela <code>user_profiles</code> e revise as políticas.
+            </li>
+            <li>
+              <strong>Credenciais inválidas:</strong> Verifique se URL e chave anônima do Supabase estão corretas em <code>src/lib/supabase.ts</code>
+            </li>
+            <li>
+              <strong>Tabelas não existem:</strong> Confirme que as tabelas necessárias foram criadas:
               <ul className="list-disc pl-5 mt-1 text-sm">
-                <li>user_profiles</li>
-                <li>esg_indicators</li>
+                <li>user_profiles - para armazenar dados dos usuários</li>
+                <li>esg_indicators - para armazenar indicadores ESG</li>
               </ul>
             </li>
-            <li>Verifique se existe pelo menos um usuário administrador criado na tabela user_profiles</li>
+            <li>
+              <strong>Usuário administrador:</strong> É necessário ter pelo menos um usuário administrador criado:
+              <ol className="list-decimal pl-5 mt-1 text-sm">
+                <li>Crie um usuário no Authentication do Supabase</li>
+                <li>Adicione o mesmo ID na tabela user_profiles</li>
+                <li>Configure access_level como "administrative"</li>
+              </ol>
+            </li>
           </ul>
           <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-700">
-              <strong>Usuário padrão para testes:</strong><br />
-              Email: admin@exemplo.com<br />
-              Senha: senha123
+              <strong>Instruções detalhadas:</strong><br />
+              1. Acesse seu projeto no painel do Supabase<br />
+              2. Verifique se as tabelas existem em "Table Editor"<br />
+              3. Em "Authentication", crie um usuário (ex: admin@exemplo.com)<br />
+              4. Adicione esse usuário à tabela user_profiles com o mesmo ID<br />
+              5. Copie a URL e chave anônima do projeto em "Settings > API"
             </p>
           </div>
           <button 

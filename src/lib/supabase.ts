@@ -20,10 +20,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const testSupabaseConnection = async () => {
   try {
     console.log('Tentando conectar ao Supabase...');
+    // Primeiro, tente uma operação mais simples que não dependa de políticas complexas
+    const { data: authData, error: authError } = await supabase.auth.getSession();
+    
+    if (authError) {
+      console.error('Erro na autenticação com Supabase:', authError);
+      return false;
+    }
+    
+    // Se a verificação auth passar, tente acessar a tabela
     const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
     
     if (error) {
-      console.error('Erro na conexão com Supabase:', error);
+      console.error('Erro na conexão com tabela Supabase:', error);
+      
+      // Verificar se é um erro de políticas RLS
+      if (error.code === '42P17' && error.message.includes('infinite recursion')) {
+        console.error('Erro de configuração nas políticas RLS do Supabase. Verifique suas políticas de segurança.');
+        throw new Error('Configuração incorreta nas políticas RLS da tabela user_profiles. Verifique o painel do Supabase.');
+      }
+      
       throw error;
     }
     

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,8 +16,34 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  // Verificar conexão com o Supabase ao carregar a página
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        // Simples verificação de conexão
+        const { error } = await supabase.from('user_profiles').select('count');
+        if (error) {
+          console.error('Erro ao verificar conexão:', error);
+          if (error.code === '42P17') {
+            setConnectionStatus('Erro nas políticas do Supabase. Verifique as configurações RLS da tabela user_profiles.');
+          } else {
+            setConnectionStatus('Problemas de conexão com o Supabase. Verifique suas credenciais.');
+          }
+        } else {
+          setConnectionStatus(null);
+        }
+      } catch (err) {
+        console.error('Erro ao verificar status:', err);
+        setConnectionStatus('Não foi possível verificar a conexão com o Supabase.');
+      }
+    };
+
+    checkConnection();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +91,16 @@ export default function Login() {
           <img src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" alt="Logo" className="h-16 object-contain" />
         </div>
         <CardContent className="pt-6">
+          {connectionStatus && (
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded">
+              <p className="font-bold">Aviso de Conexão</p>
+              <p>{connectionStatus}</p>
+              <p className="text-sm mt-2">
+                Se você está configurando o sistema pela primeira vez, verifique as instruções de configuração do Supabase.
+              </p>
+            </div>
+          )}
+        
           {errorMessage && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
               <p>{errorMessage}</p>
@@ -116,7 +152,7 @@ export default function Login() {
             <div className="text-center text-sm text-gray-600 mt-4">
               <p>Para usar o sistema, entre em contato com o administrador para criar sua conta.</p>
               <p className="mt-2 text-xs text-gray-500">
-                Credenciais de teste: admin@exemplo.com / senha123 (se configurado)
+                Para configurar o sistema, siga as instruções na tela inicial.
               </p>
             </div>
           </form>
