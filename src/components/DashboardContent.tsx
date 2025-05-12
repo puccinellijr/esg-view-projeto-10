@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { 
   Droplet, 
   Weight, 
@@ -22,13 +23,15 @@ import {
   Shield,
   Edit
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { saveESGIndicator } from '@/services/esgDataService';
 
 interface DashboardContentProps {
   selectedMonth: string;
   selectedYear: string;
   isEditable: boolean;
   refreshTrigger?: number;
-  selectedTerminal?: string; // Added selectedTerminal prop
+  selectedTerminal?: string;
 }
 
 interface Indicator {
@@ -44,152 +47,221 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   selectedYear, 
   isEditable,
   refreshTrigger = 0,
-  selectedTerminal = "Rio Grande" // Default to Rio Grande if not provided
+  selectedTerminal = "Rio Grande"
 }) => {
-  const { toast } = useToast();
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [editingIndicator, setEditingIndicator] = useState<Indicator | null>(null);
   const [newValue, setNewValue] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch data when month, year, terminal or refreshTrigger changes
+  // Buscar dados quando mês, ano, terminal ou refreshTrigger mudam
   useEffect(() => {
-    const fetchData = () => {
-      // Simulate API call with month, year and terminal
-      console.log(`Fetching data for terminal: ${selectedTerminal}, month ${selectedMonth} and year ${selectedYear}, refresh: ${refreshTrigger}`);
-      
-      // Simulate different data based on terminal selection
-      const mockData: Indicator[] = [
-        { 
-          id: 'water', 
-          name: 'Litro / TM', 
-          // Use different values based on terminal
-          value: selectedTerminal === "Rio Grande" ? 435 : 398, 
-          icon: <Droplet size={18} className="text-black" />, 
-          category: 'environmental' 
-        },
-        { 
-          id: 'weight', 
-          name: 'KG / TM', 
-          value: selectedTerminal === "Rio Grande" ? 1234 : 1412, 
-          icon: <Weight size={18} className="text-black" />, 
-          category: 'environmental' 
-        },
-        { 
-          id: 'energy', 
-          name: 'KWH / TM', 
-          value: selectedTerminal === "Rio Grande" ? 156 : 173, 
-          icon: <Zap size={18} className="text-black" />, 
-          category: 'environmental' 
-        },
-        { 
-          id: 'fuel', 
-          name: 'L Combustível / TM', 
-          value: selectedTerminal === "Rio Grande" ? 48 : 52, 
-          icon: <Fuel size={18} className="text-black" />, 
-          category: 'environmental' 
-        },
-        { 
-          id: 'waste', 
-          name: 'Resíduos Gerados', 
-          value: selectedTerminal === "Rio Grande" ? 5.2 : 6.1, 
-          icon: <Percent size={18} className="text-black" />, 
-          category: 'environmental' 
-        },
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
         
-        { 
-          id: 'incidents', 
-          name: 'Incidentes de Processo', 
-          value: selectedTerminal === "Rio Grande" ? 3 : 2, 
-          icon: <AlertTriangle size={18} className="text-black" />, 
-          category: 'social' 
-        },
-        { 
-          id: 'accidents', 
-          name: 'Acidentes com Afastamento', 
-          value: selectedTerminal === "Rio Grande" ? 1 : 0, 
-          icon: <Bandage size={18} className="text-black" />, 
-          category: 'social' 
-        },
-        { 
-          id: 'discrimination', 
-          name: 'Denúncias por Discriminação', 
-          value: 0, 
-          icon: <Users size={18} className="text-black" />, 
-          category: 'social' 
-        },
-        { 
-          id: 'women', 
-          name: 'Mulheres no Trabalho', 
-          value: selectedTerminal === "Rio Grande" ? 42 : 47, 
-          icon: <Handshake size={18} className="text-black" />, 
-          category: 'social' 
-        },
+        // Buscar indicadores do Supabase
+        const { data, error } = await supabase
+          .from('esg_indicators')
+          .select('*')
+          .eq('terminal', selectedTerminal)
+          .eq('month', parseInt(selectedMonth))
+          .eq('year', parseInt(selectedYear));
         
-        { 
-          id: 'corruption', 
-          name: 'Denúncias por Corrupção', 
-          value: 0, 
-          icon: <Gavel size={18} className="text-black" />, 
-          category: 'governance' 
-        },
-        { 
-          id: 'complaints', 
-          name: 'Reclamação de Vizinhos', 
-          value: selectedTerminal === "Rio Grande" ? 2 : 3, 
-          icon: <Bell size={18} className="text-black" />, 
-          category: 'governance' 
-        },
-        { 
-          id: 'cyber', 
-          name: 'Incidentes Cibernéticos', 
-          value: selectedTerminal === "Rio Grande" ? 1 : 2, 
-          icon: <Server size={18} className="text-black" />, 
-          category: 'governance' 
-        },
-      ];
-      
-      setIndicators(mockData);
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          // Mapear dados do banco para o formato de indicadores com ícones
+          const mappedIndicators: Indicator[] = data.map(item => {
+            // Determinar ícone baseado no ID do indicador
+            let icon;
+            switch (item.name) {
+              case 'litro_tm': icon = <Droplet size={18} className="text-black" />; break;
+              case 'kg_tm': icon = <Weight size={18} className="text-black" />; break;
+              case 'kwh_tm': icon = <Zap size={18} className="text-black" />; break;
+              case 'litro_combustivel_tm': icon = <Fuel size={18} className="text-black" />; break;
+              case 'residuo_tm': icon = <Percent size={18} className="text-black" />; break;
+              case 'incidente': icon = <AlertTriangle size={18} className="text-black" />; break;
+              case 'acidente': icon = <Bandage size={18} className="text-black" />; break;
+              case 'denuncia_discriminacao': icon = <Users size={18} className="text-black" />; break;
+              case 'mulher_trabalho': icon = <Handshake size={18} className="text-black" />; break;
+              case 'denuncia_corrupcao': icon = <Gavel size={18} className="text-black" />; break;
+              case 'reclamacao_vizinho': icon = <Bell size={18} className="text-black" />; break;
+              case 'incidente_cibernetico': icon = <Server size={18} className="text-black" />; break;
+              default: icon = <Leaf size={18} className="text-black" />;
+            }
+            
+            return {
+              id: item.id,
+              name: item.name,
+              value: item.value,
+              icon,
+              category: item.category
+            };
+          });
+          
+          setIndicators(mappedIndicators);
+        } else {
+          // Se não houver dados, usar indicadores mockados para este mês
+          console.log("Nenhum dado encontrado, usando indicadores padrão");
+          
+          const mockData: Indicator[] = [
+            { 
+              id: 'water', 
+              name: 'litro_tm', 
+              value: selectedTerminal === "Rio Grande" ? 435 : 398, 
+              icon: <Droplet size={18} className="text-black" />, 
+              category: 'environmental' 
+            },
+            { 
+              id: 'weight', 
+              name: 'kg_tm', 
+              value: selectedTerminal === "Rio Grande" ? 1234 : 1412, 
+              icon: <Weight size={18} className="text-black" />, 
+              category: 'environmental' 
+            },
+            { 
+              id: 'energy', 
+              name: 'kwh_tm', 
+              value: selectedTerminal === "Rio Grande" ? 156 : 173, 
+              icon: <Zap size={18} className="text-black" />, 
+              category: 'environmental' 
+            },
+            { 
+              id: 'fuel', 
+              name: 'litro_combustivel_tm', 
+              value: selectedTerminal === "Rio Grande" ? 48 : 52, 
+              icon: <Fuel size={18} className="text-black" />, 
+              category: 'environmental' 
+            },
+            { 
+              id: 'waste', 
+              name: 'residuo_tm', 
+              value: selectedTerminal === "Rio Grande" ? 5.2 : 6.1, 
+              icon: <Percent size={18} className="text-black" />, 
+              category: 'environmental' 
+            },
+            
+            { 
+              id: 'incidents', 
+              name: 'incidente', 
+              value: selectedTerminal === "Rio Grande" ? 3 : 2, 
+              icon: <AlertTriangle size={18} className="text-black" />, 
+              category: 'social' 
+            },
+            { 
+              id: 'accidents', 
+              name: 'acidente', 
+              value: selectedTerminal === "Rio Grande" ? 1 : 0, 
+              icon: <Bandage size={18} className="text-black" />, 
+              category: 'social' 
+            },
+            { 
+              id: 'discrimination', 
+              name: 'denuncia_discriminacao', 
+              value: 0, 
+              icon: <Users size={18} className="text-black" />, 
+              category: 'social' 
+            },
+            { 
+              id: 'women', 
+              name: 'mulher_trabalho', 
+              value: selectedTerminal === "Rio Grande" ? 42 : 47, 
+              icon: <Handshake size={18} className="text-black" />, 
+              category: 'social' 
+            },
+            
+            { 
+              id: 'corruption', 
+              name: 'denuncia_corrupcao', 
+              value: 0, 
+              icon: <Gavel size={18} className="text-black" />, 
+              category: 'governance' 
+            },
+            { 
+              id: 'complaints', 
+              name: 'reclamacao_vizinho', 
+              value: selectedTerminal === "Rio Grande" ? 2 : 3, 
+              icon: <Bell size={18} className="text-black" />, 
+              category: 'governance' 
+            },
+            { 
+              id: 'cyber', 
+              name: 'incidente_cibernetico', 
+              value: selectedTerminal === "Rio Grande" ? 1 : 2, 
+              icon: <Server size={18} className="text-black" />, 
+              category: 'governance' 
+            },
+          ];
+          
+          setIndicators(mockData);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+        toast.error("Erro ao carregar indicadores");
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     fetchData();
   }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
 
-  // Filter indicators by category
+  // Filtrar indicadores por categoria
   const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
   const socialIndicators = indicators.filter(ind => ind.category === 'social');
   const governanceIndicators = indicators.filter(ind => ind.category === 'governance');
 
-  // Open edit dialog for an indicator
+  // Abrir diálogo de edição para um indicador
   const handleEdit = (indicator: Indicator) => {
     setEditingIndicator(indicator);
     setNewValue(indicator.value.toString());
     setIsDialogOpen(true);
   };
 
-  // Save edited value
-  const handleSave = () => {
+  // Salvar valor editado
+  const handleSave = async () => {
     if (!editingIndicator) return;
     
-    // Update local state
-    setIndicators(prev => prev.map(ind => 
-      ind.id === editingIndicator.id ? { ...ind, value: newValue } : ind
-    ));
+    try {
+      // Salvar valor no Supabase
+      const result = await saveESGIndicator({
+        name: editingIndicator.name,
+        value: parseFloat(newValue),
+        category: editingIndicator.category,
+        terminal: selectedTerminal,
+        month: parseInt(selectedMonth),
+        year: parseInt(selectedYear)
+      });
+      
+      if (result.success) {
+        // Atualizar estado local
+        setIndicators(prev => prev.map(ind => 
+          ind.id === editingIndicator.id ? { ...ind, value: parseFloat(newValue) } : ind
+        ));
+        
+        // Fechar diálogo
+        setIsDialogOpen(false);
+        
+        // Mostrar toast de sucesso
+        toast.success("Valor atualizado com sucesso");
+      } else {
+        toast.error("Erro ao atualizar valor");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar indicador:", error);
+      toast.error("Erro ao salvar indicador");
+    }
     
-    // Close dialog
-    setIsDialogOpen(false);
-    
-    // Show success toast
-    toast({
-      title: "Valor atualizado com sucesso",
-      description: `${editingIndicator.name}: ${newValue}`,
-    });
-    
-    // Reset editing state
+    // Resetar estado de edição
     setEditingIndicator(null);
   };
 
-  // Render indicator item with optional edit button
+  // Renderizar item de indicador com botão de edição opcional
   const renderIndicatorItem = (indicator: Indicator) => (
     <div key={indicator.id} className="flex items-center gap-2">
       {indicator.icon}
@@ -207,6 +279,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       )}
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando indicadores...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="flex-1 bg-gray-50">

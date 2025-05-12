@@ -29,6 +29,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
   const [terminal, setTerminal] = useState(user?.terminal || "");
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +39,10 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       return;
     }
     
+    setIsLoading(true);
+    
     try {
-      // In a real app this would connect to an API
-      await updateUserProfile({
+      const updated = await updateUserProfile({
         name,
         email,
         photoUrl,
@@ -48,10 +50,21 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         ...(newPassword ? { password: newPassword } : {}),
       });
       
-      toast.success("Perfil atualizado com sucesso");
-      onClose();
+      if (updated) {
+        toast.success("Perfil atualizado com sucesso");
+        // Limpar os campos de senha
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        onClose();
+      } else {
+        toast.error("Erro ao atualizar perfil");
+      }
     } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
       toast.error("Erro ao atualizar perfil");
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -80,6 +93,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               value={name} 
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome completo"
+              disabled={isLoading}
             />
           </div>
           
@@ -89,9 +103,10 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               id="email" 
               type="email" 
               value={email} 
-              onChange={(e) => setEmail(e.target.value)}
+              disabled
               placeholder="seu@email.com"
             />
+            <p className="text-xs text-gray-500">Email não pode ser alterado</p>
           </div>
           
           {user?.accessLevel === "administrative" && (
@@ -100,6 +115,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               <Select
                 value={terminal}
                 onValueChange={setTerminal}
+                disabled={isLoading}
               >
                 <SelectTrigger id="terminal">
                   <SelectValue placeholder="Selecione o terminal" />
@@ -120,6 +136,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               value={currentPassword} 
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Digite sua senha atual"
+              disabled={isLoading}
             />
           </div>
           
@@ -131,6 +148,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               value={newPassword} 
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Digite sua nova senha"
+              disabled={isLoading}
             />
           </div>
           
@@ -142,6 +160,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirme sua nova senha"
+              disabled={isLoading}
             />
           </div>
           
@@ -151,10 +170,17 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               variant="outline" 
               onClick={onClose}
               className="flex items-center gap-2 w-full sm:w-auto"
+              disabled={isLoading}
             >
               <X className="h-4 w-4" /> Cancelar
             </Button>
-            <Button type="submit" className="w-full sm:w-auto">Salvar Alterações</Button>
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto"
+              disabled={isLoading}
+            >
+              {isLoading ? "Salvando..." : "Salvar Alterações"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

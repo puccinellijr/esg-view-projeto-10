@@ -1,13 +1,16 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase, User } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
-interface User {
+interface UserData {
   email: string;
   accessLevel: AccessLevel;
   name?: string;
   photoUrl?: string;
-  terminal?: string | null; // Added terminal property
+  terminal?: string | null;
 }
 
 interface UserUpdateData {
@@ -15,13 +18,13 @@ interface UserUpdateData {
   email?: string;
   photoUrl?: string;
   password?: string;
-  terminal?: string | null; // Added terminal property
+  terminal?: string | null;
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (user: User) => void;
-  logout: () => void;
+  user: UserData | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   hasAccess: (requiredLevel: AccessLevel) => boolean;
   resetPassword: (email: string) => Promise<boolean>;
   updatePassword: (email: string, newPassword: string) => Promise<boolean>;
@@ -31,39 +34,126 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
 
-  // Check for existing user session on load
+  // Verificar sessão atual do usuário ao carregar
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Falha ao analisar usuário armazenado:', error);
-        sessionStorage.removeItem('user');
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        // Buscar detalhes do usuário do perfil
+        const { data: profileData, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('email', data.session.user.email)
+          .single();
+
+        if (!error && profileData) {
+          setUser({
+            email: data.session.user.email || '',
+            accessLevel: profileData.access_level as AccessLevel,
+            name: profileData.name,
+            photoUrl: profileData.photo_url,
+            terminal: profileData.terminal
+          });
+        } else {
+          console.error('Erro ao buscar perfil:', error);
+        }
       }
-    }
+    };
+
+    checkSession();
+
+    // Escutar mudanças na autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Buscar detalhes do perfil quando o usuário faz login
+          const { data: profileData, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('email', session.user.email)
+            .single();
+
+          if (!error && profileData) {
+            setUser({
+              email: session.user.email || '',
+              accessLevel: profileData.access_level as AccessLevel,
+              name: profileData.name,
+              photoUrl: profileData.photo_url,
+              terminal: profileData.terminal
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  // Access level hierarchy from lowest to highest
-  const accessHierarchy: AccessLevel[] = ['viewer', 'operational', 'administrative'];
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-  const login = (userData: User) => {
-    setUser(userData);
-    sessionStorage.setItem('user', JSON.stringify(userData));
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        // Buscar detalhes do perfil após login bem-sucedido
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('email', data.user.email)
+          .single();
+
+        if (profileError) {
+          console.error('Erro ao buscar perfil:', profileError);
+          return false;
+        }
+
+        setUser({
+          email: data.user.email || '',
+          accessLevel: profileData.access_level as AccessLevel,
+          name: profileData.name,
+          photoUrl: profileData.photo_url,
+          terminal: profileData.terminal
+        });
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erro de login:', error);
+      return false;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    sessionStorage.removeItem('user');
+  const logout = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      setUser(null);
+    } catch (error) {
+      console.error('Erro ao desconectar:', error);
+      toast.error('Erro ao desconectar');
+    }
   };
 
-  // Check if user has sufficient access
+  // Verificar se o usuário tem acesso suficiente
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
     if (!user) return false;
     
-    // Administrative has access to all levels
+    // Administrative tem acesso a todos os níveis
     if (user.accessLevel === 'administrative') return true;
     
     // Operational users can access operational and viewer levels
@@ -79,65 +169,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
-  // For password reset functionality
   const resetPassword = async (email: string): Promise<boolean> => {
-    // In a real app, this would call an API to send a reset email
-    // For this demo, we'll simulate it with a success response
-    return new Promise(resolve => {
-      // Check if the user exists
-      const users = [
-        { email: "admin@example.com" },
-        { email: "viewer@example.com" },
-        { email: "operator@example.com" }
-      ];
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       
-      const userExists = users.some(user => user.email === email);
-      
-      if (userExists) {
-        // Generate a reset token and store it
-        const resetToken = Math.random().toString(36).substring(2, 15);
-        sessionStorage.setItem(`reset_${email}`, resetToken);
-        resolve(true);
-      } else {
-        resolve(false);
+      if (error) {
+        throw error;
       }
-    });
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+      return false;
+    }
   };
 
   const updatePassword = async (email: string, newPassword: string): Promise<boolean> => {
-    // In a real app, this would call an API to update the user's password
-    // For this demo, we'll simulate it with a success response
-    return new Promise(resolve => {
-      // In a real application, we'd verify the user exists and update their password in the database
-      // Here we'll just return success
-      resolve(true);
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar senha:', error);
+      return false;
+    }
   };
 
   const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
-    // In a real app, this would call an API to update the user profile
-    return new Promise(resolve => {
-      try {
-        if (user) {
-          const updatedUser = {
-            ...user,
-            name: data.name || user.name,
-            email: data.email || user.email,
-            photoUrl: data.photoUrl || user.photoUrl,
-            terminal: data.terminal !== undefined ? data.terminal : user.terminal,
-          };
-          
-          setUser(updatedUser);
-          sessionStorage.setItem('user', JSON.stringify(updatedUser));
-          resolve(true);
-        } else {
-          resolve(false);
+    try {
+      if (!user) return false;
+      
+      // Atualizar auth se houver password
+      if (data.password) {
+        const { error: authError } = await supabase.auth.updateUser({
+          password: data.password
+        });
+        
+        if (authError) {
+          throw authError;
         }
-      } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
-        resolve(false);
       }
-    });
+      
+      // Atualizar perfil na tabela profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          name: data.name,
+          photo_url: data.photoUrl,
+          terminal: data.terminal
+        })
+        .eq('email', user.email);
+      
+      if (profileError) {
+        throw profileError;
+      }
+      
+      // Atualizar estado local
+      setUser(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          name: data.name || prev.name,
+          photoUrl: data.photoUrl || prev.photoUrl,
+          terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
+        };
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      return false;
+    }
   };
 
   const value = {

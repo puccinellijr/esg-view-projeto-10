@@ -1,4 +1,5 @@
-// Data service to fetch ESG data from PHP API
+
+import { supabase } from '@/lib/supabase';
 
 interface ESGData {
   environmental: {
@@ -21,15 +22,16 @@ interface ESGData {
   };
 }
 
-// Set to false to use the real PHP API instead of mock data
-const useMockData = false;
+// Definido como true apenas para fins de desenvolvimento
+// Pode ser alterado para false quando os dados do Supabase estiverem prontos
+const useMockData = true;
 
-// Generate random data for mock mode or development
+// Gerar dados aleatórios para modo mock ou desenvolvimento
 const generateRandomValue = (min: number, max: number): number => {
   return parseFloat((Math.random() * (max - min) + min).toFixed(4));
 };
 
-// Generate mock data
+// Gerar dados mockados
 const generateMockData = (): ESGData => {
   return {
     environmental: {
@@ -94,36 +96,127 @@ export const fetchESGData = async (
   period1: { month: string; year: string },
   period2: { month: string; year: string }
 ): Promise<ESGData> => {
-  // If using mock data, return randomly generated data after simulated delay
+  // Se estiver usando dados mockados, retorne dados gerados aleatoriamente após atraso simulado
   if (useMockData) {
     await new Promise(resolve => setTimeout(resolve, 500));
     return generateMockData();
   }
 
-  // Otherwise, fetch from the XAMPP PHP API
   try {
-    const terminalCode = terminal === 'Rio Grande' ? 'rg' : 'sp';
-    
-    // Construct API URL with parameters - path for XAMPP
-    const apiUrl = `/esg-api/get_esg_data.php?terminal=${encodeURIComponent(terminal)}&mes1=${period1.month}&ano1=${period1.year}&mes2=${period2.month}&ano2=${period2.year}`;
-    
-    console.log("Fetching data from XAMPP API:", apiUrl);
-    
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    // Fetch dos dados de ESG do Supabase
+    const categories = ['environmental', 'social', 'governance'];
+    const result: ESGData = {
+      environmental: {},
+      social: {},
+      governance: {}
+    };
+
+    for (const category of categories) {
+      // Buscar dados do primeiro período
+      const { data: data1, error: error1 } = await supabase
+        .from('esg_indicators')
+        .select('name, value')
+        .eq('terminal', terminal)
+        .eq('category', category)
+        .eq('month', parseInt(period1.month))
+        .eq('year', parseInt(period1.year));
+
+      // Buscar dados do segundo período
+      const { data: data2, error: error2 } = await supabase
+        .from('esg_indicators')
+        .select('name, value')
+        .eq('terminal', terminal)
+        .eq('category', category)
+        .eq('month', parseInt(period2.month))
+        .eq('year', parseInt(period2.year));
+
+      if (error1 || error2) {
+        console.error("Erro ao buscar dados do Supabase:", error1 || error2);
+        throw new Error("Erro ao buscar dados do Supabase");
+      }
+
+      // Processar dados e construir o objeto de resultado
+      // @ts-ignore - Adicionando dinamicamente ao objeto result
+      const categoryData = result[category];
+
+      // Processar dados do primeiro período
+      if (data1) {
+        data1.forEach(item => {
+          if (!categoryData[item.name]) {
+            categoryData[item.name] = { value1: 0, value2: 0 };
+          }
+          categoryData[item.name].value1 = item.value;
+        });
+      }
+
+      // Processar dados do segundo período
+      if (data2) {
+        data2.forEach(item => {
+          if (!categoryData[item.name]) {
+            categoryData[item.name] = { value1: 0, value2: 0 };
+          }
+          categoryData[item.name].value2 = item.value;
+        });
+      }
     }
-    
-    const data = await response.json();
-    console.log("API response:", data);
-    
-    return data as ESGData;
+
+    return result;
   } catch (error) {
-    console.error("Error fetching from API:", error);
+    console.error("Erro ao buscar dados:", error);
     
-    // Fall back to mock data if API call fails
-    console.log("Falling back to mock data");
+    // Fallback para dados mockados em caso de falha
+    console.log("Recorrendo a dados mockados");
     return generateMockData();
+  }
+};
+
+// Função para salvar dados ESG no Supabase
+export const saveESGIndicator = async (
+  indicatorData: {
+    name: string;
+    value: number;
+    category: 'environmental' | 'social' | 'governance';
+    terminal: string;
+    month: number;
+    year: number;
+  }
+) => {
+  try {
+    // Verificar se o indicador já existe
+    const { data: existingData, error: queryError } = await supabase
+      .from('esg_indicators')
+      .select('id')
+      .eq('name', indicatorData.name)
+      .eq('terminal', indicatorData.terminal)
+      .eq('month', indicatorData.month)
+      .eq('year', indicatorData.year)
+      .eq('category', indicatorData.category)
+      .single();
+
+    if (queryError && queryError.code !== 'PGRST116') { // PGRST116 é "no rows found"
+      throw queryError;
+    }
+
+    if (existingData) {
+      // Atualizar indicador existente
+      const { error: updateError } = await supabase
+        .from('esg_indicators')
+        .update({ value: indicatorData.value })
+        .eq('id', existingData.id);
+
+      if (updateError) throw updateError;
+      return { success: true, message: 'Indicador atualizado com sucesso' };
+    } else {
+      // Criar novo indicador
+      const { error: insertError } = await supabase
+        .from('esg_indicators')
+        .insert([indicatorData]);
+
+      if (insertError) throw insertError;
+      return { success: true, message: 'Indicador criado com sucesso' };
+    }
+  } catch (error) {
+    console.error('Erro ao salvar indicador ESG:', error);
+    return { success: false, message: 'Erro ao salvar indicador' };
   }
 };

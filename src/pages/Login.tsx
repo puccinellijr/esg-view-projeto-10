@@ -8,66 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 
-// Define user access levels
 export type AccessLevel = "operational" | "viewer" | "administrative";
-
-// Mock users for demonstration with names and photos
-const users = [
-  { 
-    email: "admin@example.com", 
-    password: "admin123", 
-    accessLevel: "administrative" as AccessLevel,
-    name: "Admin User",
-    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com",
-    terminal: "Rio Grande"
-  },
-  { 
-    email: "viewer@example.com", 
-    password: "viewer123", 
-    accessLevel: "viewer" as AccessLevel,
-    name: "Viewer User",
-    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com",
-    terminal: null // Viewers don't have a default terminal, they can choose
-  },
-  { 
-    email: "operator@example.com", 
-    password: "operator123", 
-    accessLevel: "operational" as AccessLevel,
-    name: "Operator User",
-    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com",
-    terminal: "SP"
-  },
-];
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
+    setIsLoading(true);
     
-    if (user) {
-      // Use the login function from AuthContext
-      login({
-        email: user.email,
-        accessLevel: user.accessLevel,
-        name: user.name,
-        photoUrl: user.photoUrl,
-        terminal: user.terminal
-      });
+    try {
+      const success = await login(email, password);
       
-      toast.success(`Bem-vindo, ${user.name}! Você está conectado com acesso ${user.accessLevel === "administrative" ? "administrativo" : user.accessLevel === "viewer" ? "visualizador" : "operacional"}`);
-      
-      // Always redirect to dashboard for all user types
-      navigate("/dashboard");
-    } else {
-      toast.error("Email ou senha inválidos");
+      if (success) {
+        toast.success("Login realizado com sucesso!");
+        navigate("/dashboard");
+      } else {
+        toast.error("Email ou senha inválidos");
+      }
+    } catch (error) {
+      toast.error("Erro ao fazer login");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,6 +56,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="border-gray-300"
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -102,6 +70,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="border-gray-300"
                 required
+                disabled={isLoading}
               />
               <div className="text-right">
                 <Link to="/forgot-password" className="text-sm text-custom-blue hover:underline">
@@ -110,15 +79,16 @@ export default function Login() {
               </div>
             </div>
             
-            <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
-              Entrar
+            <Button 
+              type="submit" 
+              className="w-full bg-custom-blue text-white hover:bg-custom-blue/90"
+              disabled={isLoading}
+            >
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
             
             <div className="text-center text-sm text-gray-600 mt-4">
-              <p>Contas de demonstração:</p>
-              <p>admin@example.com / admin123 (Administrativo)</p>
-              <p>viewer@example.com / viewer123 (Visualizador)</p>
-              <p>operator@example.com / operator123 (Operacional)</p>
+              <p>Para usar o sistema, entre em contato com o administrador para criar sua conta.</p>
             </div>
           </form>
         </CardContent>
