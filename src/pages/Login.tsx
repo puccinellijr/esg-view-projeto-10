@@ -24,10 +24,9 @@ export default function Login() {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        // Iniciar diagnóstico
         console.log("Login: Verificando status da conexão");
         
-        // Verificação mais simples e rápida
+        // Verificação mais simples e rápida com timeout para não ficar esperando infinitamente
         try {
           const { error } = await Promise.race([
             supabase.from('user_profiles').select('count'),
@@ -60,7 +59,12 @@ export default function Login() {
       }
     };
 
-    checkConnection();
+    // Pequeno atraso para garantir que hooks e providers estão inicializados
+    const timer = setTimeout(() => {
+      checkConnection();
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -80,16 +84,22 @@ export default function Login() {
       
       // Verificar status da conexão Supabase com timeout
       try {
-        const { data: healthData } = await Promise.race([
+        const { error: healthCheckError } = await Promise.race([
           supabase.from('user_profiles').select('count'),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout na verificação')), 5000)
           )
         ]) as any;
         
-        console.log('Status da conexão:', healthData ? 'OK' : 'Falha');
+        if (healthCheckError) {
+          console.error("Erro na verificação de saúde:", healthCheckError);
+          toast.error("Problema de conectividade com o banco de dados");
+          setErrorMessage("Não foi possível conectar ao banco de dados. Verifique suas credenciais do Supabase.");
+          setIsLoading(false);
+          return;
+        }
       } catch (err) {
-        console.error('Erro ao verificar saúde da conexão:', err);
+        console.error("Erro ao verificar saúde da conexão:", err);
         toast.error("Problema de conectividade com o banco de dados");
         setErrorMessage("Não foi possível conectar ao banco de dados. Verifique suas credenciais do Supabase.");
         setIsLoading(false);

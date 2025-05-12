@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -30,75 +30,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Verificar se o sistema está inicializado
-function AppRoutes() {
-  const { isInitialized } = useAuth();
-
-  if (!isInitialized) {
-    return <LoadingFallback />;
-  }
-
-  return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      
-      {/* Dashboard route - available for all users (viewer, operational and administrative) */}
-      <Route element={<ProtectedRoute requiredLevel="viewer" />}>
-        <Route path="/dashboard" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <Dashboard />
-          </Suspense>
-        } />
-        <Route path="/comparison" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <Comparison />
-          </Suspense>
-        } />
-        <Route path="/reports" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <Comparison />
-          </Suspense>
-        } />
-      </Route>
-      
-      {/* Operational form route - only for operational and administrative users */}
-      <Route element={<ProtectedRoute requiredLevel="operational" />}>
-        <Route path="/operational-form" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <OperationalForm />
-          </Suspense>
-        } />
-        <Route path="/settings/profile" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <UserProfile />
-          </Suspense>
-        } />
-      </Route>
-      
-      {/* Admin settings - only available to administrative users */}
-      <Route element={<ProtectedRoute requiredLevel="administrative" />}>
-        <Route path="/settings/user/create" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <CreateUser />
-          </Suspense>
-        } />
-        <Route path="/settings/users" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <ManageUsers />
-          </Suspense>
-        } />
-      </Route>
-      
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -108,19 +39,50 @@ const queryClient = new QueryClient({
   },
 });
 
+// O AppRoutes foi removido e o conteúdo foi movido diretamente para o App
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <SidebarProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </SidebarProvider>
-      </TooltipProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <SidebarProvider>
+            <Toaster />
+            <Sonner />
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                
+                {/* Dashboard route - available for all users (viewer, operational and administrative) */}
+                <Route element={<ProtectedRoute requiredLevel="viewer" />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/comparison" element={<Comparison />} />
+                  <Route path="/reports" element={<Comparison />} />
+                </Route>
+                
+                {/* Operational form route - only for operational and administrative users */}
+                <Route element={<ProtectedRoute requiredLevel="operational" />}>
+                  <Route path="/operational-form" element={<OperationalForm />} />
+                  <Route path="/settings/profile" element={<UserProfile />} />
+                </Route>
+                
+                {/* Admin settings - only available to administrative users */}
+                <Route element={<ProtectedRoute requiredLevel="administrative" />}>
+                  <Route path="/settings/user/create" element={<CreateUser />} />
+                  <Route path="/settings/users" element={<ManageUsers />} />
+                </Route>
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </SidebarProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

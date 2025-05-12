@@ -42,35 +42,36 @@ export default function Index() {
           return;
         }
 
-        // Verificar se há sessão ativa
-        console.log("Verificando sessão...");
-        const { data: sessionData } = await supabase.auth.getSession();
-        console.log("Sessão:", sessionData?.session ? "Ativa" : "Inativa");
-        
         // Se usuário está logado, redirecionar para dashboard
         if (user) {
           console.log("Usuário logado, redirecionando para dashboard");
-          clearTimeout(globalTimeout);
           navigate("/dashboard");
         } else {
           // Caso contrário, redirecionar para login
           console.log("Usuário não logado, redirecionando para login");
-          clearTimeout(globalTimeout);
           navigate("/login");
         }
+
+        clearTimeout(globalTimeout);
+        setLoading(false);
       } catch (err) {
         console.error("Erro ao verificar sistema:", err);
         const errorMessage = (err as Error).message || "Erro ao inicializar o sistema";
         setError(errorMessage);
         toast.error(errorMessage);
         clearTimeout(globalTimeout);
-      } finally {
-        clearTimeout(globalTimeout);
         setLoading(false);
       }
     };
 
-    checkSystem();
+    // Pequeno atraso para garantir que o AuthProvider esteja inicializado
+    const timer = setTimeout(() => {
+      checkSystem();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [navigate, user]);
 
   // Mostrar tela de carregamento ou erro
