@@ -1,7 +1,6 @@
-
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { AccessLevel } from '@/context/AuthContext';
+import { AccessLevel } from '@/types/auth';
 
 interface ProtectedRouteProps {
   requiredLevel?: AccessLevel;

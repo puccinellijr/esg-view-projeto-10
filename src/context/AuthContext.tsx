@@ -1,24 +1,10 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase, User } from '@/lib/supabase';
 import { toast } from 'sonner';
-
-export type AccessLevel = "operational" | "viewer" | "administrative";
-
-interface UserData {
-  email: string;
-  accessLevel: AccessLevel;
-  name?: string;
-  photoUrl?: string;
-  terminal?: string | null;
-}
-
-interface UserUpdateData {
-  name?: string;
-  email?: string;
-  photoUrl?: string;
-  password?: string;
-  terminal?: string | null;
-}
+import { UserData, UserUpdateData, AccessLevel } from '@/types/auth';
+import { loginUser, logoutUser, resetPassword, updatePassword, getCurrentSession } from '@/services/authService';
+import { updateUserProfile as updateProfile } from '@/services/userProfileService';
+import { setupAuthListener, checkAccessLevel } from '@/services/sessionService';
 
 interface AuthContextType {
   user: UserData | null;
@@ -37,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Verificar sessão atual do usuário ao carregar
+  // Check current session on load
   useEffect(() => {
     console.log("AuthProvider: Inicializando...");
     
@@ -45,18 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log("AuthProvider: Verificando sessão...");
         
-        // Adicionar timeout para evitar bloqueio indefinido
-        const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-          setTimeout(() => reject(new Error("Tempo limite excedido na verificação de sessão")), 5000)
-        );
-        
-        // Usar Promise.race para garantir timeout
-        const sessionResult = await Promise.race([
-          supabase.auth.getSession(),
-          timeoutPromise
-        ]);
-        
-        const { data, error: sessionError } = sessionResult;
+        const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
@@ -64,44 +39,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (data.session?.user) {
-          console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
+        if (sessionUser) {
+          console.log("AuthProvider: Sessão encontrada para usuário:", sessionUser.email);
           
           try {
-            // Buscar detalhes do usuário do perfil - usando prazo limite para evitar bloqueio
-            const profileTimeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-              setTimeout(() => reject(new Error("Tempo limite excedido na busca de perfil")), 5000)
-            );
-            
-            // Usar Promise.race para garantir timeout
-            const profileResult = await Promise.race([
-              supabase
-                .from('user_profiles')
-                .select('name, access_level, photo_url, terminal')
-                .eq('id', data.session.user.id)
-                .single(),
-              profileTimeoutPromise
-            ]);
-            
-            const { data: profileData, error } = profileResult;
+            // Buscar detalhes do usuário do perfil
+            const { profileData: loadedProfile, error } = await loadUserProfile(sessionUser.id);
 
-            if (!error && profileData) {
-              console.log("AuthProvider: Perfil de usuário carregado:", profileData.name);
+            if (!error && loadedProfile) {
+              console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
               setUser({
-                email: data.session.user.email || '',
-                accessLevel: profileData.access_level as AccessLevel,
-                name: profileData.name,
-                photoUrl: profileData.photo_url,
-                terminal: profileData.terminal
+                email: sessionUser.email || '',
+                accessLevel: loadedProfile.access_level as AccessLevel,
+                name: loadedProfile.name,
+                photoUrl: loadedProfile.photo_url,
+                terminal: loadedProfile.terminal
               });
             } else {
               console.error('Erro ao buscar perfil:', error);
-              // Garantir que o usuário é nulo em caso de erro
               setUser(null);
             }
           } catch (profileErr) {
             console.error('Exceção ao buscar perfil:', profileErr);
-            // Garantir que o usuário é nulo em caso de erro
             setUser(null);
           }
         } else {
@@ -110,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error("AuthProvider: Erro ao inicializar:", err);
-        // Garantir que o usuário é nulo em caso de erro
         setUser(null);
       } finally {
         console.log("AuthProvider: Inicialização concluída");
@@ -120,216 +78,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkSession();
 
-    // Escutar mudanças na autenticação
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log(`AuthProvider: Evento de autenticação: ${event}`);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('AuthProvider: Usuário conectado:', session.user.email);
-          
-          try {
-            // Buscar detalhes do perfil quando o usuário faz login
-            const { data: profileData, error } = await supabase
-              .from('user_profiles')
-              .select('name, access_level, photo_url, terminal')
-              .eq('id', session.user.id)
-              .single();
-
-            if (!error && profileData) {
-              setUser({
-                email: session.user.email || '',
-                accessLevel: profileData.access_level as AccessLevel,
-                name: profileData.name,
-                photoUrl: profileData.photo_url,
-                terminal: profileData.terminal
-              });
-              
-              // Verificação extra para garantir que o usuário foi definido corretamente
-              console.log('AuthProvider: Usuário definido no estado:', {
-                email: session.user.email,
-                accessLevel: profileData.access_level,
-                name: profileData.name
-              });
-            } else {
-              console.error('Erro ao buscar perfil após login:', error);
-              setUser(null);
-            }
-          } catch (profileErr) {
-            console.error('Exceção ao buscar perfil após login:', profileErr);
-            setUser(null);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('AuthProvider: Usuário desconectado');
-          setUser(null);
-        }
+    // Set up auth state change listener
+    const cleanupListener = setupAuthListener((authUser, profileData) => {
+      if (authUser && profileData) {
+        setUser({
+          email: authUser.email || '',
+          accessLevel: profileData.access_level as AccessLevel,
+          name: profileData.name,
+          photoUrl: profileData.photo_url,
+          terminal: profileData.terminal
+        });
+      } else {
+        setUser(null);
       }
-    );
+    });
 
-    return () => {
-      console.log("AuthProvider: Limpando listener de autenticação");
-      authListener.subscription.unsubscribe();
-    };
+    return cleanupListener;
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      console.log('Tentando login para:', email);
-      
-      // Definir um timeout para garantir resposta rápida do Supabase
-      const loginPromise = supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      // Criar um promise para o timeout
-      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-        setTimeout(() => reject(new Error("O login demorou muito tempo")), 8000)
-      );
-      
-      // Usar Promise.race para evitar bloqueio indefinido
-      const { data, error } = await Promise.race([loginPromise, timeoutPromise]);
-
-      if (error) {
-        console.error('Erro de autenticação:', error.message);
-        return false;
-      }
-
-      if (!data.user) {
-        console.error('Login falhou: usuário não encontrado');
-        return false;
-      }
-      
-      console.log('Login bem-sucedido para:', data.user.email);
-      
-      // Não precisamos buscar o perfil aqui, o evento de 'SIGNED_IN' já fará isso
-      // Aguardar um breve momento para garantir que o evento SIGNED_IN tenha tempo de processar
+    const { success } = await loginUser(email, password);
+    
+    // The auth state listener will update the user state if login is successful
+    // Just wait a brief moment to ensure the event has time to process
+    if (success) {
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-      console.error('Erro de login:', errorMessage);
-      return false;
     }
+    
+    return success;
   };
 
   const logout = async (): Promise<void> => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
-      setUser(null);
-    } catch (error) {
+    const { success, error } = await logoutUser();
+    
+    if (!success) {
       console.error('Erro ao desconectar:', error);
       toast.error('Erro ao desconectar');
     }
+    
+    // The auth state listener will clear the user state
   };
 
-  // Verificar se o usuário tem acesso suficiente
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
     if (!user) return false;
-    
-    // Administrative tem acesso a todos os níveis
-    if (user.accessLevel === 'administrative') return true;
-    
-    // Operational users can access operational and viewer levels
-    if (user.accessLevel === 'operational') {
-      return requiredLevel === 'operational' || requiredLevel === 'viewer';
-    }
-    
-    // Viewers can only access viewer level
-    if (user.accessLevel === 'viewer') {
-      return requiredLevel === 'viewer';
-    }
-    
-    return false;
+    return checkAccessLevel(user.accessLevel, requiredLevel);
   };
 
-  const resetPassword = async (email: string): Promise<boolean> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Erro ao solicitar redefinição de senha:', error);
-      return false;
-    }
+  const handleResetPassword = async (email: string): Promise<boolean> => {
+    const { success } = await resetPassword(email);
+    return success;
   };
 
-  const updatePassword = async (email: string, newPassword: string): Promise<boolean> => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Erro ao atualizar senha:', error);
-      return false;
-    }
+  const handleUpdatePassword = async (email: string, newPassword: string): Promise<boolean> => {
+    const { success } = await updatePassword(newPassword);
+    return success;
   };
 
-  const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
+  const handleUpdateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
+    if (!user) return false;
+    
     try {
-      if (!user) return false;
-      
-      // Atualizar auth se houver password
-      if (data.password) {
-        const { error: authError } = await supabase.auth.updateUser({
-          password: data.password
-        });
-        
-        if (authError) {
-          throw authError;
-        }
-      }
-      
-      // Obter o ID do usuário atual
+      // Get the current user ID
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
+      if (!userData?.user) {
         throw new Error('Usuário não encontrado');
       }
       
-      // Atualizar perfil na tabela profiles
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .update({
-          name: data.name,
-          photo_url: data.photoUrl,
-          terminal: data.terminal
-        })
-        .eq('id', userData.user.id);
+      const { success } = await updateProfile(userData.user.id, data);
       
-      if (profileError) {
-        throw profileError;
+      if (success) {
+        // Update local state
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            name: data.name || prev.name,
+            photoUrl: data.photoUrl || prev.photoUrl,
+            terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
+          };
+        });
       }
       
-      // Atualizar estado local
-      setUser(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          name: data.name || prev.name,
-          photoUrl: data.photoUrl || prev.photoUrl,
-          terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
-        };
-      });
-      
-      return true;
+      return success;
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('Erro ao atualizar perfil no contexto:', error);
       return false;
     }
   };
@@ -339,9 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     hasAccess,
-    resetPassword,
-    updatePassword,
-    updateUserProfile,
+    resetPassword: handleResetPassword,
+    updatePassword: handleUpdatePassword,
+    updateUserProfile: handleUpdateUserProfile,
     isInitialized
   };
 
@@ -355,3 +187,8 @@ export function useAuth() {
   }
   return context;
 }
+
+// Re-export the types for convenience
+export type { AccessLevel, UserData, UserUpdateData };
+import { supabase } from '@/lib/supabase';  // Need to import directly for getUser
+import { loadUserProfile } from '@/services/userProfileService';  // For session check
