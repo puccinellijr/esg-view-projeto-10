@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.session?.user) {
           console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
           
-          // Buscar detalhes do usuário do perfil - otimizado para melhor desempenho
+          // Buscar detalhes do usuário do perfil - usando single() para melhor desempenho
           const { data: profileData, error } = await supabase
             .from('user_profiles')
             .select('name, access_level, photo_url, terminal')
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('AuthProvider: Usuário conectado:', session.user.email);
           
-          // Buscar detalhes do perfil quando o usuário faz login - otimizado
+          // Buscar detalhes do perfil quando o usuário faz login
           const { data: profileData, error } = await supabase
             .from('user_profiles')
             .select('name, access_level, photo_url, terminal')
@@ -138,37 +138,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Erro de autenticação:', error.message);
-        throw error;
+        return false;
       }
 
-      if (data.user) {
-        console.log('Login bem-sucedido para:', data.user.email);
-        
-        // Buscar detalhes do perfil após login bem-sucedido - otimizado
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('name, access_level, photo_url, terminal')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Erro ao buscar perfil:', profileError);
-          return false;
-        }
-
-        console.log('Perfil carregado:', profileData?.name || 'sem nome');
-        
-        setUser({
-          email: data.user.email || '',
-          accessLevel: profileData.access_level as AccessLevel,
-          name: profileData.name,
-          photoUrl: profileData.photo_url,
-          terminal: profileData.terminal
-        });
-
-        return true;
+      if (!data.user) {
+        console.error('Login falhou: usuário não encontrado');
+        return false;
       }
-      return false;
+      
+      console.log('Login bem-sucedido para:', data.user.email);
+      
+      // Buscar detalhes do perfil após login bem-sucedido
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('name, access_level, photo_url, terminal')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Erro ao buscar perfil:', profileError);
+        return false;
+      }
+
+      console.log('Perfil carregado:', profileData?.name || 'sem nome');
+      
+      setUser({
+        email: data.user.email || '',
+        accessLevel: profileData.access_level as AccessLevel,
+        name: profileData.name,
+        photoUrl: profileData.photo_url,
+        terminal: profileData.terminal
+      });
+
+      return true;
     } catch (error) {
       console.error('Erro de login:', error);
       return false;
