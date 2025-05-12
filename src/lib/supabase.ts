@@ -47,31 +47,42 @@ export const testSupabaseConnection = async () => {
     
     // Primeiro teste: verificar se o serviço de autenticação está acessível
     console.log('1. Testando serviço de autenticação...');
-    const authTest = await Promise.race([
-      supabase.auth.getSession(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout na autenticação')), 3000))
-    ]).catch(err => {
-      console.error('Timeout ou erro na autenticação:', err);
-      return { error: { message: err.message } };
-    });
-    
-    if (authTest.error) {
-      console.error('Erro no serviço de autenticação:', authTest.error);
+    try {
+      const authTest = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<{error: {message: string}}>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout na autenticação')), 3000)
+        )
+      ]);
+      
+      if (authTest.error) {
+        console.error('Erro no serviço de autenticação:', authTest.error);
+        return { 
+          success: false, 
+          error: 'AUTH_SERVICE', 
+          message: `Erro no serviço de autenticação: ${authTest.error.message}` 
+        };
+      }
+      
+      console.log('Serviço de autenticação OK');
+    } catch (err) {
+      const error = err as Error;
+      console.error('Timeout ou erro na autenticação:', error);
       return { 
         success: false, 
-        error: 'AUTH_SERVICE', 
-        message: `Erro no serviço de autenticação: ${authTest.error.message}` 
+        error: 'AUTH_TIMEOUT', 
+        message: `Timeout na autenticação: ${error.message}` 
       };
     }
-    
-    console.log('Serviço de autenticação OK');
     
     // Segundo teste: verificar se a tabela user_profiles existe
     console.log('2. Verificando existência da tabela user_profiles...');
     try {
       const tableTest = await Promise.race([
         supabase.from('user_profiles').select('count'),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout ao verificar tabela')), 3000))
+        new Promise<{error: {code: string; message: string}}>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout ao verificar tabela')), 3000)
+        )
       ]);
       
       if (tableTest.error) {
@@ -105,18 +116,20 @@ export const testSupabaseConnection = async () => {
         };
       }
     } catch (err) {
-      console.error('Erro ao testar tabela:', err);
+      const error = err as Error;
+      console.error('Erro ao testar tabela:', error);
       return {
         success: false,
         error: 'TABLE_TEST',
-        message: `Erro ao testar tabela: ${err.message}`
+        message: `Erro ao testar tabela: ${error.message}`
       };
     }
     
     console.log('>>> Diagnóstico concluído: Conexão com Supabase OK <<<');
     return { success: true };
     
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error;
     console.error('>>> ERRO FATAL no diagnóstico de conexão <<<', error);
     return { 
       success: false, 
