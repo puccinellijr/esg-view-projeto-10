@@ -33,8 +33,16 @@ export default function Login() {
     try {
       console.log(`Tentando login com email: ${email}`);
       
-      // Simplifying the login process - removing the unnecessary Promise.all that could cause timing issues
-      const success = await login(email, password);
+      // Chamada direta com limite de tempo para evitar bloqueio indefinido
+      const loginPromise = login(email, password);
+      
+      // Definir um timeout para limitar o tempo de espera
+      const timeoutPromise = new Promise<boolean>((_, reject) => 
+        setTimeout(() => reject(new Error("Tempo limite excedido")), 10000)
+      );
+      
+      // Usar Promise.race para garantir que não fique bloqueado indefinidamente
+      const success = await Promise.race([loginPromise, timeoutPromise]);
       
       if (success) {
         console.log('Login bem-sucedido!');
@@ -46,9 +54,16 @@ export default function Login() {
         setErrorMessage("Email ou senha inválidos. Por favor, verifique suas credenciais e tente novamente.");
       }
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
-      toast.error("Erro ao fazer login");
-      setErrorMessage("Ocorreu um erro durante o login. Verifique sua conexão e tente novamente.");
+      const errorMsg = error instanceof Error ? error.message : "Erro desconhecido";
+      console.error("Erro ao fazer login:", errorMsg);
+      
+      if (errorMsg === "Tempo limite excedido") {
+        toast.error("O login demorou muito tempo. Tente novamente.");
+        setErrorMessage("A conexão demorou muito tempo. Verifique sua internet e tente novamente.");
+      } else {
+        toast.error("Erro ao fazer login");
+        setErrorMessage("Ocorreu um erro durante o login. Verifique sua conexão e tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }

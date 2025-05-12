@@ -56,24 +56,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.session?.user) {
           console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
           
-          // Buscar detalhes do usuário do perfil - usando single() para melhor desempenho
-          const { data: profileData, error } = await supabase
-            .from('user_profiles')
-            .select('name, access_level, photo_url, terminal')
-            .eq('id', data.session.user.id)
-            .single();
+          try {
+            // Buscar detalhes do usuário do perfil - usando single() para melhor desempenho
+            const { data: profileData, error } = await supabase
+              .from('user_profiles')
+              .select('name, access_level, photo_url, terminal')
+              .eq('id', data.session.user.id)
+              .single();
 
-          if (!error && profileData) {
-            console.log("AuthProvider: Perfil de usuário carregado:", profileData.name);
-            setUser({
-              email: data.session.user.email || '',
-              accessLevel: profileData.access_level as AccessLevel,
-              name: profileData.name,
-              photoUrl: profileData.photo_url,
-              terminal: profileData.terminal
-            });
-          } else {
-            console.error('Erro ao buscar perfil:', error);
+            if (!error && profileData) {
+              console.log("AuthProvider: Perfil de usuário carregado:", profileData.name);
+              setUser({
+                email: data.session.user.email || '',
+                accessLevel: profileData.access_level as AccessLevel,
+                name: profileData.name,
+                photoUrl: profileData.photo_url,
+                terminal: profileData.terminal
+              });
+            } else {
+              console.error('Erro ao buscar perfil:', error);
+            }
+          } catch (profileErr) {
+            console.error('Exceção ao buscar perfil:', profileErr);
           }
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
@@ -96,23 +100,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('AuthProvider: Usuário conectado:', session.user.email);
           
-          // Buscar detalhes do perfil quando o usuário faz login
-          const { data: profileData, error } = await supabase
-            .from('user_profiles')
-            .select('name, access_level, photo_url, terminal')
-            .eq('id', session.user.id)
-            .single();
+          try {
+            // Buscar detalhes do perfil quando o usuário faz login
+            const { data: profileData, error } = await supabase
+              .from('user_profiles')
+              .select('name, access_level, photo_url, terminal')
+              .eq('id', session.user.id)
+              .single();
 
-          if (!error && profileData) {
-            setUser({
-              email: session.user.email || '',
-              accessLevel: profileData.access_level as AccessLevel,
-              name: profileData.name,
-              photoUrl: profileData.photo_url,
-              terminal: profileData.terminal
-            });
-          } else {
-            console.error('Erro ao buscar perfil após login:', error);
+            if (!error && profileData) {
+              setUser({
+                email: session.user.email || '',
+                accessLevel: profileData.access_level as AccessLevel,
+                name: profileData.name,
+                photoUrl: profileData.photo_url,
+                terminal: profileData.terminal
+              });
+            } else {
+              console.error('Erro ao buscar perfil após login:', error);
+            }
+          } catch (profileErr) {
+            console.error('Exceção ao buscar perfil após login:', profileErr);
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthProvider: Usuário desconectado');
@@ -131,10 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('Tentando login para:', email);
       
+      // Definir um timeout curto para garantir resposta rápida do Supabase
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('Erro de autenticação:', error.message);
@@ -148,29 +162,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Login bem-sucedido para:', data.user.email);
       
-      // Buscar detalhes do perfil após login bem-sucedido
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('name, access_level, photo_url, terminal')
-        .eq('id', data.user.id)
-        .single();
+      try {
+        // Buscar detalhes do perfil após login bem-sucedido
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('name, access_level, photo_url, terminal')
+          .eq('id', data.user.id)
+          .single();
 
-      if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError);
+        if (profileError) {
+          console.error('Erro ao buscar perfil:', profileError);
+          return false;
+        }
+
+        console.log('Perfil carregado:', profileData?.name || 'sem nome');
+        
+        setUser({
+          email: data.user.email || '',
+          accessLevel: profileData.access_level as AccessLevel,
+          name: profileData.name,
+          photoUrl: profileData.photo_url,
+          terminal: profileData.terminal
+        });
+
+        return true;
+      } catch (profileErr) {
+        console.error('Exceção ao buscar perfil:', profileErr);
         return false;
       }
-
-      console.log('Perfil carregado:', profileData?.name || 'sem nome');
-      
-      setUser({
-        email: data.user.email || '',
-        accessLevel: profileData.access_level as AccessLevel,
-        name: profileData.name,
-        photoUrl: profileData.photo_url,
-        terminal: profileData.terminal
-      });
-
-      return true;
     } catch (error) {
       console.error('Erro de login:', error);
       return false;
