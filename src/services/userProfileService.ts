@@ -10,6 +10,8 @@ export const loadUserProfile = async (userId: string): Promise<{
   error?: any 
 }> => {
   try {
+    console.log(`Carregando perfil para usuário ID: ${userId}`);
+    
     // Use Promise.race to add timeout for profile loading - use shorter timeout
     const profileTimeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
       setTimeout(() => reject(new Error("Tempo limite excedido na busca de perfil")), 3000)
@@ -39,7 +41,11 @@ export const loadUserProfile = async (userId: string): Promise<{
       };
     }
     
-    return profileResult;
+    // Log the actual access level from the database for debugging
+    console.log('Perfil carregado do banco de dados:', profileResult.data);
+    console.log('Nível de acesso do banco:', profileResult.data.access_level);
+    
+    return { profileData: profileResult.data };
   } catch (err) {
     console.error('Erro ao carregar perfil de usuário:', err);
     return { error: err };

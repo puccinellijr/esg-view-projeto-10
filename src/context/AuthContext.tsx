@@ -48,9 +48,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (!error && loadedProfile) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
+              console.log("AuthProvider: Nível de acesso carregado:", loadedProfile.access_level);
+              
+              // Ensure access_level is correctly mapped to a valid AccessLevel type
+              let accessLevel: AccessLevel = 'viewer';  // Default
+              if (loadedProfile.access_level === 'administrative' || 
+                  loadedProfile.access_level === 'operational' || 
+                  loadedProfile.access_level === 'viewer') {
+                accessLevel = loadedProfile.access_level as AccessLevel;
+              }
+              
               setUser({
                 email: sessionUser.email || '',
-                accessLevel: loadedProfile.access_level as AccessLevel,
+                accessLevel: accessLevel,
                 name: loadedProfile.name,
                 photoUrl: loadedProfile.photo_url,
                 terminal: loadedProfile.terminal
@@ -81,9 +91,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state change listener
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (authUser && profileData) {
+        // Validate access level from profile data
+        let accessLevel: AccessLevel = 'viewer'; // Default
+        
+        if (profileData.access_level === 'administrative' || 
+            profileData.access_level === 'operational' || 
+            profileData.access_level === 'viewer') {
+          accessLevel = profileData.access_level as AccessLevel;
+        }
+        
+        console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
+        
         setUser({
           email: authUser.email || '',
-          accessLevel: profileData.access_level as AccessLevel,
+          accessLevel: accessLevel,
           name: profileData.name,
           photoUrl: profileData.photo_url,
           terminal: profileData.terminal
@@ -97,11 +118,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const { success } = await loginUser(email, password);
+    const { success, user: authUser, profileData } = await loginUser(email, password);
     
-    // The auth state listener will update the user state if login is successful
-    // Just wait a brief moment to ensure the event has time to process
-    if (success) {
+    if (success && authUser && profileData) {
+      // Ensure access_level is correctly mapped right away
+      let accessLevel: AccessLevel = 'viewer'; // Default
+      
+      if (profileData.access_level === 'administrative' || 
+          profileData.access_level === 'operational' || 
+          profileData.access_level === 'viewer') {
+        accessLevel = profileData.access_level as AccessLevel;
+      }
+      
+      console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);
+      
+      setUser({
+        email: authUser.email || '',
+        accessLevel: accessLevel,
+        name: profileData.name,
+        photoUrl: profileData.photo_url,
+        terminal: profileData.terminal
+      });
+      
+      // Wait a brief moment to ensure the event has time to process
       await new Promise(resolve => setTimeout(resolve, 300));
     }
     
@@ -121,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
     if (!user) return false;
+    console.log(`AuthContext: verificando se ${user.email} com nível ${user.accessLevel} pode acessar ${requiredLevel}`);
     return checkAccessLevel(user.accessLevel, requiredLevel);
   };
 
@@ -192,3 +232,4 @@ export function useAuth() {
 export type { AccessLevel, UserData, UserUpdateData };
 import { supabase } from '@/lib/supabase';  // Need to import directly for getUser
 import { loadUserProfile } from '@/services/userProfileService';  // For session check
+

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { loadUserProfile } from './userProfileService';
+import { AccessLevel } from '@/types/auth';
 
 type AuthStateChangeCallback = (user: any, profileData: any | null) => void;
 
@@ -23,6 +24,7 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 
           if (!error && profileData) {
             console.log('Perfil carregado com sucesso:', profileData.name);
+            console.log('Nível de acesso carregado:', profileData.access_level);
             onAuthStateChange(session.user, profileData);
           } else {
             console.error('Erro ao buscar perfil após login:', error);
@@ -65,18 +67,28 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLevel: string): boolean => {
   if (!userAccessLevel) return false;
   
+  console.log(`Verificando acesso: nível do usuário ${userAccessLevel}, nível requerido ${requiredLevel}`);
+  
   // Administrative tem acesso a todos os níveis
-  if (userAccessLevel === 'administrative') return true;
+  if (userAccessLevel === 'administrative') {
+    console.log('Usuário é administrativo, acesso concedido');
+    return true;
+  }
   
   // Operational users can access operational and viewer levels
   if (userAccessLevel === 'operational') {
-    return requiredLevel === 'operational' || requiredLevel === 'viewer';
+    const hasAccess = requiredLevel === 'operational' || requiredLevel === 'viewer';
+    console.log(`Usuário é operacional, acesso a ${requiredLevel}: ${hasAccess}`);
+    return hasAccess;
   }
   
   // Viewers can only access viewer level
   if (userAccessLevel === 'viewer') {
-    return requiredLevel === 'viewer';
+    const hasAccess = requiredLevel === 'viewer';
+    console.log(`Usuário é visualizador, acesso a ${requiredLevel}: ${hasAccess}`);
+    return hasAccess;
   }
   
+  console.log(`Nível de acesso desconhecido: ${userAccessLevel}, acesso negado`);
   return false;
 };
