@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { testSupabaseConnection } from "@/lib/supabase";
 
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
@@ -15,8 +16,34 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"checking" | "ok" | "error">("checking");
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  // Verificar conexão com Supabase ao carregar
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        console.log("Verificando conexão com Supabase...");
+        const result = await testSupabaseConnection();
+        
+        if (result.success) {
+          console.log("✅ Conexão com Supabase estabelecida com sucesso");
+          setConnectionStatus("ok");
+        } else {
+          console.error(`❌ Erro de conexão: ${result.message}`);
+          setConnectionStatus("error");
+          setErrorMessage(`Erro de conexão com banco de dados: ${result.message}`);
+        }
+      } catch (err) {
+        console.error("Falha ao testar conexão:", err);
+        setConnectionStatus("error");
+        setErrorMessage("Não foi possível verificar a conexão com o banco de dados.");
+      }
+    };
+    
+    checkConnection();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,21 +55,19 @@ export default function Login() {
       return;
     }
     
+    // Verificar se a conexão está ok
+    if (connectionStatus === "error") {
+      toast.error("Não é possível fazer login devido a problemas de conexão");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       console.log(`Tentando login com email: ${email}`);
       
-      // Chamada direta com limite de tempo para evitar bloqueio indefinido
-      const loginPromise = login(email, password);
-      
-      // Definir um timeout para limitar o tempo de espera
-      const timeoutPromise = new Promise<boolean>((_, reject) => 
-        setTimeout(() => reject(new Error("Tempo limite excedido")), 10000)
-      );
-      
-      // Usar Promise.race para garantir que não fique bloqueado indefinidamente
-      const success = await Promise.race([loginPromise, timeoutPromise]);
+      // Simplificar o processo de login para diagnosticar problemas
+      const success = await login(email, password);
       
       if (success) {
         console.log('Login bem-sucedido!');
@@ -57,13 +82,8 @@ export default function Login() {
       const errorMsg = error instanceof Error ? error.message : "Erro desconhecido";
       console.error("Erro ao fazer login:", errorMsg);
       
-      if (errorMsg === "Tempo limite excedido") {
-        toast.error("O login demorou muito tempo. Tente novamente.");
-        setErrorMessage("A conexão demorou muito tempo. Verifique sua internet e tente novamente.");
-      } else {
-        toast.error("Erro ao fazer login");
-        setErrorMessage("Ocorreu um erro durante o login. Verifique sua conexão e tente novamente.");
-      }
+      toast.error("Erro ao fazer login");
+      setErrorMessage(`Falha na autenticação: ${errorMsg}. Verifique sua conexão e tente novamente.`);
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +96,17 @@ export default function Login() {
           <img src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" alt="Logo" className="h-16 object-contain" />
         </div>
         <CardContent className="pt-6">
-          {errorMessage && (
+          {connectionStatus === "error" && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+              <p className="font-bold">Erro de conexão com o banco de dados</p>
+              <p>{errorMessage}</p>
+              <p className="mt-2 text-sm">
+                Verifique se as configurações do Supabase estão corretas em src/lib/supabase.ts
+              </p>
+            </div>
+          )}
+          
+          {connectionStatus !== "error" && errorMessage && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
               <p>{errorMessage}</p>
             </div>
@@ -93,7 +123,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="border-gray-300"
                 required
-                disabled={isLoading}
+                disabled={isLoading || connectionStatus === "error"}
               />
             </div>
             
@@ -107,7 +137,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="border-gray-300"
                 required
-                disabled={isLoading}
+                disabled={isLoading || connectionStatus === "error"}
               />
               <div className="text-right">
                 <Link to="/forgot-password" className="text-sm text-custom-blue hover:underline">
@@ -119,7 +149,7 @@ export default function Login() {
             <Button 
               type="submit" 
               className="w-full bg-custom-blue text-white hover:bg-custom-blue/90"
-              disabled={isLoading}
+              disabled={isLoading || connectionStatus === "error"}
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>

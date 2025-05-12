@@ -14,25 +14,64 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Função super simplificada para testar conexão com o Supabase
+// Função aprimorada para testar conexão com o Supabase
 export const testSupabaseConnection = async () => {
   try {
-    // Verificação mínima e rápida
-    const { error } = await supabase.auth.getSession();
-    if (error) {
+    console.log('Testando conexão com Supabase...');
+    console.log(`URL: ${supabaseUrl}`);
+    console.log('Testando autenticação anônima...');
+    
+    // Definir timeout para evitar bloqueio indefinido
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    try {
+      // Teste básico de conexão - verificar sessão
+      const { data, error } = await supabase.auth.getSession();
+      clearTimeout(timeoutId);
+      
+      if (error) {
+        console.error('Erro ao verificar sessão:', error);
+        return { 
+          success: false, 
+          error: 'AUTH_SESSION_ERROR', 
+          message: `Erro ao verificar sessão: ${error.message}`
+        };
+      }
+      
+      console.log('Teste de sessão bem-sucedido');
+      
+      // Teste de acesso a tabela (uma operação rápida)
+      console.log('Testando acesso à tabela user_profiles...');
+      const { count, error: tableError } = await supabase
+        .from('user_profiles')
+        .select('*', { count: 'exact', head: true });
+      
+      if (tableError) {
+        console.error('Erro ao acessar tabela user_profiles:', tableError);
+        return { 
+          success: false, 
+          error: 'TABLE_ACCESS_ERROR', 
+          message: `Erro ao acessar tabela: ${tableError.message}`
+        };
+      }
+      
+      console.log(`Conexão com tabela bem-sucedida. Encontrados ${count} registros.`);
       return { 
-        success: false, 
-        error: 'CONNECTION_ERROR', 
-        message: `Erro de conexão básica: ${error.message}`
+        success: true,
+        message: 'Conexão com Supabase estabelecida com sucesso.'
       };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
     }
-    return { success: true };
   } catch (err) {
-    const error = err as Error;
+    console.error('Erro ao testar conexão:', err);
+    const error = err instanceof Error ? err.message : "Erro desconhecido";
     return { 
       success: false, 
-      error: 'FATAL_ERROR', 
-      message: `Erro ao testar conexão básica: ${error.message}`
+      error: 'CONNECTION_ERROR', 
+      message: `Erro de conexão: ${error}`
     };
   }
 };

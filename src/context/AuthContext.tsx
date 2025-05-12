@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase, User } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -45,7 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       try {
         console.log("AuthProvider: Verificando sessão...");
-        const { data, error: sessionError } = await supabase.auth.getSession();
+        
+        // Adicionar timeout para evitar bloqueio indefinido
+        const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
+          setTimeout(() => reject(new Error("Tempo limite excedido na verificação de sessão")), 5000)
+        );
+        
+        // Usar Promise.race para garantir timeout
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]);
+        
+        const { data, error: sessionError } = sessionResult;
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
@@ -57,12 +68,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("AuthProvider: Sessão encontrada para usuário:", data.session.user.email);
           
           try {
-            // Buscar detalhes do usuário do perfil - usando single() para melhor desempenho
-            const { data: profileData, error } = await supabase
-              .from('user_profiles')
-              .select('name, access_level, photo_url, terminal')
-              .eq('id', data.session.user.id)
-              .single();
+            // Buscar detalhes do usuário do perfil - usando prazo limite para evitar bloqueio
+            const profileTimeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
+              setTimeout(() => reject(new Error("Tempo limite excedido na busca de perfil")), 5000)
+            );
+            
+            // Usar Promise.race para garantir timeout
+            const profileResult = await Promise.race([
+              supabase
+                .from('user_profiles')
+                .select('name, access_level, photo_url, terminal')
+                .eq('id', data.session.user.id)
+                .single(),
+              profileTimeoutPromise
+            ]);
+            
+            const { data: profileData, error } = profileResult;
 
             if (!error && profileData) {
               console.log("AuthProvider: Perfil de usuário carregado:", profileData.name);
@@ -75,15 +96,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
             } else {
               console.error('Erro ao buscar perfil:', error);
+              // Garantir que o usuário é nulo em caso de erro
+              setUser(null);
             }
           } catch (profileErr) {
             console.error('Exceção ao buscar perfil:', profileErr);
+            // Garantir que o usuário é nulo em caso de erro
+            setUser(null);
           }
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
+          setUser(null);
         }
       } catch (err) {
         console.error("AuthProvider: Erro ao inicializar:", err);
+        // Garantir que o usuário é nulo em caso de erro
+        setUser(null);
       } finally {
         console.log("AuthProvider: Inicialização concluída");
         setIsInitialized(true);
@@ -116,11 +144,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 photoUrl: profileData.photo_url,
                 terminal: profileData.terminal
               });
+              
+              // Verificação extra para garantir que o usuário foi definido corretamente
+              console.log('AuthProvider: Usuário definido no estado:', {
+                email: session.user.email,
+                accessLevel: profileData.access_level,
+                name: profileData.name
+              });
             } else {
               console.error('Erro ao buscar perfil após login:', error);
+              setUser(null);
             }
           } catch (profileErr) {
             console.error('Exceção ao buscar perfil após login:', profileErr);
+            setUser(null);
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('AuthProvider: Usuário desconectado');
@@ -139,16 +176,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('Tentando login para:', email);
       
-      // Definir um timeout curto para garantir resposta rápida do Supabase
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Definir um timeout para garantir resposta rápida do Supabase
+      const loginPromise = supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      clearTimeout(timeoutId);
+      // Criar um promise para o timeout
+      const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
+        setTimeout(() => reject(new Error("O login demorou muito tempo")), 8000)
+      );
+      
+      // Usar Promise.race para evitar bloqueio indefinido
+      const { data, error } = await Promise.race([loginPromise, timeoutPromise]);
 
       if (error) {
         console.error('Erro de autenticação:', error.message);
@@ -162,36 +202,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Login bem-sucedido para:', data.user.email);
       
-      try {
-        // Buscar detalhes do perfil após login bem-sucedido
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('name, access_level, photo_url, terminal')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Erro ao buscar perfil:', profileError);
-          return false;
-        }
-
-        console.log('Perfil carregado:', profileData?.name || 'sem nome');
-        
-        setUser({
-          email: data.user.email || '',
-          accessLevel: profileData.access_level as AccessLevel,
-          name: profileData.name,
-          photoUrl: profileData.photo_url,
-          terminal: profileData.terminal
-        });
-
-        return true;
-      } catch (profileErr) {
-        console.error('Exceção ao buscar perfil:', profileErr);
-        return false;
-      }
+      // Não precisamos buscar o perfil aqui, o evento de 'SIGNED_IN' já fará isso
+      // Aguardar um breve momento para garantir que o evento SIGNED_IN tenha tempo de processar
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      return true;
     } catch (error) {
-      console.error('Erro de login:', error);
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      console.error('Erro de login:', errorMessage);
       return false;
     }
   };

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function Index() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,6 +14,14 @@ export default function Index() {
     const checkAndRedirect = async () => {
       try {
         console.log("Index: Verificando usuário para redirecionamento");
+        console.log("Estado de inicialização:", isInitialized);
+        console.log("Usuário atual:", user);
+        
+        // Aguardar inicialização do contexto de autenticação
+        if (!isInitialized) {
+          console.log("Contexto de autenticação ainda não inicializado, aguardando...");
+          return; // Não fazer nada até que esteja inicializado
+        }
         
         // Verificação simples - usuário já está logado?
         if (user) {
@@ -24,9 +32,7 @@ export default function Index() {
         
         // Redirecionamento básico para login se não estiver logado
         console.log("Usuário não logado, redirecionando para login");
-        setTimeout(() => {
-          navigate("/login");
-        }, 100);
+        navigate("/login");
       } catch (err) {
         console.error("Erro ao verificar estado:", err);
         setError(`Erro ao inicializar: ${(err as Error).message}`);
@@ -34,16 +40,12 @@ export default function Index() {
       }
     };
 
-    // Pequeno delay para garantir que o contexto de autenticação esteja pronto
-    const timer = setTimeout(() => {
-      checkAndRedirect();
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [navigate, user]);
+    // Executar somente quando isInitialized mudar
+    checkAndRedirect();
+  }, [navigate, user, isInitialized]);
 
   // Mostrar tela de carregamento ou erro
-  if (loading) {
+  if (!isInitialized || loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-blue"></div>
