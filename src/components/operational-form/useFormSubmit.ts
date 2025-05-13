@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FormValues } from './types';
-import { saveESGIndicator } from '@/services/esgDataService';
+import { saveESGIndicator } from '@/services/esgIndicatorService';
 import { UserData } from '@/types/auth';
 
 interface UseFormSubmitProps {

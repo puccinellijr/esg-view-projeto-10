@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -25,7 +24,7 @@ import {
   TruckIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { saveESGIndicator } from '@/services/esgDataService';
+import { saveESGIndicator } from '@/services/esgIndicatorService';
 
 interface DashboardContentProps {
   selectedMonth: string;
