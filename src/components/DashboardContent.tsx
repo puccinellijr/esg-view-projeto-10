@@ -45,18 +45,18 @@ interface Indicator {
 
 // Define expected indicators that should always be displayed
 const expectedIndicators = [
-  { name: 'litro_tm', category: 'environmental', icon: <Droplet size={18} className="text-black" /> },
-  { name: 'kg_tm', category: 'environmental', icon: <Weight size={18} className="text-black" /> },
-  { name: 'kwh_tm', category: 'environmental', icon: <Zap size={18} className="text-black" /> },
-  { name: 'litro_combustivel_tm', category: 'environmental', icon: <Fuel size={18} className="text-black" /> },
-  { name: 'residuo_tm', category: 'environmental', icon: <Percent size={18} className="text-black" /> },
-  { name: 'incidente', category: 'social', icon: <AlertTriangle size={18} className="text-black" /> },
-  { name: 'acidente', category: 'social', icon: <Bandage size={18} className="text-black" /> },
-  { name: 'denuncia_discriminacao', category: 'social', icon: <Users size={18} className="text-black" /> },
-  { name: 'mulher_trabalho', category: 'social', icon: <Handshake size={18} className="text-black" /> },
-  { name: 'denuncia_corrupcao', category: 'governance', icon: <Gavel size={18} className="text-black" /> },
-  { name: 'reclamacao_vizinho', category: 'governance', icon: <Bell size={18} className="text-black" /> },
-  { name: 'incidente_cibernetico', category: 'governance', icon: <Server size={18} className="text-black" /> },
+  { name: 'litro_tm', category: 'environmental' as const, icon: <Droplet size={18} className="text-black" /> },
+  { name: 'kg_tm', category: 'environmental' as const, icon: <Weight size={18} className="text-black" /> },
+  { name: 'kwh_tm', category: 'environmental' as const, icon: <Zap size={18} className="text-black" /> },
+  { name: 'litro_combustivel_tm', category: 'environmental' as const, icon: <Fuel size={18} className="text-black" /> },
+  { name: 'residuo_tm', category: 'environmental' as const, icon: <Percent size={18} className="text-black" /> },
+  { name: 'incidente', category: 'social' as const, icon: <AlertTriangle size={18} className="text-black" /> },
+  { name: 'acidente', category: 'social' as const, icon: <Bandage size={18} className="text-black" /> },
+  { name: 'denuncia_discriminacao', category: 'social' as const, icon: <Users size={18} className="text-black" /> },
+  { name: 'mulher_trabalho', category: 'social' as const, icon: <Handshake size={18} className="text-black" /> },
+  { name: 'denuncia_corrupcao', category: 'governance' as const, icon: <Gavel size={18} className="text-black" /> },
+  { name: 'reclamacao_vizinho', category: 'governance' as const, icon: <Bell size={18} className="text-black" /> },
+  { name: 'incidente_cibernetico', category: 'governance' as const, icon: <Server size={18} className="text-black" /> },
 ];
 
 const DashboardContent: React.FC<DashboardContentProps> = ({ 
@@ -126,12 +126,22 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
               const expectedIndicator = expectedIndicators.find(ind => ind.name === item.name);
               const icon = expectedIndicator ? expectedIndicator.icon : <Leaf size={18} className="text-black" />;
               
+              // Garantir que category seja um dos valores literais permitidos
+              let category: 'environmental' | 'social' | 'governance';
+              
+              if (item.category === 'environmental' || item.category === 'social' || item.category === 'governance') {
+                category = item.category as 'environmental' | 'social' | 'governance';
+              } else {
+                // Caso o valor no banco não seja um dos esperados, use o do indicador esperado ou fallback para 'environmental'
+                category = (expectedIndicator ? expectedIndicator.category : 'environmental');
+              }
+              
               latestIndicators.set(item.name, {
                 id: item.id,
                 name: item.name,
                 value: item.value,
                 icon,
-                category: item.category
+                category
               });
             }
           });
