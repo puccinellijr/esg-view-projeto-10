@@ -30,6 +30,7 @@ interface ESGData {
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
+  // FIXED: Month values should be 1-12 rather than 0-11
   const [period1, setPeriod1] = useState<Period>({ month: '1', year: '2020' });
   const [period2, setPeriod2] = useState<Period>({ month: '1', year: '2021' });
   const [esgData, setESGData] = useState<ESGData | null>(null);

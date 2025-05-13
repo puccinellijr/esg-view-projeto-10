@@ -15,7 +15,8 @@ import { supabase } from '@/lib/supabase';
 
 const Dashboard = () => {
   // Initialize with current month/year, but we'll update this after we check the database
-  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
+  // FIXED: Month in JavaScript is 0-based (0-11), but we want to display 1-12
+  const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,19 +28,20 @@ const Dashboard = () => {
   const [selectedTerminal, setSelectedTerminal] = useState<string>(user?.terminal || "Rio Grande");
 
   // Generate array of months for the selector
+  // FIXED: Month values should be 1-12 rather than 0-11
   const months = [
-    { value: "0", label: "Janeiro" },
-    { value: "1", label: "Fevereiro" },
-    { value: "2", label: "Março" },
-    { value: "3", label: "Abril" },
-    { value: "4", label: "Maio" },
-    { value: "5", label: "Junho" },
-    { value: "6", label: "Julho" },
-    { value: "7", label: "Agosto" },
-    { value: "8", label: "Setembro" },
-    { value: "9", label: "Outubro" },
-    { value: "10", label: "Novembro" },
-    { value: "11", label: "Dezembro" },
+    { value: "1", label: "Janeiro" },
+    { value: "2", label: "Fevereiro" },
+    { value: "3", label: "Março" },
+    { value: "4", label: "Abril" },
+    { value: "5", label: "Maio" },
+    { value: "6", label: "Junho" },
+    { value: "7", label: "Julho" },
+    { value: "8", label: "Agosto" },
+    { value: "9", label: "Setembro" },
+    { value: "10", label: "Outubro" },
+    { value: "11", label: "Novembro" },
+    { value: "12", label: "Dezembro" },
   ];
 
   // Generate array of recent years for the selector
@@ -69,6 +71,8 @@ const Dashboard = () => {
           console.log(`Most recent data found: Month ${data[0].month}, Year ${data[0].year}`);
         } else {
           console.log("No data found, using current month/year");
+          // Set current month (1-12) if no data found
+          setSelectedMonth((new Date().getMonth() + 1).toString());
         }
       } catch (err) {
         console.error("Error in fetching most recent month:", err);

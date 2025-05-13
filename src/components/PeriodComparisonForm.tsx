@@ -27,7 +27,8 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  // Generate arrays for months and years
+  // Generate arrays for months (1-12) and years
+  // FIXED: Month values should be 1-12 rather than 0-11
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());

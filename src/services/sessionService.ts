@@ -64,7 +64,7 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 /**
  * Check if user has required access level
  */
-export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLevel: string): boolean => {
+export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLevel: AccessLevel): boolean => {
   if (!userAccessLevel) return false;
   
   console.log(`Verificando acesso: nível do usuário ${userAccessLevel}, nível requerido ${requiredLevel}`);

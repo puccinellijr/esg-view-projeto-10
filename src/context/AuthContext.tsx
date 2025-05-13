@@ -1,10 +1,11 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { UserData, UserUpdateData, AccessLevel } from '@/types/auth';
 import { loginUser, logoutUser, resetPassword, updatePassword, getCurrentSession } from '@/services/authService';
 import { updateUserProfile as updateProfile } from '@/services/userProfileService';
 import { setupAuthListener, checkAccessLevel } from '@/services/sessionService';
+import { supabase } from '@/lib/supabase';  // Need to import directly for getUser
+import { loadUserProfile } from '@/services/userProfileService';  // For session check
 
 interface AuthContextType {
   user: UserData | null;
@@ -230,6 +231,3 @@ export function useAuth() {
 
 // Re-export the types for convenience
 export type { AccessLevel, UserData, UserUpdateData };
-import { supabase } from '@/lib/supabase';  // Need to import directly for getUser
-import { loadUserProfile } from '@/services/userProfileService';  // For session check
-
