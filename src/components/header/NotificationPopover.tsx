@@ -52,6 +52,8 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
     }
 
     try {
+      console.log("Fetching notifications for user:", user.id);
+      
       // Fetch the most recent database insertions (limited to last 10)
       const { data: recentInsertions, error } = await supabase
         .from('esg_indicators')
@@ -65,10 +67,15 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
       }
 
       // Get user's read notifications
-      const { data: readNotificationsData } = await supabase
+      const { data: readNotificationsData, error: readError } = await supabase
         .from(USER_READ_NOTIFICATIONS_TABLE)
         .select('notification_id')
         .eq('user_id', user.id);
+        
+      if (readError) {
+        console.error("Error fetching read notifications:", readError);
+        // Continue without read status data
+      }
 
       // Create a set of read notification IDs for quick lookup
       const readNotificationIds = new Set(
@@ -107,9 +114,14 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         // Check if there are any unread notifications
         const hasUnread = notifs.some(notification => !notification.isRead);
         setShowNotificationDot(hasUnread);
+      } else {
+        // If no notifications, clear the state
+        setNotifications([]);
+        setShowNotificationDot(false);
       }
     } catch (err) {
       console.error("Error processing notifications:", err);
+      toast.error("Erro ao carregar notificações");
     }
   };
 
@@ -134,6 +146,8 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         return; // No unread notifications to mark
       }
 
+      console.log("Marking as read:", unreadNotifications.length, "notifications");
+
       // Prepare the array of notification-user pairs for the read tracking table
       const notificationEntries = unreadNotifications.map(notification => ({
         user_id: user.id,
@@ -141,10 +155,24 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         read_at: new Date().toISOString()
       }));
 
+      // First check if the table exists
+      const { error: tableCheckError } = await supabase
+        .from(USER_READ_NOTIFICATIONS_TABLE)
+        .select('count')
+        .limit(1);
+
+      if (tableCheckError) {
+        console.error("Error checking notification table:", tableCheckError);
+        if (tableCheckError.message.includes('relation "user_read_notifications" does not exist')) {
+          toast.error("Tabela de notificações não encontrada");
+          return;
+        }
+      }
+
       // Insert the entries into the read tracking table
       const { error } = await supabase
         .from(USER_READ_NOTIFICATIONS_TABLE)
-        .upsert(notificationEntries, { onConflict: 'user_id,notification_id' });
+        .upsert(notificationEntries);
 
       if (error) {
         console.error("Error marking notifications as read:", error);
@@ -175,14 +203,36 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
     }
 
     try {
-      // Delete all notification read records for this user
-      const { error } = await supabase
-        .from(USER_READ_NOTIFICATIONS_TABLE)
-        .delete()
-        .eq('user_id', user.id);
+      console.log("Clearing all notifications for user:", user.id);
 
-      if (error) {
-        console.error("Error clearing notifications:", error);
+      // First check if the read notifications table exists
+      const { error: tableCheckError } = await supabase
+        .from(USER_READ_NOTIFICATIONS_TABLE)
+        .select('count')
+        .limit(1);
+        
+      if (tableCheckError) {
+        console.error("Error checking notification table:", tableCheckError);
+        if (tableCheckError.message.includes('does not exist')) {
+          toast.error("Tabela de notificações não encontrada");
+          return;
+        }
+      }
+
+      // Get all notification IDs to mark as read
+      const notificationEntries = notifications.map(notification => ({
+        user_id: user.id,
+        notification_id: notification.id,
+        read_at: new Date().toISOString()
+      }));
+
+      // Mark all as read (upsert) instead of deleting
+      const { error: upsertError } = await supabase
+        .from(USER_READ_NOTIFICATIONS_TABLE)
+        .upsert(notificationEntries);
+
+      if (upsertError) {
+        console.error("Error clearing notifications:", upsertError);
         toast.error("Erro ao limpar notificações");
         return;
       }
@@ -190,13 +240,15 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
       // Close the popover first to prevent any race conditions
       setOpen(false);
       
-      // Then fetch fresh notifications to reset the state
-      // This ensures we don't have stale state after clearing
-      setTimeout(() => {
-        fetchNotifications();
-        toast.success("Notificações limpas com sucesso");
-      }, 300);
+      // Then mark all notifications as read in the UI
+      const readNotifications = notifications.map(notif => ({
+        ...notif,
+        isRead: true
+      }));
       
+      setNotifications(readNotifications);
+      setShowNotificationDot(false);
+      toast.success("Notificações limpas com sucesso");
     } catch (err) {
       console.error("Error in clearAllNotifications:", err);
       toast.error("Erro ao processar notificações");
