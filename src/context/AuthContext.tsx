@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { UserData, UserUpdateData, AccessLevel } from '@/types/auth';
@@ -51,15 +52,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
               console.log("AuthProvider: Nível de acesso carregado:", loadedProfile.access_level);
               
-              // Ensure access_level is correctly mapped to a valid AccessLevel type
+              // Garantir que o nível de acesso seja normalizado e convertido corretamente
               let accessLevel: AccessLevel = 'viewer';  // Default
-              if (loadedProfile.access_level === 'administrative' || 
-                  loadedProfile.access_level === 'operational' || 
-                  loadedProfile.access_level === 'viewer') {
-                accessLevel = loadedProfile.access_level as AccessLevel;
+              
+              const normalizedAccessLevel = loadedProfile.access_level?.toLowerCase?.().trim();
+              
+              if (normalizedAccessLevel === 'administrative') {
+                accessLevel = 'administrative';
+              } else if (normalizedAccessLevel === 'operational') {
+                accessLevel = 'operational';
+              } else if (normalizedAccessLevel === 'viewer') {
+                accessLevel = 'viewer';
               }
               
+              console.log("AuthProvider: Nível de acesso normalizado:", accessLevel);
+              
               setUser({
+                id: sessionUser.id, // Importante incluir o ID do usuário
                 email: sessionUser.email || '',
                 accessLevel: accessLevel,
                 name: loadedProfile.name,
@@ -92,18 +101,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state change listener
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (authUser && profileData) {
-        // Validate access level from profile data
+        // Normalizar e validar o nível de acesso do perfil
         let accessLevel: AccessLevel = 'viewer'; // Default
         
-        if (profileData.access_level === 'administrative' || 
-            profileData.access_level === 'operational' || 
-            profileData.access_level === 'viewer') {
-          accessLevel = profileData.access_level as AccessLevel;
+        const normalizedAccessLevel = profileData.access_level?.toLowerCase?.().trim();
+        
+        if (normalizedAccessLevel === 'administrative') {
+          accessLevel = 'administrative';
+        } else if (normalizedAccessLevel === 'operational') {
+          accessLevel = 'operational';
+        } else if (normalizedAccessLevel === 'viewer') {
+          accessLevel = 'viewer';
         }
         
         console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
         
         setUser({
+          id: authUser.id, // Importante incluir o ID do usuário
           email: authUser.email || '',
           accessLevel: accessLevel,
           name: profileData.name,
@@ -122,18 +136,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { success, user: authUser, profileData } = await loginUser(email, password);
     
     if (success && authUser && profileData) {
-      // Ensure access_level is correctly mapped right away
+      // Normalizar e validar o nível de acesso recebido
       let accessLevel: AccessLevel = 'viewer'; // Default
       
-      if (profileData.access_level === 'administrative' || 
-          profileData.access_level === 'operational' || 
-          profileData.access_level === 'viewer') {
-        accessLevel = profileData.access_level as AccessLevel;
+      const normalizedAccessLevel = profileData.access_level?.toLowerCase?.().trim();
+      
+      if (normalizedAccessLevel === 'administrative') {
+        accessLevel = 'administrative';
+      } else if (normalizedAccessLevel === 'operational') {
+        accessLevel = 'operational';
+      } else if (normalizedAccessLevel === 'viewer') {
+        accessLevel = 'viewer';
       }
       
       console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);
       
       setUser({
+        id: authUser.id,
         email: authUser.email || '',
         accessLevel: accessLevel,
         name: profileData.name,
@@ -161,7 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
     if (!user) return false;
+    
     console.log(`AuthContext: verificando se ${user.email} com nível ${user.accessLevel} pode acessar ${requiredLevel}`);
+    
+    // Garantir que a verificação de acesso use a função corrigida
     return checkAccessLevel(user.accessLevel, requiredLevel);
   };
 

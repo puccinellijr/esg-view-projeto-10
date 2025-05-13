@@ -69,22 +69,26 @@ export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLe
   
   console.log(`Verificando acesso: nível do usuário ${userAccessLevel}, nível requerido ${requiredLevel}`);
   
+  // Normalizar os níveis de acesso para garantir que a comparação seja case-insensitive
+  const normalizedUserLevel = userAccessLevel.toLowerCase().trim();
+  const normalizedRequiredLevel = requiredLevel.toLowerCase().trim();
+  
   // Administrative tem acesso a todos os níveis
-  if (userAccessLevel === 'administrative') {
+  if (normalizedUserLevel === 'administrative') {
     console.log('Usuário é administrativo, acesso concedido');
     return true;
   }
   
   // Operational users can access operational and viewer levels
-  if (userAccessLevel === 'operational') {
-    const hasAccess = requiredLevel === 'operational' || requiredLevel === 'viewer';
+  if (normalizedUserLevel === 'operational') {
+    const hasAccess = normalizedRequiredLevel === 'operational' || normalizedRequiredLevel === 'viewer';
     console.log(`Usuário é operacional, acesso a ${requiredLevel}: ${hasAccess}`);
     return hasAccess;
   }
   
   // Viewers can only access viewer level
-  if (userAccessLevel === 'viewer') {
-    const hasAccess = requiredLevel === 'viewer';
+  if (normalizedUserLevel === 'viewer') {
+    const hasAccess = normalizedRequiredLevel === 'viewer';
     console.log(`Usuário é visualizador, acesso a ${requiredLevel}: ${hasAccess}`);
     return hasAccess;
   }

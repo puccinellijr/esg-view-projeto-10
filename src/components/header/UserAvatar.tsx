@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UserProfileModal from "@/components/UserProfileModal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AccessLevel } from "@/types/auth";
 
 interface UserAvatarProps {
   email?: string;
   photoUrl?: string;
-  accessLevel?: string;
+  accessLevel?: AccessLevel | string;
 }
 
 const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
@@ -19,8 +20,10 @@ const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
   };
 
   const getAccessLevelLabel = (level?: string) => {
-    if (level === "administrative") return "Administrativo";
-    if (level === "viewer") return "Visualizador";
+    const normalizedLevel = level?.toLowerCase().trim();
+    
+    if (normalizedLevel === "administrative") return "Administrativo";
+    if (normalizedLevel === "viewer") return "Visualizador";
     return "Operacional";
   };
 

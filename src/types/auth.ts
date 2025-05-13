@@ -2,7 +2,7 @@
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
 export interface UserData {
-  id?: string;  // Add id as an optional property
+  id?: string;  // ID do usuário do Supabase
   email: string;
   accessLevel: AccessLevel;
   name?: string;
