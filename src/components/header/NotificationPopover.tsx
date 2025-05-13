@@ -43,7 +43,7 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
       // Fetch the most recent database insertions (limited to last 10)
       const { data: recentInsertions, error } = await supabase
         .from('esg_indicators')
-        .select('id, created_at, month, year, terminal, created_by')
+        .select('id, created_at, month, year, terminal')
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -54,21 +54,7 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
 
       if (recentInsertions && recentInsertions.length > 0) {
         // Process the database entries into notifications
-        const notifs: UpdateNotification[] = await Promise.all(recentInsertions.map(async (item) => {
-          // Get user information if available
-          let userName = "Um usuário";
-          if (item.created_by) {
-            const { data: userData } = await supabase
-              .from('user_profiles')
-              .select('name')
-              .eq('id', item.created_by)
-              .single();
-            
-            if (userData?.name) {
-              userName = userData.name;
-            }
-          }
-          
+        const notifs: UpdateNotification[] = recentInsertions.map(item => {
           // Format month name in Portuguese
           const monthNames = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -82,15 +68,14 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
           
           return {
             id: item.id,
-            message: `${userName} cadastrou os dados de ${monthName} de ${item.year} para o terminal ${item.terminal}`,
+            message: `Dados de ${monthName} de ${item.year} foram cadastrados para o terminal ${item.terminal}`,
             timestamp: formattedDate,
             isRead: false,
             created_at: item.created_at,
-            user_name: userName,
             month: item.month,
             year: item.year
           };
-        }));
+        });
 
         setNotifications(notifs);
         

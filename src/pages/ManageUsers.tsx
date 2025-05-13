@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,24 +7,24 @@ import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
-import { AccessLevel } from '@/context/AuthContext';
+import { AccessLevel } from '@/types/auth';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Pencil, Trash2, UserPlus } from 'lucide-react';
+import { Pencil, Trash2, UserPlus, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import ImageUpload from '@/components/ImageUpload';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/lib/supabase';
 
 interface UserData {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   accessLevel: AccessLevel;
   photoUrl?: string;
-  terminal?: string;
+  terminal?: string | null;
 }
 
 // Component to display user cards on mobile
@@ -45,7 +46,8 @@ const UserCard = ({
     }
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
     return name
       .split(' ')
       .map((word) => word[0])
@@ -59,11 +61,11 @@ const UserCard = ({
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={user.photoUrl} alt={user.name} />
+            <AvatarImage src={user.photoUrl} alt={user.name || user.email} />
             <AvatarFallback className="bg-blue-500 text-white">{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-medium">{user.name}</h3>
+            <h3 className="font-medium">{user.name || user.email.split('@')[0]}</h3>
             <p className="text-sm text-gray-500">{user.email}</p>
           </div>
         </div>
@@ -103,7 +105,7 @@ const UserCard = ({
               <AlertDialogHeader>
                 <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Você tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
+                  Você tem certeza que deseja excluir o usuário {user.name || user.email}? Esta ação não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="flex-col sm:flex-row gap-2">
@@ -130,53 +132,93 @@ const ManageUsers = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showRefreshMessage, setShowRefreshMessage] = useState(false);
   const isMobile = useIsMobile();
   
-  // Load real users from Supabase
-  useEffect(() => {
-    const loadUsers = async () => {
-      setIsLoading(true);
-      try {
-        const { getUsersAccessLevels } = await import('@/services/userPermissionService');
-        const { users: loadedUsers, error } = await getUsersAccessLevels();
-        
-        if (error) {
-          console.error('Erro ao carregar usuários:', error);
-          toast.error('Erro ao carregar lista de usuários');
-          setUsers([]); // Set empty array on error
-        } else if (loadedUsers) {
-          // Transform the data to match UserData interface
-          const transformedUsers = loadedUsers.map(user => ({
-            id: user.id,
-            name: user.email.split('@')[0], // Use email as name if not available
-            email: user.email,
-            accessLevel: user.accessLevel,
-            photoUrl: undefined,
-            terminal: undefined
-          }));
-          setUsers(transformedUsers);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar usuários:', err);
-        toast.error('Erro ao carregar lista de usuários');
-      } finally {
-        setIsLoading(false);
+  // Load users from Supabase
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      // Get user access levels from the permission service
+      const { getUsersAccessLevels } = await import('@/services/userPermissionService');
+      const { users: accessUsers, error: accessError } = await getUsersAccessLevels();
+      
+      if (accessError) {
+        console.error('Erro ao carregar níveis de acesso:', accessError);
+        toast.error('Erro ao carregar os níveis de acesso dos usuários');
+        return;
       }
-    };
-    
+      
+      if (!accessUsers || accessUsers.length === 0) {
+        setUsers([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // For each user, get additional profile information
+      const enhancedUsers = await Promise.all(
+        accessUsers.map(async (user) => {
+          try {
+            // Get additional profile data
+            const { data: profileData } = await supabase
+              .from('user_profiles')
+              .select('name, photo_url, terminal')
+              .eq('id', user.id)
+              .single();
+              
+            return {
+              id: user.id,
+              email: user.email,
+              accessLevel: user.accessLevel,
+              name: profileData?.name || user.email.split('@')[0],
+              photoUrl: profileData?.photo_url || undefined,
+              terminal: profileData?.terminal || null
+            };
+          } catch (err) {
+            console.warn(`Erro ao obter dados completos para usuário ${user.id}:`, err);
+            // Return basic user data if profile fetch fails
+            return {
+              id: user.id,
+              email: user.email,
+              accessLevel: user.accessLevel,
+              name: user.email.split('@')[0]
+            };
+          }
+        })
+      );
+      
+      setUsers(enhancedUsers);
+    } catch (err) {
+      console.error('Erro ao carregar usuários:', err);
+      toast.error('Erro ao carregar lista de usuários');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Load users on component mount
+  useEffect(() => {
     loadUsers();
   }, []);
   
   // Filter users based on search term
   const filteredUsers = users.filter(
     (user) => 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (user.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.terminal?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
   
-  const handleDeleteUser = (userId: string) => {
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-    toast.success("Usuário excluído com sucesso");
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      // In a real implementation, you would delete the user from the database
+      // For now, just update the UI
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+      toast.success("Usuário excluído com sucesso");
+    } catch (err) {
+      console.error('Erro ao excluir usuário:', err);
+      toast.error('Erro ao excluir usuário');
+    }
   };
   
   const handleEditUser = (user: UserData) => {
@@ -188,24 +230,40 @@ const ManageUsers = () => {
     if (!selectedUser) return;
     
     try {
-      // Only update access level in this example
-      if (selectedUser.id) {
-        const { updateUserAccessLevel } = await import('@/services/userPermissionService');
-        const { success, error } = await updateUserAccessLevel(selectedUser.id, selectedUser.accessLevel);
+      // Update the user access level using the permission service
+      const { updateUserAccessLevel } = await import('@/services/userPermissionService');
+      const { success, error } = await updateUserAccessLevel(selectedUser.id, selectedUser.accessLevel);
+      
+      if (success) {
+        // Update the user in the local state
+        setUsers((prevUsers) => 
+          prevUsers.map((user) => 
+            user.id === selectedUser.id ? {
+              ...user,
+              accessLevel: selectedUser.accessLevel,
+              terminal: selectedUser.terminal
+            } : user
+          )
+        );
         
-        if (success) {
-          setUsers((prevUsers) => 
-            prevUsers.map((user) => 
-              user.id === selectedUser.id ? selectedUser : user
-            )
-          );
-          
-          setIsEditDialogOpen(false);
-          toast.success("Nível de acesso atualizado com sucesso");
-        } else {
-          console.error('Erro ao atualizar usuário:', error);
-          toast.error("Erro ao atualizar nível de acesso");
+        // Update the user terminal if it changed
+        if (selectedUser.terminal !== undefined) {
+          const { error: terminalError } = await supabase
+            .from('user_profiles')
+            .update({ terminal: selectedUser.terminal })
+            .eq('id', selectedUser.id);
+            
+          if (terminalError) {
+            console.error('Erro ao atualizar terminal do usuário:', terminalError);
+            toast.error('Erro ao atualizar terminal do usuário');
+          }
         }
+        
+        setIsEditDialogOpen(false);
+        toast.success("Usuário atualizado com sucesso");
+      } else {
+        console.error('Erro ao atualizar usuário:', error);
+        toast.error("Erro ao atualizar usuário");
       }
     } catch (err) {
       console.error('Erro ao atualizar usuário:', err);
@@ -213,7 +271,15 @@ const ManageUsers = () => {
     }
   };
   
-  const getInitials = (name: string) => {
+  const handleRefreshUsers = () => {
+    loadUsers();
+    setShowRefreshMessage(true);
+    setTimeout(() => setShowRefreshMessage(false), 3000);
+    toast.success('Lista de usuários atualizada');
+  };
+  
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
     return name
       .split(' ')
       .map((word) => word[0])
@@ -241,18 +307,28 @@ const ManageUsers = () => {
           <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 px-4 sm:py-6 sm:px-6">
               <CardTitle>Gerenciar Usuários</CardTitle>
-              <Button 
-                onClick={() => navigate("/settings/user/create")} 
-                className="flex items-center gap-2 w-full sm:w-auto"
-              >
-                <UserPlus className="h-4 w-4" />
-                Novo Usuário
-              </Button>
+              <div className="flex w-full sm:w-auto gap-2 flex-col sm:flex-row">
+                <Button 
+                  variant="outline"
+                  onClick={handleRefreshUsers}
+                  className="flex items-center gap-2 justify-center"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  {showRefreshMessage ? "Atualizado!" : "Atualizar Lista"}
+                </Button>
+                <Button 
+                  onClick={() => navigate("/settings/user/create")} 
+                  className="flex items-center gap-2 justify-center"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Novo Usuário
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
               <div className="mb-6">
                 <Input
-                  placeholder="Buscar usuários..."
+                  placeholder="Buscar por nome, email ou terminal..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -307,10 +383,10 @@ const ManageUsers = () => {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarImage src={user.photoUrl} alt={user.name} />
+                                  <AvatarImage src={user.photoUrl} alt={user.name || user.email} />
                                   <AvatarFallback className="bg-blue-500 text-white text-xs">{getInitials(user.name)}</AvatarFallback>
                                 </Avatar>
-                                <span>{user.name}</span>
+                                <span>{user.name || user.email.split('@')[0]}</span>
                               </div>
                             </TableCell>
                             <TableCell>{user.email}</TableCell>
@@ -331,7 +407,7 @@ const ManageUsers = () => {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Você tem certeza que deseja excluir o usuário {user.name}? Esta ação não pode ser desfeita.
+                                        Você tem certeza que deseja excluir o usuário {user.name || user.email}? Esta ação não pode ser desfeita.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -364,7 +440,12 @@ const ManageUsers = () => {
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-6">              
+            <div className="space-y-6">
+              <div>
+                <Label className="text-muted-foreground">Email</Label>
+                <div className="mt-1 font-medium">{selectedUser.email}</div>
+              </div>
+              
               <div className="space-y-1">
                 <Label htmlFor="edit-accessLevel">Nível de Acesso</Label>
                 <Select
@@ -378,6 +459,23 @@ const ManageUsers = () => {
                     <SelectItem value="operational">Operacional</SelectItem>
                     <SelectItem value="viewer">Visualizador</SelectItem>
                     <SelectItem value="administrative">Administrativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-1">
+                <Label htmlFor="edit-terminal">Terminal</Label>
+                <Select
+                  value={selectedUser.terminal || ""}
+                  onValueChange={(value) => setSelectedUser({...selectedUser, terminal: value || null})}
+                >
+                  <SelectTrigger id="edit-terminal">
+                    <SelectValue placeholder="Selecione o terminal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                    <SelectItem value="SP">SP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
