@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,34 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import ImageUpload from '@/components/ImageUpload';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-// Mock users data
-const mockUsers = [
-  { 
-    id: "1", 
-    name: "Admin User", 
-    email: "admin@example.com", 
-    accessLevel: "administrative" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=admin@example.com",
-    terminal: "Rio Grande"
-  },
-  { 
-    id: "2", 
-    name: "Viewer User", 
-    email: "viewer@example.com", 
-    accessLevel: "viewer" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=viewer@example.com",
-    terminal: "SP"
-  },
-  { 
-    id: "3", 
-    name: "Operator User", 
-    email: "operator@example.com", 
-    accessLevel: "operational" as AccessLevel,
-    photoUrl: "https://i.pravatar.cc/150?u=operator@example.com",
-    terminal: "Rio Grande"
-  },
-];
 
 interface UserData {
   id: string;
@@ -153,11 +125,47 @@ const UserCard = ({
 
 const ManageUsers = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<UserData[]>(mockUsers);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
+  
+  // Load real users from Supabase
+  useEffect(() => {
+    const loadUsers = async () => {
+      setIsLoading(true);
+      try {
+        const { getUsersAccessLevels } = await import('@/services/userPermissionService');
+        const { users: loadedUsers, error } = await getUsersAccessLevels();
+        
+        if (error) {
+          console.error('Erro ao carregar usuários:', error);
+          toast.error('Erro ao carregar lista de usuários');
+          setUsers([]); // Set empty array on error
+        } else if (loadedUsers) {
+          // Transform the data to match UserData interface
+          const transformedUsers = loadedUsers.map(user => ({
+            id: user.id,
+            name: user.email.split('@')[0], // Use email as name if not available
+            email: user.email,
+            accessLevel: user.accessLevel,
+            photoUrl: undefined,
+            terminal: undefined
+          }));
+          setUsers(transformedUsers);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar usuários:', err);
+        toast.error('Erro ao carregar lista de usuários');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadUsers();
+  }, []);
   
   // Filter users based on search term
   const filteredUsers = users.filter(
@@ -176,17 +184,33 @@ const ManageUsers = () => {
     setIsEditDialogOpen(true);
   };
   
-  const handleUpdateUser = () => {
+  const handleUpdateUser = async () => {
     if (!selectedUser) return;
     
-    setUsers((prevUsers) => 
-      prevUsers.map((user) => 
-        user.id === selectedUser.id ? selectedUser : user
-      )
-    );
-    
-    setIsEditDialogOpen(false);
-    toast.success("Usuário atualizado com sucesso");
+    try {
+      // Only update access level in this example
+      if (selectedUser.id) {
+        const { updateUserAccessLevel } = await import('@/services/userPermissionService');
+        const { success, error } = await updateUserAccessLevel(selectedUser.id, selectedUser.accessLevel);
+        
+        if (success) {
+          setUsers((prevUsers) => 
+            prevUsers.map((user) => 
+              user.id === selectedUser.id ? selectedUser : user
+            )
+          );
+          
+          setIsEditDialogOpen(false);
+          toast.success("Nível de acesso atualizado com sucesso");
+        } else {
+          console.error('Erro ao atualizar usuário:', error);
+          toast.error("Erro ao atualizar nível de acesso");
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar usuário:', err);
+      toast.error("Erro ao atualizar usuário");
+    }
   };
   
   const getInitials = (name: string) => {
@@ -234,7 +258,12 @@ const ManageUsers = () => {
                 />
               </div>
               
-              {isMobile ? (
+              {isLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-custom-blue"></div>
+                  <span className="ml-3">Carregando usuários...</span>
+                </div>
+              ) : isMobile ? (
                 // Mobile view - cards
                 <div className="space-y-4">
                   {filteredUsers.length === 0 ? (
@@ -335,35 +364,7 @@ const ManageUsers = () => {
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-2">
-              <div className="flex justify-center">
-                <ImageUpload
-                  value={selectedUser.photoUrl || ""}
-                  onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
-                  name={selectedUser.name}
-                  email={selectedUser.email}
-                  className="scale-75"
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="edit-name">Nome</Label>
-                <Input
-                  id="edit-name"
-                  value={selectedUser.name}
-                  onChange={(e) => setSelectedUser({...selectedUser, name: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  value={selectedUser.email}
-                  onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
-                />
-              </div>
-              
+            <div className="space-y-6">              
               <div className="space-y-1">
                 <Label htmlFor="edit-accessLevel">Nível de Acesso</Label>
                 <Select
@@ -377,22 +378,6 @@ const ManageUsers = () => {
                     <SelectItem value="operational">Operacional</SelectItem>
                     <SelectItem value="viewer">Visualizador</SelectItem>
                     <SelectItem value="administrative">Administrativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="edit-terminal">Terminal</Label>
-                <Select
-                  value={selectedUser.terminal || ""}
-                  onValueChange={(value) => setSelectedUser({...selectedUser, terminal: value})}
-                >
-                  <SelectTrigger id="edit-terminal">
-                    <SelectValue placeholder="Selecione o terminal" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                    <SelectItem value="SP">SP</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

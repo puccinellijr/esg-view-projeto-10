@@ -6,6 +6,7 @@ import { useAuthSession } from './useAuthSession';
 import { useAuthProfile } from './useAuthProfile';
 import { checkAccessLevel } from './authUtils';
 import { AuthContextType } from './types';
+import { verifyUserAccessLevel } from '@/services/userPermissionService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -25,8 +26,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // If session user changes, update the profile user
   React.useEffect(() => {
     if (sessionUser) {
-      // In a real application, you might want to sync these two states better
-      // For this refactoring, we're just ensuring the user state is preserved
+      // Verificar nível de acesso diretamente do banco quando o usuário muda
+      const verifyAccessLevel = async () => {
+        if (sessionUser.id) {
+          try {
+            const { accessLevel, error } = await verifyUserAccessLevel(sessionUser.id);
+            if (error) {
+              console.error('Erro ao verificar nível de acesso:', error);
+            } else if (accessLevel && accessLevel !== sessionUser.accessLevel) {
+              console.log(`Atualizando nível de acesso: ${sessionUser.accessLevel} -> ${accessLevel}`);
+              // Atualizar o nível de acesso no contexto local se estiver diferente
+              sessionUser.accessLevel = accessLevel;
+            }
+          } catch (err) {
+            console.error('Erro ao verificar nível de acesso:', err);
+          }
+        }
+      };
+      
+      verifyAccessLevel();
     }
   }, [sessionUser]);
   
