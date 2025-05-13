@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -169,8 +168,6 @@ const OperationalForm = () => {
       ];
       
       // Adicionar também o valor da tonelada movimentada como um indicador
-      // IMPORTANTE: Aqui está a correção - Mudando de "toneladas_movimentadas" para "tonelada" 
-      // para manter consistência com o resto da aplicação
       indicators.push({
         name: "tonelada",
         value: toneladasMovimentadas,
@@ -183,7 +180,9 @@ const OperationalForm = () => {
 
       console.log(`Salvando ${indicators.length} indicadores para ${terminal}, mês ${month}/${year}`);
       
-      // Salvar todos os indicadores
+      // Salvar todos os indicadores com informações do criador
+      const userId = user?.id;
+      
       const savePromises = indicators.map(indicator => 
         saveESGIndicator({
           name: indicator.name,
@@ -191,7 +190,8 @@ const OperationalForm = () => {
           category: indicator.category,
           terminal: terminal,
           month: month,
-          year: year
+          year: year,
+          created_by: userId
         })
       );
       
@@ -278,7 +278,8 @@ const OperationalForm = () => {
                                 </FormControl>
                                 <SelectContent>
                                   <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                                  <SelectItem value="SP">SP</SelectItem>
+                                  <SelectItem value="Alemoa">Alemoa</SelectItem>
+                                  <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />

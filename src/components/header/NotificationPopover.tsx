@@ -1,10 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import { BellDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from '@/lib/supabase';
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 // Interface for updates/notifications 
 interface UpdateNotification {
@@ -12,6 +15,10 @@ interface UpdateNotification {
   message: string;
   timestamp: string;
   isRead: boolean;
+  created_at?: string;
+  user_name?: string;
+  month?: number;
+  year?: number;
 }
 
 interface NotificationPopoverProps {
@@ -23,40 +30,77 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
   const [showNotificationDot, setShowNotificationDot] = useState(false);
   const isMobile = useIsMobile();
   
-  // For demo purposes, simulate getting notifications
-  // In a real app, this would come from an API or websocket
+  // Fetch real notifications from database
   useEffect(() => {
     // Only fetch notifications for viewer and administrative users
     if (userAccessLevel === "viewer" || userAccessLevel === "administrative") {
-      // Simulate fetching notifications
-      const mockNotifications: UpdateNotification[] = [
-        {
-          id: "1",
-          message: "Novo dado de consumo de água foi cadastrado",
-          timestamp: "2025-05-10 14:35",
-          isRead: false
-        },
-        {
-          id: "2", 
-          message: "Informações de resíduos sólidos atualizadas",
-          timestamp: "2025-05-10 13:22",
-          isRead: false
-        },
-        {
-          id: "3",
-          message: "Novo indicador ambiental adicionado",
-          timestamp: "2025-05-09 16:45",
-          isRead: true
-        }
-      ];
-      
-      setNotifications(mockNotifications);
-      
-      // Check if there are any unread notifications
-      const hasUnread = mockNotifications.some(notif => !notif.isRead);
-      setShowNotificationDot(hasUnread);
+      fetchNotifications();
     }
   }, [userAccessLevel]);
+  
+  const fetchNotifications = async () => {
+    try {
+      // Fetch the most recent database insertions (limited to last 10)
+      const { data: recentInsertions, error } = await supabase
+        .from('esg_indicators')
+        .select('id, created_at, month, year, terminal, created_by')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error("Error fetching notifications:", error);
+        return;
+      }
+
+      if (recentInsertions && recentInsertions.length > 0) {
+        // Process the database entries into notifications
+        const notifs: UpdateNotification[] = await Promise.all(recentInsertions.map(async (item) => {
+          // Get user information if available
+          let userName = "Um usuário";
+          if (item.created_by) {
+            const { data: userData } = await supabase
+              .from('user_profiles')
+              .select('name')
+              .eq('id', item.created_by)
+              .single();
+            
+            if (userData?.name) {
+              userName = userData.name;
+            }
+          }
+          
+          // Format month name in Portuguese
+          const monthNames = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+          ];
+          
+          const monthName = monthNames[item.month - 1] || `Mês ${item.month}`;
+          const formattedDate = item.created_at 
+            ? format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+            : "data não disponível";
+          
+          return {
+            id: item.id,
+            message: `${userName} cadastrou os dados de ${monthName} de ${item.year} para o terminal ${item.terminal}`,
+            timestamp: formattedDate,
+            isRead: false,
+            created_at: item.created_at,
+            user_name: userName,
+            month: item.month,
+            year: item.year
+          };
+        }));
+
+        setNotifications(notifs);
+        
+        // Check if there are any unread notifications
+        setShowNotificationDot(notifs.length > 0);
+      }
+    } catch (err) {
+      console.error("Error processing notifications:", err);
+    }
+  };
 
   // Mark notifications as read
   const markAsRead = () => {
@@ -87,7 +131,7 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
           onClick={markAsRead}
           aria-label="Notificações de atualizações"
         >
-          <RefreshCw className="h-4 sm:h-5 w-4 sm:w-5" />
+          <BellDot className="h-4 sm:h-5 w-4 sm:w-5" />
           {showNotificationDot && unreadCount > 0 && (
             <span className="absolute top-0 right-0 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-xxs sm:text-xs flex items-center justify-center">
               {unreadCount}
@@ -121,8 +165,13 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         </div>
         {notifications.length > 0 && (
           <div className="p-2 flex justify-center">
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Ver todas atualizações
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full text-xs" 
+              onClick={fetchNotifications}
+            >
+              Atualizar notificações
             </Button>
           </div>
         )}

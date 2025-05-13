@@ -27,7 +27,8 @@ const TerminalSelector: React.FC<TerminalSelectorProps> = ({ selectedTerminal, o
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-            <SelectItem value="SP">SP</SelectItem>
+            <SelectItem value="Alemoa">Alemoa</SelectItem>
+            <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
           </SelectContent>
         </Select>
         
