@@ -139,6 +139,7 @@ const ManageUsers = () => {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
+      console.log('Carregando usuários...');
       // Get user access levels from the permission service
       const { getUsersAccessLevels } = await import('@/services/userPermissionService');
       const { users: accessUsers, error: accessError } = await getUsersAccessLevels();
@@ -146,19 +147,24 @@ const ManageUsers = () => {
       if (accessError) {
         console.error('Erro ao carregar níveis de acesso:', accessError);
         toast.error('Erro ao carregar os níveis de acesso dos usuários');
+        setIsLoading(false);
         return;
       }
       
       if (!accessUsers || accessUsers.length === 0) {
+        console.log('Nenhum usuário encontrado');
         setUsers([]);
         setIsLoading(false);
         return;
       }
       
+      console.log(`Carregados ${accessUsers.length} usuários`);
+      
       // For each user, get additional profile information
       const enhancedUsers = await Promise.all(
         accessUsers.map(async (user) => {
           try {
+            console.log(`Buscando perfil para usuário: ${user.id}`);
             // Get additional profile data
             const { data: profileData } = await supabase
               .from('user_profiles')
@@ -166,7 +172,7 @@ const ManageUsers = () => {
               .eq('id', user.id)
               .single();
               
-            return {
+            const result = {
               id: user.id,
               email: user.email,
               accessLevel: user.accessLevel,
@@ -174,6 +180,9 @@ const ManageUsers = () => {
               photoUrl: profileData?.photo_url || undefined,
               terminal: profileData?.terminal || null
             };
+            
+            console.log(`Perfil encontrado para ${user.email}:`, result);
+            return result;
           } catch (err) {
             console.warn(`Erro ao obter dados completos para usuário ${user.id}:`, err);
             // Return basic user data if profile fetch fails
@@ -187,6 +196,7 @@ const ManageUsers = () => {
         })
       );
       
+      console.log('Usuários processados:', enhancedUsers);
       setUsers(enhancedUsers);
     } catch (err) {
       console.error('Erro ao carregar usuários:', err);
@@ -211,8 +221,41 @@ const ManageUsers = () => {
   
   const handleDeleteUser = async (userId: string) => {
     try {
-      // In a real implementation, you would delete the user from the database
-      // For now, just update the UI
+      console.log(`Excluindo usuário com ID: ${userId}`);
+      // Primeiro, encontrar o usuário para exibir informações de log
+      const userToDelete = users.find(u => u.id === userId);
+      console.log(`Excluindo: ${userToDelete?.email} (${userToDelete?.name})`);
+      
+      // Remover o perfil do usuário
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', userId);
+      
+      if (profileError) {
+        console.error('Erro ao excluir perfil do usuário:', profileError);
+        toast.error('Erro ao excluir usuário: ' + profileError.message);
+        return;
+      }
+      
+      // Tentar excluir o usuário da autenticação
+      // Nota: Isso pode exigir funções especiais no Supabase
+      try {
+        // Esta é uma função personalizada que deve ser configurada no Supabase
+        const { error: authError } = await supabase.functions.invoke('delete-user', {
+          body: { userId }
+        });
+        
+        if (authError) {
+          console.error('Erro ao excluir autenticação do usuário:', authError);
+          toast.warning('Usuário removido parcialmente. O registro de autenticação permanece.');
+        }
+      } catch (authErr) {
+        console.error('Falha ao chamar função de exclusão de usuário:', authErr);
+        toast.warning('Usuário removido parcialmente. O registro de autenticação permanece.');
+      }
+      
+      // Atualiza a UI mesmo que a exclusão da autenticação tenha falhado
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
       toast.success("Usuário excluído com sucesso");
     } catch (err) {
@@ -222,6 +265,7 @@ const ManageUsers = () => {
   };
   
   const handleEditUser = (user: UserData) => {
+    console.log('Editando usuário:', user);
     setSelectedUser({...user});
     setIsEditDialogOpen(true);
   };
@@ -230,41 +274,46 @@ const ManageUsers = () => {
     if (!selectedUser) return;
     
     try {
+      console.log('Atualizando usuário:', selectedUser);
+      
       // Update the user access level using the permission service
       const { updateUserAccessLevel } = await import('@/services/userPermissionService');
       const { success, error } = await updateUserAccessLevel(selectedUser.id, selectedUser.accessLevel);
       
-      if (success) {
-        // Update the user in the local state
-        setUsers((prevUsers) => 
-          prevUsers.map((user) => 
-            user.id === selectedUser.id ? {
-              ...user,
-              accessLevel: selectedUser.accessLevel,
-              terminal: selectedUser.terminal
-            } : user
-          )
-        );
-        
-        // Update the user terminal if it changed
-        if (selectedUser.terminal !== undefined) {
-          const { error: terminalError } = await supabase
-            .from('user_profiles')
-            .update({ terminal: selectedUser.terminal })
-            .eq('id', selectedUser.id);
-            
-          if (terminalError) {
-            console.error('Erro ao atualizar terminal do usuário:', terminalError);
-            toast.error('Erro ao atualizar terminal do usuário');
-          }
-        }
-        
-        setIsEditDialogOpen(false);
-        toast.success("Usuário atualizado com sucesso");
-      } else {
-        console.error('Erro ao atualizar usuário:', error);
-        toast.error("Erro ao atualizar usuário");
+      if (!success) {
+        console.error('Erro ao atualizar nível de acesso:', error);
+        toast.error("Erro ao atualizar nível de acesso do usuário");
+        return;
       }
+      
+      // Update the user terminal if it changed
+      if (selectedUser.terminal !== undefined) {
+        console.log(`Atualizando terminal do usuário para: ${selectedUser.terminal}`);
+        const { error: terminalError } = await supabase
+          .from('user_profiles')
+          .update({ terminal: selectedUser.terminal })
+          .eq('id', selectedUser.id);
+          
+        if (terminalError) {
+          console.error('Erro ao atualizar terminal do usuário:', terminalError);
+          toast.error('Erro ao atualizar terminal do usuário');
+          return;
+        }
+      }
+      
+      // Update the user in the local state
+      setUsers((prevUsers) => 
+        prevUsers.map((user) => 
+          user.id === selectedUser.id ? {
+            ...user,
+            accessLevel: selectedUser.accessLevel,
+            terminal: selectedUser.terminal
+          } : user
+        )
+      );
+      
+      setIsEditDialogOpen(false);
+      toast.success("Usuário atualizado com sucesso");
     } catch (err) {
       console.error('Erro ao atualizar usuário:', err);
       toast.error("Erro ao atualizar usuário");
@@ -394,7 +443,11 @@ const ManageUsers = () => {
                             <TableCell>{user.terminal || "—"}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => handleEditUser(user)}>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => handleEditUser(user)}
+                                >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 <AlertDialog>

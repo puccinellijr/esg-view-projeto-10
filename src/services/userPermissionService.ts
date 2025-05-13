@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { AccessLevel, UserData } from '@/types/auth';
 import { normalizeAccessLevel } from '@/context/authUtils';
@@ -47,52 +48,65 @@ export const getUsersAccessLevels = async (): Promise<{
   error?: any
 }> => {
   try {
-    // Primeiro, vamos buscar os perfis de usuário
-    const { data: profiles, error: profilesError } = await supabase
-      .from('user_profiles')
-      .select('id, access_level')
-      .order('access_level');
+    console.log('Iniciando busca de níveis de acesso dos usuários');
     
-    if (profilesError) {
-      console.error('Erro ao obter perfis de usuário:', profilesError);
-      return { error: profilesError };
+    // Primeiro, obter todos os usuários autenticados da view
+    const { data: authUsers, error: authError } = await supabase
+      .from('auth_users_view') // Usando uma view que deve existir
+      .select('id, email');
+    
+    if (authError) {
+      console.error('Erro ao obter usuários autenticados:', authError);
+      return { error: authError };
     }
     
-    if (!profiles || profiles.length === 0) {
+    if (!authUsers || authUsers.length === 0) {
+      console.log('Nenhum usuário autenticado encontrado');
       return { users: [] };
     }
     
-    // Agora, para cada perfil, vamos buscar as informações do usuário na tabela auth.users
-    // usando o id como referência
-    const usersData = [];
+    console.log(`Encontrados ${authUsers.length} usuários autenticados`);
     
-    for (const profile of profiles) {
-      // Buscar o usuário correspondente através do id
-      const { data: userData, error: userError } = await supabase
-        .from('auth_users_view') // Usando uma view que deve existir ou substituir por uma consulta adequada
-        .select('email')
-        .eq('id', profile.id)
-        .single();
-      
-      if (userError) {
-        console.warn(`Não foi possível obter informações para o usuário ID ${profile.id}:`, userError);
-        // Continue com o próximo usuário em vez de falhar completamente
-        usersData.push({
-          id: profile.id,
-          email: 'Email não disponível',
-          accessLevel: normalizeAccessLevel(profile.access_level)
-        });
-      } else {
-        usersData.push({
-          id: profile.id,
-          email: userData?.email || 'Email não encontrado',
-          accessLevel: normalizeAccessLevel(profile.access_level)
-        });
-      }
-    }
+    // Para cada usuário autenticado, buscar seu perfil e nível de acesso
+    const usersWithAccessLevels = await Promise.all(
+      authUsers.map(async (authUser) => {
+        try {
+          // Buscar perfil do usuário
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('access_level')
+            .eq('id', authUser.id)
+            .single();
+          
+          if (profileError || !profileData) {
+            console.warn(`Perfil não encontrado para usuário ${authUser.id}. Usando nível padrão 'viewer'`);
+            return {
+              id: authUser.id,
+              email: authUser.email || 'Email não disponível',
+              accessLevel: 'viewer' as AccessLevel
+            };
+          }
+          
+          const accessLevel = normalizeAccessLevel(profileData.access_level);
+          
+          return {
+            id: authUser.id,
+            email: authUser.email || 'Email não disponível',
+            accessLevel
+          };
+        } catch (err) {
+          console.error(`Erro ao processar usuário ${authUser.id}:`, err);
+          return {
+            id: authUser.id,
+            email: authUser.email || 'Email não disponível',
+            accessLevel: 'viewer' as AccessLevel
+          };
+        }
+      })
+    );
     
-    console.log(`Encontrados ${usersData.length} usuários com diferentes níveis de acesso`);
-    return { users: usersData };
+    console.log(`Processados ${usersWithAccessLevels.length} usuários com níveis de acesso`);
+    return { users: usersWithAccessLevels };
   } catch (err) {
     console.error('Erro ao obter níveis de acesso dos usuários:', err);
     return { error: err };

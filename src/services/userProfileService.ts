@@ -66,31 +66,46 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
   error?: any
 }> => {
   try {
+    console.log('Atualizando perfil de usuário:', userId, data);
+    
     // Update password if provided
     if (data.password) {
+      console.log('Atualizando senha do usuário');
       const { error: authError } = await supabase.auth.updateUser({
         password: data.password
       });
       
       if (authError) {
+        console.error('Erro ao atualizar senha:', authError);
         throw authError;
       }
     }
     
-    // Update profile data
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .update({
-        name: data.name,
-        photo_url: data.photoUrl,
-        terminal: data.terminal
-      })
-      .eq('id', userId);
+    // Prepare update data
+    const updateData: Record<string, any> = {};
+    if (data.name) updateData.name = data.name;
+    if (data.photoUrl !== undefined) updateData.photo_url = data.photoUrl;
+    if (data.terminal !== undefined) updateData.terminal = data.terminal;
     
-    if (profileError) {
-      throw profileError;
+    // Only update if there are fields to update
+    if (Object.keys(updateData).length > 0) {
+      console.log('Dados a serem atualizados:', updateData);
+      
+      // Update profile data
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update(updateData)
+        .eq('id', userId);
+      
+      if (profileError) {
+        console.error('Erro ao atualizar dados do perfil:', profileError);
+        throw profileError;
+      }
+    } else {
+      console.log('Nenhum dado de perfil para atualizar');
     }
     
+    console.log('Perfil atualizado com sucesso');
     return { success: true };
   } catch (error) {
     console.error('Erro ao atualizar perfil:', error);
