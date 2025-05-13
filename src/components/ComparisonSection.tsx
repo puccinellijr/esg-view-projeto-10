@@ -12,9 +12,18 @@ interface ComparisonSectionProps {
     };
   };
   category: 'environmental' | 'governance' | 'social';
+  tonnage?: {
+    value1: number;
+    value2: number;
+  };
 }
 
-const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, category }) => {
+const ComparisonSection: React.FC<ComparisonSectionProps> = ({ 
+  title, 
+  data, 
+  category,
+  tonnage
+}) => {
   const isMobile = useIsMobile();
   const entries = Object.entries(data);
   
@@ -52,22 +61,42 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({ title, data, cate
         <h2 className={`text-xl sm:text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
           Compare os valores entre os períodos selecionados
+          {category === 'environmental' && tonnage && (
+            <> - Indicadores por tonelada movimentada</>
+          )}
         </p>
       </div>
+      
+      {/* Mostrar tonelada primeiro se categoria for environmental */}
+      {category === 'environmental' && tonnage && (
+        <div className="text-center mb-4 p-3 bg-white rounded-lg shadow-sm max-w-xs mx-auto">
+          <h3 className="font-semibold mb-1">Tonelada movimentada:</h3>
+          <div className="flex justify-between items-center text-sm">
+            <span>Período 1: {tonnage.value1.toLocaleString('pt-BR')}</span>
+            <span>Período 2: {tonnage.value2.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>
+      )}
+      
       <div className="flex justify-center">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 max-w-6xl mx-auto">
-          {entries.map(([key, values]) => (
-            <div key={key} className="w-full flex justify-center">
-              <div className="w-full max-w-xs">
-                <ComparisonCard
-                  title={key}
-                  value1={values.value1}
-                  value2={values.value2}
-                  category={category}
-                />
+          {entries
+            .filter(([key]) => key !== 'tonelada') // Não exibir tonelada nos cards normais
+            .map(([key, values]) => (
+              <div key={key} className="w-full flex justify-center">
+                <div className="w-full max-w-xs">
+                  <ComparisonCard
+                    title={key}
+                    value1={values.value1}
+                    value2={values.value2}
+                    category={category}
+                    tonnage1={category === 'environmental' && tonnage ? tonnage.value1 : undefined}
+                    tonnage2={category === 'environmental' && tonnage ? tonnage.value2 : undefined}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          }
         </div>
       </div>
     </div>

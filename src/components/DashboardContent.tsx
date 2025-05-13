@@ -21,7 +21,8 @@ import {
   Server,
   Leaf,
   Shield,
-  Edit
+  Edit,
+  TruckIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { saveESGIndicator } from '@/services/esgDataService';
@@ -57,6 +58,7 @@ const expectedIndicators = [
   { name: 'denuncia_corrupcao', category: 'governance' as const, icon: <Gavel size={18} className="text-black" /> },
   { name: 'reclamacao_vizinho', category: 'governance' as const, icon: <Bell size={18} className="text-black" /> },
   { name: 'incidente_cibernetico', category: 'governance' as const, icon: <Server size={18} className="text-black" /> },
+  { name: 'tonelada', category: 'environmental' as const, icon: <TruckIcon size={18} className="text-black" /> },
 ];
 
 const DashboardContent: React.FC<DashboardContentProps> = ({ 
@@ -72,6 +74,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [newValue, setNewValue] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [tonnage, setTonnage] = useState<number>(0);
   
   // Get month name for display
   const getMonthName = (month: string) => {
@@ -79,7 +82,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
-    return monthNames[parseInt(month)];
+    return monthNames[parseInt(month) - 1]; // Ajustado para meses 1-12
   };
 
   // Buscar dados quando mês, ano, terminal ou refreshTrigger mudam
@@ -111,6 +114,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           category: indicator.category
         }));
         
+        let currentTonnage = 0;
+        
         if (data && data.length > 0) {
           console.log(`Encontrados ${data.length} registros brutos para ${getMonthName(selectedMonth)} de ${selectedYear}`);
           
@@ -136,6 +141,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
                 category = (expectedIndicator ? expectedIndicator.category : 'environmental');
               }
               
+              // Se for tonelada, salvar o valor para cálculos posteriores
+              if (item.name === 'tonelada') {
+                currentTonnage = item.value;
+                setTonnage(item.value);
+              }
+              
               latestIndicators.set(item.name, {
                 id: item.id,
                 name: item.name,
@@ -154,6 +165,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           
           setIndicators(updatedIndicators);
           console.log(`Carregados ${latestIndicators.size} indicadores mais recentes para ${getMonthName(selectedMonth)} de ${selectedYear}`);
+          console.log(`Tonelada movimentada: ${currentTonnage}`);
         } else {
           // Se não houver dados, usar indicadores inicializados com N/D
           console.log("Nenhum dado encontrado, exibindo N/D para todos os indicadores");
@@ -181,9 +193,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
 
   // Filtrar indicadores por categoria
-  const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
+  const environmentalIndicators = indicators
+    .filter(ind => ind.category === 'environmental' && ind.name !== 'tonelada');
   const socialIndicators = indicators.filter(ind => ind.category === 'social');
   const governanceIndicators = indicators.filter(ind => ind.category === 'governance');
+  const tonnageIndicator = indicators.find(ind => ind.name === 'tonelada');
 
   // Abrir diálogo de edição para um indicador
   const handleEdit = (indicator: Indicator) => {
@@ -231,6 +245,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             : ind
         ));
         
+        // Se for tonelada, atualizar o estado de tonelagem
+        if (editingIndicator.name === 'tonelada') {
+          setTonnage(parseFloat(newValue));
+        }
+        
         // Fechar diálogo
         setIsDialogOpen(false);
         
@@ -249,23 +268,48 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   };
 
   // Renderizar item de indicador com botão de edição opcional
-  const renderIndicatorItem = (indicator: Indicator) => (
-    <div key={indicator.id} className="flex items-center gap-2">
-      {indicator.icon}
-      <span className="text-sm text-black">{indicator.name}</span>
-      <span className="ml-auto text-sm font-medium text-black">{indicator.value}</span>
-      {isEditable && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="p-1 h-auto" 
-          onClick={() => handleEdit(indicator)}
-        >
-          <Edit size={16} className="text-custom-blue" />
-        </Button>
-      )}
-    </div>
-  );
+  const renderIndicatorItem = (indicator: Indicator) => {
+    // Para indicadores ambientais, dividir pelo valor da tonelada se disponível
+    let displayValue = indicator.value;
+    
+    // Verificar se é um indicador ambiental e se a tonelada é válida para divisão
+    if (
+      indicator.category === 'environmental' && 
+      indicator.name !== 'tonelada' && 
+      tonnage && 
+      typeof indicator.value === 'number' && 
+      tonnage > 0
+    ) {
+      // Calcular valor por tonelada
+      const calculatedValue = indicator.value / tonnage;
+      // Formatar com 4 casas decimais
+      displayValue = calculatedValue.toFixed(4);
+    }
+    
+    return (
+      <div key={indicator.id} className="flex items-center gap-2">
+        {indicator.icon}
+        <span className="text-sm text-black">{indicator.name}</span>
+        <span className="ml-auto text-sm font-medium text-black">
+          {displayValue}
+          {indicator.category === 'environmental' && indicator.name !== 'tonelada' ? 
+            <span className="text-xs text-gray-500 ml-1">/ton</span> : 
+            null
+          }
+        </span>
+        {isEditable && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-1 h-auto" 
+            onClick={() => handleEdit(indicator)}
+          >
+            <Edit size={16} className="text-custom-blue" />
+          </Button>
+        )}
+      </div>
+    );
+  };
 
   if (isLoading || parentIsLoading) {
     return (
@@ -294,6 +338,12 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             <CardTitle className="text-sm font-medium text-black">Indicadores Ambientais</CardTitle>
           </CardHeader>
           <CardContent className="pt-2 flex-grow flex flex-col">
+            {/* Mostrar tonelada primeiro */}
+            {tonnageIndicator && (
+              <div className="mb-4 p-2 bg-gray-100 rounded-md">
+                {renderIndicatorItem(tonnageIndicator)}
+              </div>
+            )}
             <div className="space-y-3 flex-grow flex flex-col justify-between py-4">
               {environmentalIndicators.map((indicator, index) => (
                 <React.Fragment key={indicator.id}>

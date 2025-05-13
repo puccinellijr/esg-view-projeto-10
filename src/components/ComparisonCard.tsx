@@ -10,17 +10,58 @@ interface ComparisonCardProps {
   value1: number;
   value2: number;
   category: 'environmental' | 'governance' | 'social';
+  tonnage1?: number;
+  tonnage2?: number;
 }
 
-const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, category }) => {
+const ComparisonCard: React.FC<ComparisonCardProps> = ({ 
+  title, 
+  value1, 
+  value2, 
+  category,
+  tonnage1,
+  tonnage2
+}) => {
   const isMobile = useIsMobile();
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
   
+  // Calcular valores para exibição, considerando divisão por tonelada para indicadores ambientais
+  const getDisplayValues = () => {
+    // Se for um indicador ambiental e tiver tonelagem disponível
+    if (
+      category === 'environmental' && 
+      title !== 'tonelada' && 
+      tonnage1 && 
+      tonnage2 && 
+      tonnage1 > 0 && 
+      tonnage2 > 0
+    ) {
+      return {
+        display1: (value1 / tonnage1).toFixed(4),
+        display2: (value2 / tonnage2).toFixed(4),
+        perTon: true
+      };
+    }
+    
+    // Para outros indicadores ou sem tonelagem válida
+    return {
+      display1: value1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      display2: value2.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      perTon: false
+    };
+  };
+  
+  const { display1, display2, perTon } = getDisplayValues();
+  
   // Calculate comparison icon
   const getComparisonIcon = () => {
-    if (value1 > value2) {
+    // Para indicadores ambientais, comparar os valores divididos por tonelada
+    const compareValue1 = category === 'environmental' && title !== 'tonelada' && tonnage1 && tonnage1 > 0 ? value1 / tonnage1 : value1;
+    const compareValue2 = category === 'environmental' && title !== 'tonelada' && tonnage2 && tonnage2 > 0 ? value2 / tonnage2 : value2;
+    
+    if (compareValue1 > compareValue2) {
       return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-blink">↑</span>;
-    } else if (value1 < value2) {
+    } else if (compareValue1 < compareValue2) {
       return <span className="text-xl sm:text-2xl font-bold text-red-600 animate-blink">↓</span>;
     } else {
       return <span className="text-xl sm:text-2xl font-bold text-gray-500 animate-blink">→</span>;
@@ -72,10 +113,12 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({ title, value1, value2, 
       
       <div className="p-2 sm:p-3 flex flex-col flex-grow items-center justify-center text-center">
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>Período 1:</strong> {value1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <strong>Período 1:</strong> {display1}
+          {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>Período 2:</strong> {value2.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <strong>Período 2:</strong> {display2}
+          {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-2 flex items-center justify-center w-full">
           <strong>Variação:</strong> {getComparisonIcon()}

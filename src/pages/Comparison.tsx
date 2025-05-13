@@ -85,6 +85,7 @@ const Comparison = () => {
                   title="Dimensão Ambiental" 
                   data={esgData.environmental} 
                   category="environmental"
+                  tonnage={esgData.tonnage}
                 />
                 <ComparisonSection 
                   title="Dimensão Social" 

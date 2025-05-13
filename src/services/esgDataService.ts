@@ -21,6 +21,10 @@ interface ESGData {
       value2: number;
     };
   };
+  tonnage?: {
+    value1: number;
+    value2: number;
+  };
 }
 
 // Definir como false para usar dados do Supabase
@@ -88,6 +92,10 @@ const generateMockData = (): ESGData => {
         value1: generateRandomValue(20, 50),
         value2: generateRandomValue(20, 50)
       },
+    },
+    tonnage: {
+      value1: generateRandomValue(5000, 10000),
+      value2: generateRandomValue(5000, 10000)
     }
   };
 };
@@ -120,7 +128,8 @@ export const fetchESGData = async (
     const result: ESGData = {
       environmental: {},
       social: {},
-      governance: {}
+      governance: {},
+      tonnage: { value1: 0, value2: 0 }
     };
 
     for (const category of categories) {
@@ -174,14 +183,21 @@ export const fetchESGData = async (
           if (!latestValues.has(item.name)) {
             latestValues.set(item.name, item.value);
           }
+          
+          // Buscar tonelada para o período 1
+          if (item.name === 'tonelada') {
+            if (result.tonnage) result.tonnage.value1 = item.value;
+          }
         });
         
         // Adicionar os valores mais recentes ao resultado
         latestValues.forEach((value, name) => {
-          if (!categoryData[name]) {
-            categoryData[name] = { value1: 0, value2: 0 };
+          if (name !== 'tonelada') {
+            if (!categoryData[name]) {
+              categoryData[name] = { value1: 0, value2: 0 };
+            }
+            categoryData[name].value1 = value;
           }
-          categoryData[name].value1 = value;
         });
       }
 
@@ -193,15 +209,59 @@ export const fetchESGData = async (
           if (!latestValues.has(item.name)) {
             latestValues.set(item.name, item.value);
           }
+          
+          // Buscar tonelada para o período 2
+          if (item.name === 'tonelada') {
+            if (result.tonnage) result.tonnage.value2 = item.value;
+          }
         });
         
         latestValues.forEach((value, name) => {
-          if (!categoryData[name]) {
-            categoryData[name] = { value1: 0, value2: 0 };
+          if (name !== 'tonelada') {
+            if (!categoryData[name]) {
+              categoryData[name] = { value1: 0, value2: 0 };
+            }
+            categoryData[name].value2 = value;
           }
-          categoryData[name].value2 = value;
         });
       }
+    }
+
+    // Buscar toneladas separadamente para ambos períodos
+    console.log(`Buscando toneladas para período 1...`);
+    const { data: tonnage1, error: tonnageError1 } = await supabase
+      .from('esg_indicators')
+      .select('value')
+      .eq('terminal', terminal)
+      .eq('name', 'tonelada')
+      .eq('month', parseInt(period1.month))
+      .eq('year', parseInt(period1.year))
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (tonnageError1) {
+      console.error(`Erro ao buscar toneladas (período 1):`, tonnageError1);
+    } else if (tonnage1 && tonnage1.length > 0) {
+      console.log(`Tonelada período 1 encontrada:`, tonnage1[0].value);
+      if (result.tonnage) result.tonnage.value1 = tonnage1[0].value;
+    }
+
+    console.log(`Buscando toneladas para período 2...`);
+    const { data: tonnage2, error: tonnageError2 } = await supabase
+      .from('esg_indicators')
+      .select('value')
+      .eq('terminal', terminal)
+      .eq('name', 'tonelada')
+      .eq('month', parseInt(period2.month))
+      .eq('year', parseInt(period2.year))
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (tonnageError2) {
+      console.error(`Erro ao buscar toneladas (período 2):`, tonnageError2);
+    } else if (tonnage2 && tonnage2.length > 0) {
+      console.log(`Tonelada período 2 encontrada:`, tonnage2[0].value);
+      if (result.tonnage) result.tonnage.value2 = tonnage2[0].value;
     }
 
     // Verificar se existem dados
