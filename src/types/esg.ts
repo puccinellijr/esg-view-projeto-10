@@ -12,7 +12,7 @@ export interface ESGIndicator {
   terminal: string;
   month: number;
   year: number;
-  created_by?: string;
+  created_by?: string; // Make it optional since the database doesn't have this column
 }
 
 export interface ESGIndicatorResult {

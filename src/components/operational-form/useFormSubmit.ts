@@ -113,9 +113,11 @@ export const useFormSubmit = ({ form, user, userTerminal }: UseFormSubmitProps) 
 
       console.log(`Salvando ${indicators.length} indicadores para ${terminal}, mês ${month}/${year}`);
       
-      // Salvar todos os indicadores com informações do criador
+      // Get user ID for tracking but don't attempt to save it to DB
       const userId = user?.id;
       
+      // Still include created_by in our app logic for tracking purposes,
+      // but the ESG service will now strip it out before DB operations
       const savePromises = indicators.map(indicator => 
         saveESGIndicator({
           name: indicator.name,

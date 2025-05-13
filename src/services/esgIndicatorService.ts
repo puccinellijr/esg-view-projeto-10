@@ -7,9 +7,12 @@ import { ESGIndicator, ESGIndicatorResult } from '@/types/esg';
  */
 export const updateESGIndicator = async (id: string, indicatorData: Omit<ESGIndicator, 'id'>): Promise<ESGIndicatorResult> => {
   try {
+    // Create a data object without the created_by field for the database operation
+    const { created_by, ...dataForDb } = indicatorData;
+    
     const { data, error } = await supabase
       .from('esg_indicators')
-      .update(indicatorData)
+      .update(dataForDb)
       .eq('id', id)
       .select('*')
       .single();
@@ -37,9 +40,12 @@ export const updateESGIndicator = async (id: string, indicatorData: Omit<ESGIndi
  */
 export const insertESGIndicator = async (indicatorData: ESGIndicator): Promise<ESGIndicatorResult> => {
   try {
+    // Create a data object without the created_by field for the database operation
+    const { created_by, ...dataForDb } = indicatorData;
+    
     const { data, error } = await supabase
       .from('esg_indicators')
-      .insert([indicatorData])
+      .insert([dataForDb])
       .select('*')
       .single();
 

@@ -226,6 +226,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       }
       
       // Salvar valor no Supabase (novo ou atualizado)
+      // Note: created_by will be removed by the service before DB operations
       const result = await saveESGIndicator({
         id: editingIndicator.id.startsWith('new-') ? undefined : editingIndicator.id,
         name: editingIndicator.name,
