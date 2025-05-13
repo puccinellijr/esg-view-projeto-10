@@ -169,8 +169,10 @@ const OperationalForm = () => {
       ];
       
       // Adicionar também o valor da tonelada movimentada como um indicador
+      // IMPORTANTE: Aqui está a correção - Mudando de "toneladas_movimentadas" para "tonelada" 
+      // para manter consistência com o resto da aplicação
       indicators.push({
-        name: "toneladas_movimentadas",
+        name: "tonelada",
         value: toneladasMovimentadas,
         category: "environmental" as const,
       });
