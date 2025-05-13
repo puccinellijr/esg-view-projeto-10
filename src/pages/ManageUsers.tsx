@@ -162,46 +162,8 @@ const ManageUsers = () => {
         return;
       }
       
-      console.log(`Carregados ${accessUsers.length} usuários`);
-      
-      // For each user, get additional profile information
-      const enhancedUsers = await Promise.all(
-        accessUsers.map(async (user) => {
-          try {
-            console.log(`Buscando perfil para usuário: ${user.id}`);
-            // Get additional profile data
-            const { data: profileData } = await supabase
-              .from('user_profiles')
-              .select('name, photo_url, terminal')
-              .eq('id', user.id)
-              .single();
-              
-            const result = {
-              id: user.id,
-              email: user.email,
-              accessLevel: user.accessLevel,
-              name: profileData?.name || user.email.split('@')[0],
-              photoUrl: profileData?.photo_url || undefined,
-              terminal: profileData?.terminal || null
-            };
-            
-            console.log(`Perfil encontrado para ${user.email}:`, result);
-            return result;
-          } catch (err) {
-            console.warn(`Erro ao obter dados completos para usuário ${user.id}:`, err);
-            // Return basic user data if profile fetch fails
-            return {
-              id: user.id,
-              email: user.email,
-              accessLevel: user.accessLevel,
-              name: user.email.split('@')[0]
-            };
-          }
-        })
-      );
-      
-      console.log('Usuários processados:', enhancedUsers);
-      setUsers(enhancedUsers);
+      console.log(`Carregados ${accessUsers.length} usuários com sucesso:`, accessUsers);
+      setUsers(accessUsers);
     } catch (err) {
       console.error('Erro ao carregar usuários:', err);
       toast.error('Erro ao carregar lista de usuários');
@@ -542,7 +504,8 @@ const ManageUsers = () => {
                   <SelectContent>
                     <SelectItem value="">Nenhum</SelectItem>
                     <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                    <SelectItem value="SP">SP</SelectItem>
+                    <SelectItem value="Alemoa">Alemoa</SelectItem>
+                    <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -12,7 +12,7 @@ export const normalizeAccessLevel = (accessLevel?: string): AccessLevel => {
   if (normalizedLevel === 'operational' || normalizedLevel === 'operator') return 'operational';
   if (normalizedLevel === 'viewer' || normalizedLevel === 'view') return 'viewer';
   
-  console.log(`Nível de acesso desconhecido: "${accessLevel}", configurando como visualizador por segurança`);
+  console.log(`Nível de acesso desconhecido: "${accessLevel}", configurando como viewer por segurança`);
   return 'viewer'; // Default to lowest access level if unknown
 };
 

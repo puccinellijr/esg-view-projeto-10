@@ -12,6 +12,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import { AccessLevel } from '@/context/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { createUserProfile } from '@/services/userProfileService';
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -24,8 +25,9 @@ const CreateUser = () => {
   const [accessLevel, setAccessLevel] = useState<AccessLevel>("viewer");
   const [photoUrl, setPhotoUrl] = useState("");
   const [terminal, setTerminal] = useState("Rio Grande");
+  const [isLoading, setIsLoading] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -33,10 +35,32 @@ const CreateUser = () => {
       return;
     }
     
-    // In a real app, this would call an API to create the user
-    // For this demo, we'll just show a success message
-    toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}`);
-    navigate("/settings/users");
+    setIsLoading(true);
+    
+    try {
+      const result = await createUserProfile(
+        {
+          email,
+          accessLevel,
+          name,
+          photoUrl,
+          terminal
+        },
+        password
+      );
+      
+      if (result.success) {
+        toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}`);
+        navigate("/settings/users");
+      } else {
+        toast.error(`Erro ao criar usuário: ${result.error?.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error("Erro ao criar usuário:", error);
+      toast.error("Erro ao criar usuário");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -70,6 +94,7 @@ const CreateUser = () => {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Nome do usuário"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -82,6 +107,7 @@ const CreateUser = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="email@exemplo.com"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -94,6 +120,7 @@ const CreateUser = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Digite a senha"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -106,6 +133,7 @@ const CreateUser = () => {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirme a senha"
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -114,6 +142,7 @@ const CreateUser = () => {
                     <Select
                       value={accessLevel}
                       onValueChange={(value) => setAccessLevel(value as AccessLevel)}
+                      disabled={isLoading}
                     >
                       <SelectTrigger id="accessLevel">
                         <SelectValue placeholder="Selecione o nível de acesso" />
@@ -131,6 +160,7 @@ const CreateUser = () => {
                     <Select
                       value={terminal}
                       onValueChange={(value) => setTerminal(value)}
+                      disabled={isLoading}
                     >
                       <SelectTrigger id="terminal">
                         <SelectValue placeholder="Selecione o terminal" />
@@ -150,10 +180,17 @@ const CreateUser = () => {
                     variant="outline" 
                     onClick={() => navigate("/settings/users")}
                     className="w-full sm:w-auto"
+                    disabled={isLoading}
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" className="w-full sm:w-auto">Criar Usuário</Button>
+                  <Button 
+                    type="submit" 
+                    className="w-full sm:w-auto"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Criando..." : "Criar Usuário"}
+                  </Button>
                 </div>
               </form>
             </CardContent>
