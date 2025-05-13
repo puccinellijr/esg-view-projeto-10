@@ -226,7 +226,7 @@ export const fetchESGData = async (
   }
 };
 
-// Função para salvar dados ESG no Supabase - corrigida para atualizar registros existentes
+// Função para salvar dados ESG no Supabase - atualizada para retornar ID
 export const saveESGIndicator = async (
   indicatorData: {
     id?: string;  // ID opcional para identificar registros existentes
@@ -242,13 +242,14 @@ export const saveESGIndicator = async (
     if (useMockData) {
       // Simular sucesso para dados mockados
       await new Promise(resolve => setTimeout(resolve, 300));
-      return { success: true, message: 'Indicador salvo com sucesso (mock)' };
+      return { success: true, message: 'Indicador salvo com sucesso (mock)', id: 'mock-id-' + Date.now() };
     }
     
     console.log("Salvando indicador ESG:", indicatorData);
     
     let error = null;
     let message = '';
+    let id = indicatorData.id || null;
     
     // Se tiver ID, atualizar diretamente pelo ID
     if (indicatorData.id) {
@@ -275,7 +276,8 @@ export const saveESGIndicator = async (
         console.error("Erro ao consultar indicador existente:", queryError);
         return { 
           success: false, 
-          message: `Erro ao verificar indicador existente: ${queryError.message}` 
+          message: `Erro ao verificar indicador existente: ${queryError.message}`,
+          id: null
         };
       }
       
@@ -291,10 +293,11 @@ export const saveESGIndicator = async (
         
         error = updateError;
         message = 'Indicador atualizado com sucesso';
+        id = existingId;
       } else {
         // Caso não exista, cria um novo registro
         console.log("Criando novo registro para o indicador");
-        const { error: insertError } = await supabase
+        const { data: insertData, error: insertError } = await supabase
           .from('esg_indicators')
           .insert([{
             name: indicatorData.name,
@@ -303,10 +306,16 @@ export const saveESGIndicator = async (
             terminal: indicatorData.terminal,
             month: indicatorData.month,
             year: indicatorData.year
-          }]);
+          }])
+          .select();
         
         error = insertError;
         message = 'Indicador criado com sucesso';
+        
+        // Capturar o ID do novo registro se disponível
+        if (insertData && insertData.length > 0) {
+          id = insertData[0].id;
+        }
       }
     }
 
@@ -314,16 +323,18 @@ export const saveESGIndicator = async (
       console.error("Erro ao salvar indicador:", error);
       return { 
         success: false, 
-        message: `Erro ao salvar indicador: ${error.message}`
+        message: `Erro ao salvar indicador: ${error.message}`,
+        id: null
       };
     }
     
-    return { success: true, message };
+    return { success: true, message, id };
   } catch (error) {
     console.error('Erro ao salvar indicador ESG:', error);
     return { 
       success: false, 
-      message: 'Erro ao salvar indicador: ' + (error as Error).message 
+      message: 'Erro ao salvar indicador: ' + (error as Error).message,
+      id: null
     };
   }
 };

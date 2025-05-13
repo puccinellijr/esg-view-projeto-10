@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ interface DashboardContentProps {
   isEditable: boolean;
   refreshTrigger?: number;
   selectedTerminal?: string;
+  isLoading?: boolean;
 }
 
 interface Indicator {
@@ -41,12 +43,29 @@ interface Indicator {
   category: 'environmental' | 'social' | 'governance';
 }
 
+// Define expected indicators that should always be displayed
+const expectedIndicators = [
+  { name: 'litro_tm', category: 'environmental', icon: <Droplet size={18} className="text-black" /> },
+  { name: 'kg_tm', category: 'environmental', icon: <Weight size={18} className="text-black" /> },
+  { name: 'kwh_tm', category: 'environmental', icon: <Zap size={18} className="text-black" /> },
+  { name: 'litro_combustivel_tm', category: 'environmental', icon: <Fuel size={18} className="text-black" /> },
+  { name: 'residuo_tm', category: 'environmental', icon: <Percent size={18} className="text-black" /> },
+  { name: 'incidente', category: 'social', icon: <AlertTriangle size={18} className="text-black" /> },
+  { name: 'acidente', category: 'social', icon: <Bandage size={18} className="text-black" /> },
+  { name: 'denuncia_discriminacao', category: 'social', icon: <Users size={18} className="text-black" /> },
+  { name: 'mulher_trabalho', category: 'social', icon: <Handshake size={18} className="text-black" /> },
+  { name: 'denuncia_corrupcao', category: 'governance', icon: <Gavel size={18} className="text-black" /> },
+  { name: 'reclamacao_vizinho', category: 'governance', icon: <Bell size={18} className="text-black" /> },
+  { name: 'incidente_cibernetico', category: 'governance', icon: <Server size={18} className="text-black" /> },
+];
+
 const DashboardContent: React.FC<DashboardContentProps> = ({ 
   selectedMonth, 
   selectedYear, 
   isEditable,
   refreshTrigger = 0,
-  selectedTerminal = "Rio Grande"
+  selectedTerminal = "Rio Grande",
+  isLoading: parentIsLoading = false
 }) => {
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [editingIndicator, setEditingIndicator] = useState<Indicator | null>(null);
@@ -83,7 +102,18 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           throw error;
         }
         
+        // Inicializar todos os indicadores esperados como N/D
+        const initializedIndicators: Indicator[] = expectedIndicators.map(indicator => ({
+          id: `${indicator.name}-placeholder`,
+          name: indicator.name,
+          value: "N/D",
+          icon: indicator.icon,
+          category: indicator.category
+        }));
+        
         if (data && data.length > 0) {
+          console.log(`Encontrados ${data.length} registros brutos para ${getMonthName(selectedMonth)} de ${selectedYear}`);
+          
           // Criar um mapa para armazenar apenas o valor mais recente de cada indicador
           const latestIndicators = new Map();
           
@@ -93,22 +123,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             // Isso vai pegar apenas o primeiro encontrado de cada tipo, que é o mais recente
             if (!latestIndicators.has(item.name)) {
               // Determinar ícone baseado no nome do indicador
-              let icon;
-              switch (item.name) {
-                case 'litro_tm': icon = <Droplet size={18} className="text-black" />; break;
-                case 'kg_tm': icon = <Weight size={18} className="text-black" />; break;
-                case 'kwh_tm': icon = <Zap size={18} className="text-black" />; break;
-                case 'litro_combustivel_tm': icon = <Fuel size={18} className="text-black" />; break;
-                case 'residuo_tm': icon = <Percent size={18} className="text-black" />; break;
-                case 'incidente': icon = <AlertTriangle size={18} className="text-black" />; break;
-                case 'acidente': icon = <Bandage size={18} className="text-black" />; break;
-                case 'denuncia_discriminacao': icon = <Users size={18} className="text-black" />; break;
-                case 'mulher_trabalho': icon = <Handshake size={18} className="text-black" />; break;
-                case 'denuncia_corrupcao': icon = <Gavel size={18} className="text-black" />; break;
-                case 'reclamacao_vizinho': icon = <Bell size={18} className="text-black" />; break;
-                case 'incidente_cibernetico': icon = <Server size={18} className="text-black" />; break;
-                default: icon = <Leaf size={18} className="text-black" />;
-              }
+              const expectedIndicator = expectedIndicators.find(ind => ind.name === item.name);
+              const icon = expectedIndicator ? expectedIndicator.icon : <Leaf size={18} className="text-black" />;
               
               latestIndicators.set(item.name, {
                 id: item.id,
@@ -120,129 +136,39 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
             }
           });
           
-          setIndicators(Array.from(latestIndicators.values()));
+          // Combinar os indicadores esperados com os dados reais
+          const updatedIndicators = initializedIndicators.map(indicator => {
+            const realIndicator = latestIndicators.get(indicator.name);
+            return realIndicator || indicator;
+          });
+          
+          setIndicators(updatedIndicators);
           console.log(`Carregados ${latestIndicators.size} indicadores mais recentes para ${getMonthName(selectedMonth)} de ${selectedYear}`);
         } else {
-          // Se não houver dados, usar indicadores mockados para este mês
-          console.log("Nenhum dado encontrado, usando indicadores padrão");
-          
-          const mockData: Indicator[] = [
-            { 
-              id: 'water', 
-              name: 'litro_tm', 
-              value: selectedTerminal === "Rio Grande" ? 435 : 398, 
-              icon: <Droplet size={18} className="text-black" />, 
-              category: 'environmental' 
-            },
-            { 
-              id: 'weight', 
-              name: 'kg_tm', 
-              value: selectedTerminal === "Rio Grande" ? 1234 : 1412, 
-              icon: <Weight size={18} className="text-black" />, 
-              category: 'environmental' 
-            },
-            { 
-              id: 'energy', 
-              name: 'kwh_tm', 
-              value: selectedTerminal === "Rio Grande" ? 156 : 173, 
-              icon: <Zap size={18} className="text-black" />, 
-              category: 'environmental' 
-            },
-            { 
-              id: 'fuel', 
-              name: 'litro_combustivel_tm', 
-              value: selectedTerminal === "Rio Grande" ? 48 : 52, 
-              icon: <Fuel size={18} className="text-black" />, 
-              category: 'environmental' 
-            },
-            { 
-              id: 'waste', 
-              name: 'residuo_tm', 
-              value: selectedTerminal === "Rio Grande" ? 5.2 : 6.1, 
-              icon: <Percent size={18} className="text-black" />, 
-              category: 'environmental' 
-            },
-            
-            { 
-              id: 'incidents', 
-              name: 'incidente', 
-              value: selectedTerminal === "Rio Grande" ? 3 : 2, 
-              icon: <AlertTriangle size={18} className="text-black" />, 
-              category: 'social' 
-            },
-            { 
-              id: 'accidents', 
-              name: 'acidente', 
-              value: selectedTerminal === "Rio Grande" ? 1 : 0, 
-              icon: <Bandage size={18} className="text-black" />, 
-              category: 'social' 
-            },
-            { 
-              id: 'discrimination', 
-              name: 'denuncia_discriminacao', 
-              value: 0, 
-              icon: <Users size={18} className="text-black" />, 
-              category: 'social' 
-            },
-            { 
-              id: 'women', 
-              name: 'mulher_trabalho', 
-              value: selectedTerminal === "Rio Grande" ? 42 : 47, 
-              icon: <Handshake size={18} className="text-black" />, 
-              category: 'social' 
-            },
-            
-            { 
-              id: 'corruption', 
-              name: 'denuncia_corrupcao', 
-              value: 0, 
-              icon: <Gavel size={18} className="text-black" />, 
-              category: 'governance' 
-            },
-            { 
-              id: 'complaints', 
-              name: 'reclamacao_vizinho', 
-              value: selectedTerminal === "Rio Grande" ? 2 : 3, 
-              icon: <Bell size={18} className="text-black" />, 
-              category: 'governance' 
-            },
-            { 
-              id: 'cyber', 
-              name: 'incidente_cibernetico', 
-              value: selectedTerminal === "Rio Grande" ? 1 : 2, 
-              icon: <Server size={18} className="text-black" />, 
-              category: 'governance' 
-            },
-          ];
-          
-          setIndicators(mockData);
-          
-          // Opcional: salvar os dados mockados no Supabase para inicializar o banco
-          if (isEditable) {
-            console.log(`Salvando ${mockData.length} indicadores para ${selectedTerminal}, mês ${selectedMonth}/${selectedYear}`);
-            mockData.forEach(async (indicator) => {
-              await saveESGIndicator({
-                name: indicator.name,
-                value: typeof indicator.value === 'string' ? parseFloat(indicator.value) : indicator.value,
-                category: indicator.category,
-                terminal: selectedTerminal,
-                month: parseInt(selectedMonth),
-                year: parseInt(selectedYear)
-              });
-            });
-            console.log("Dados mockados salvos no Supabase para inicializar o banco");
-          }
+          // Se não houver dados, usar indicadores inicializados com N/D
+          console.log("Nenhum dado encontrado, exibindo N/D para todos os indicadores");
+          setIndicators(initializedIndicators);
         }
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
         toast.error("Erro ao carregar indicadores");
+        
+        // Em caso de erro, manter os indicadores com N/D
+        const fallbackIndicators = expectedIndicators.map(indicator => ({
+          id: `${indicator.name}-error`,
+          name: indicator.name,
+          value: "N/D",
+          icon: indicator.icon,
+          category: indicator.category
+        }));
+        setIndicators(fallbackIndicators);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchData();
-  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, isEditable]);
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
 
   // Filtrar indicadores por categoria
   const environmentalIndicators = indicators.filter(ind => ind.category === 'environmental');
@@ -251,8 +177,17 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
 
   // Abrir diálogo de edição para um indicador
   const handleEdit = (indicator: Indicator) => {
-    setEditingIndicator(indicator);
-    setNewValue(indicator.value.toString());
+    // Não permitir editar indicadores com valor N/D - criar novo
+    if (indicator.value === "N/D") {
+      setEditingIndicator({
+        ...indicator,
+        id: `new-${indicator.name}` // Marcar como novo
+      });
+      setNewValue("0"); // Valor padrão para novos indicadores
+    } else {
+      setEditingIndicator(indicator);
+      setNewValue(indicator.value.toString());
+    }
     setIsDialogOpen(true);
   };
 
@@ -261,9 +196,15 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     if (!editingIndicator) return;
     
     try {
-      // Salvar valor no Supabase (atualizar registro existente pelo ID)
+      // Validar valor
+      if (isNaN(parseFloat(newValue))) {
+        toast.error("Por favor, insira um valor numérico válido");
+        return;
+      }
+      
+      // Salvar valor no Supabase (novo ou atualizado)
       const result = await saveESGIndicator({
-        id: editingIndicator.id, // Passando o ID para identificar o registro
+        id: editingIndicator.id.startsWith('new-') ? undefined : editingIndicator.id,
         name: editingIndicator.name,
         value: parseFloat(newValue),
         category: editingIndicator.category,
@@ -276,7 +217,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         // Atualizar apenas o indicador específico que foi editado
         setIndicators(prev => prev.map(ind => 
           ind.name === editingIndicator.name 
-            ? { ...ind, value: parseFloat(newValue) } 
+            ? { ...ind, value: parseFloat(newValue), id: result.id || ind.id } 
             : ind
         ));
         
@@ -316,7 +257,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     </div>
   );
 
-  if (isLoading) {
+  if (isLoading || parentIsLoading) {
     return (
       <div className="flex-1 bg-gray-50 flex items-center justify-center">
         <div className="text-center">

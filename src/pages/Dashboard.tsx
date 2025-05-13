@@ -11,11 +11,14 @@ import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import TerminalSelector from '@/components/TerminalSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/lib/supabase';
 
 const Dashboard = () => {
+  // Initialize with current month/year, but we'll update this after we check the database
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
   const { hasAccess, user } = useAuth();
   const isAdmin = hasAccess('administrative');
   const isMobile = useIsMobile();
@@ -42,6 +45,40 @@ const Dashboard = () => {
   // Generate array of recent years for the selector
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
+
+  // Find the most recent month with data
+  useEffect(() => {
+    const fetchMostRecentMonth = async () => {
+      setIsLoading(true);
+      try {
+        // Query to find the most recent month/year with data
+        const { data, error } = await supabase
+          .from('esg_indicators')
+          .select('month, year')
+          .eq('terminal', selectedTerminal)
+          .order('year', { ascending: false })
+          .order('month', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error("Error fetching most recent month:", error);
+        } else if (data && data.length > 0) {
+          // Update selected month and year from the most recent data
+          setSelectedMonth(data[0].month.toString());
+          setSelectedYear(data[0].year.toString());
+          console.log(`Most recent data found: Month ${data[0].month}, Year ${data[0].year}`);
+        } else {
+          console.log("No data found, using current month/year");
+        }
+      } catch (err) {
+        console.error("Error in fetching most recent month:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMostRecentMonth();
+  }, [selectedTerminal]);
 
   const handleRefreshData = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -122,6 +159,7 @@ const Dashboard = () => {
               isEditable={isAdmin}
               refreshTrigger={refreshTrigger}
               selectedTerminal={selectedTerminal}
+              isLoading={isLoading}
             />
           </div>
         </div>
