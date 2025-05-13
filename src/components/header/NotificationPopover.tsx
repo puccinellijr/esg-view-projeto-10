@@ -187,13 +187,16 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         return;
       }
 
-      // Clear notifications in the UI
-      setNotifications([]);
-      setShowNotificationDot(false);
-      toast.success("Notificações limpas com sucesso");
-      
-      // Close the popover
+      // Close the popover first to prevent any race conditions
       setOpen(false);
+      
+      // Then fetch fresh notifications to reset the state
+      // This ensures we don't have stale state after clearing
+      setTimeout(() => {
+        fetchNotifications();
+        toast.success("Notificações limpas com sucesso");
+      }, 300);
+      
     } catch (err) {
       console.error("Error in clearAllNotifications:", err);
       toast.error("Erro ao processar notificações");
