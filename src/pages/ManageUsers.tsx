@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/lib/supabase';
+import { getUsersAccessLevels, updateUserAccessLevel } from '@/services/userPermissionService';
 
 interface UserData {
   id: string;
@@ -133,20 +134,23 @@ const ManageUsers = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showRefreshMessage, setShowRefreshMessage] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   
   // Load users from Supabase
   const loadUsers = async () => {
     setIsLoading(true);
+    setLoadError(null);
+    
     try {
       console.log('Carregando usuários...');
       // Get user access levels from the permission service
-      const { getUsersAccessLevels } = await import('@/services/userPermissionService');
       const { users: accessUsers, error: accessError } = await getUsersAccessLevels();
       
       if (accessError) {
         console.error('Erro ao carregar níveis de acesso:', accessError);
         toast.error('Erro ao carregar os níveis de acesso dos usuários');
+        setLoadError('Falha ao carregar usuários. Tente novamente.');
         setIsLoading(false);
         return;
       }
@@ -201,6 +205,7 @@ const ManageUsers = () => {
     } catch (err) {
       console.error('Erro ao carregar usuários:', err);
       toast.error('Erro ao carregar lista de usuários');
+      setLoadError('Falha ao processar dados dos usuários.');
     } finally {
       setIsLoading(false);
     }
@@ -238,21 +243,17 @@ const ManageUsers = () => {
         return;
       }
       
-      // Tentar excluir o usuário da autenticação
-      // Nota: Isso pode exigir funções especiais no Supabase
+      // Tentar excluir o usuário da autenticação usando a API de admin
       try {
-        // Esta é uma função personalizada que deve ser configurada no Supabase
-        const { error: authError } = await supabase.functions.invoke('delete-user', {
-          body: { userId }
-        });
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
         
         if (authError) {
           console.error('Erro ao excluir autenticação do usuário:', authError);
-          toast.warning('Usuário removido parcialmente. O registro de autenticação permanece.');
+          toast.warning('Usuário removido parcialmente. O registro de autenticação pode permanecer.');
         }
       } catch (authErr) {
         console.error('Falha ao chamar função de exclusão de usuário:', authErr);
-        toast.warning('Usuário removido parcialmente. O registro de autenticação permanece.');
+        toast.warning('Usuário removido parcialmente. O registro de autenticação pode permanecer.');
       }
       
       // Atualiza a UI mesmo que a exclusão da autenticação tenha falhado
@@ -277,7 +278,6 @@ const ManageUsers = () => {
       console.log('Atualizando usuário:', selectedUser);
       
       // Update the user access level using the permission service
-      const { updateUserAccessLevel } = await import('@/services/userPermissionService');
       const { success, error } = await updateUserAccessLevel(selectedUser.id, selectedUser.accessLevel);
       
       if (!success) {
@@ -361,9 +361,11 @@ const ManageUsers = () => {
                   variant="outline"
                   onClick={handleRefreshUsers}
                   className="flex items-center gap-2 justify-center"
+                  disabled={isLoading}
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  {showRefreshMessage ? "Atualizado!" : "Atualizar Lista"}
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  {isLoading ? "Carregando..." : 
+                   showRefreshMessage ? "Atualizado!" : "Atualizar Lista"}
                 </Button>
                 <Button 
                   onClick={() => navigate("/settings/user/create")} 
@@ -387,6 +389,18 @@ const ManageUsers = () => {
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-custom-blue"></div>
                   <span className="ml-3">Carregando usuários...</span>
+                </div>
+              ) : loadError ? (
+                <div className="text-center py-8">
+                  <div className="text-red-500 mb-2">{loadError}</div>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleRefreshUsers}
+                    className="mx-auto"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Tentar Novamente
+                  </Button>
                 </div>
               ) : isMobile ? (
                 // Mobile view - cards
@@ -493,7 +507,7 @@ const ManageUsers = () => {
               <DialogTitle>Editar Usuário</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-6">
+            <div className="space-y-6 pt-2">
               <div>
                 <Label className="text-muted-foreground">Email</Label>
                 <div className="mt-1 font-medium">{selectedUser.email}</div>
@@ -534,7 +548,7 @@ const ManageUsers = () => {
               </div>
             </div>
             
-            <DialogFooter className="mt-2 flex-col sm:flex-row gap-2">
+            <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => setIsEditDialogOpen(false)}
