@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { BellDot } from "lucide-react";
+import { BellDot, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,7 @@ const USER_READ_NOTIFICATIONS_TABLE = 'user_read_notifications';
 const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
   const [notifications, setNotifications] = useState<UpdateNotification[]>([]);
   const [showNotificationDot, setShowNotificationDot] = useState(false);
+  const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
   
@@ -112,6 +113,13 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
     }
   };
 
+  // Mark notifications as read when popover is opened
+  useEffect(() => {
+    if (open && notifications.some(n => !n.isRead)) {
+      markAsRead();
+    }
+  }, [open]);
+
   // Mark notifications as read
   const markAsRead = async () => {
     if (!user?.id) {
@@ -160,6 +168,38 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
     }
   };
 
+  // Clear all notifications
+  const clearAllNotifications = async () => {
+    if (!user?.id || notifications.length === 0) {
+      return;
+    }
+
+    try {
+      // Delete all notification read records for this user
+      const { error } = await supabase
+        .from(USER_READ_NOTIFICATIONS_TABLE)
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error("Error clearing notifications:", error);
+        toast.error("Erro ao limpar notificações");
+        return;
+      }
+
+      // Clear notifications in the UI
+      setNotifications([]);
+      setShowNotificationDot(false);
+      toast.success("Notificações limpas com sucesso");
+      
+      // Close the popover
+      setOpen(false);
+    } catch (err) {
+      console.error("Error in clearAllNotifications:", err);
+      toast.error("Erro ao processar notificações");
+    }
+  };
+
   // Get count of unread notifications
   const unreadCount = notifications.filter(notif => !notif.isRead).length;
 
@@ -169,13 +209,12 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
           size={isMobile ? "sm" : "icon"}
           className="relative"
-          onClick={markAsRead}
           aria-label="Notificações de atualizações"
         >
           <BellDot className="h-4 sm:h-5 w-4 sm:w-5" />
@@ -187,8 +226,18 @@ const NotificationPopover = ({ userAccessLevel }: NotificationPopoverProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 sm:w-80 p-0">
-        <div className="p-3 sm:p-4 border-b">
+        <div className="p-3 sm:p-4 border-b flex justify-between items-center">
           <h3 className="font-medium text-base sm:text-lg">Atualizações Recentes</h3>
+          {notifications.length > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={clearAllNotifications}
+              className="flex items-center gap-1 text-xs"
+            >
+              <Trash className="h-3 w-3" /> Limpar
+            </Button>
+          )}
         </div>
         <div className="max-h-60 sm:max-h-80 overflow-auto">
           {notifications.length > 0 ? (
