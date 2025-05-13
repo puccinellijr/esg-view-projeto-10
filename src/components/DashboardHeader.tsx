@@ -4,7 +4,6 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import HeaderLogo from "./header/HeaderLogo";
 import WelcomeMessage from "./header/WelcomeMessage";
-import NotificationPopover from "./header/NotificationPopover";
 import UserAvatar from "./header/UserAvatar";
 
 const DashboardHeader = () => {
@@ -33,8 +32,6 @@ const DashboardHeader = () => {
           displayName={getUserDisplayName()} 
           isMobile={isMobile} 
         />
-        
-        <NotificationPopover userAccessLevel={user?.accessLevel} />
         
         <UserAvatar 
           email={user?.email} 

@@ -73,11 +73,11 @@ export const getCategoryIcon = (category: 'environmental' | 'social' | 'governan
 export const getCategoryBgColor = (category: 'environmental' | 'social' | 'governance') => {
   switch (category) {
     case 'environmental':
-      return { color: 'custom-blue', bgClass: '[#F2FCE2]' };
+      return { color: 'custom-blue', bgClass: '[#F2FCE2]' }; // Updated to soft green
     case 'social':
-      return { color: 'custom-yellow', bgClass: '[#ea384c]/10' };
+      return { color: 'custom-yellow', bgClass: '[#ea384c]/10' }; // Updated to soft red
     case 'governance':
-      return { color: 'custom-red', bgClass: '[#D3E4FD]' };
+      return { color: 'custom-red', bgClass: '[#D3E4FD]' }; // Updated to soft blue
   }
 };
 
