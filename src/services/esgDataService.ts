@@ -6,6 +6,7 @@ interface Period {
 }
 
 interface ESGIndicator {
+  id?: string; // Make id optional so we can create new indicators
   name: string;
   value: number;
   category: "environmental" | "social" | "governance";
@@ -15,7 +16,69 @@ interface ESGIndicator {
   created_by?: string; // Optional in case legacy code doesn't provide it
 }
 
+interface ESGIndicatorResult {
+  success: boolean;
+  data?: any;
+  error?: any;
+  message?: string;
+  id?: string;
+}
+
+const updateESGIndicator = async (id: string, indicatorData: Omit<ESGIndicator, 'id'>): Promise<ESGIndicatorResult> => {
+  try {
+    const { data, error } = await supabase
+      .from('esg_indicators')
+      .update(indicatorData)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      data,
+      id: data?.id,
+      message: 'Indicador atualizado com sucesso'
+    };
+  } catch (error) {
+    console.error('Error updating ESG indicator:', error);
+    return {
+      success: false,
+      error,
+      message: `Erro ao atualizar indicador: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+    };
+  }
+};
+
+const insertESGIndicator = async (indicatorData: ESGIndicator): Promise<ESGIndicatorResult> => {
+  try {
+    const { data, error } = await supabase
+      .from('esg_indicators')
+      .insert([indicatorData])
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      data,
+      id: data?.id,
+      message: 'Indicador criado com sucesso'
+    };
+  } catch (error) {
+    console.error('Error inserting ESG indicator:', error);
+    return {
+      success: false,
+      error,
+      message: `Erro ao criar indicador: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+    };
+  }
+};
+
 export const saveESGIndicator = async ({
+  id,
   name,
   value,
   category,
@@ -23,28 +86,20 @@ export const saveESGIndicator = async ({
   month,
   year,
   created_by
-}: ESGIndicator) => {
+}: ESGIndicator): Promise<ESGIndicatorResult> => {
   try {
-    const { data, error } = await supabase
-      .from('esg_indicators')
-      .insert([
-        { 
-          name, 
-          value, 
-          category, 
-          terminal, 
-          month, 
-          year,
-          created_by // Include the user ID who created this entry
-        }
-      ]);
-    
-    if (error) throw error;
-    
-    return { success: true, data };
+    if (id && !id.startsWith('new-')) {
+      return await updateESGIndicator(id, { name, value, category, terminal, month, year, created_by });
+    } else {
+      return await insertESGIndicator({ name, value, category, terminal, month, year, created_by });
+    }
   } catch (error) {
     console.error('Error saving ESG indicator:', error);
-    return { success: false, error };
+    return {
+      success: false,
+      error,
+      message: `Erro ao salvar indicador: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+    };
   }
 };
 

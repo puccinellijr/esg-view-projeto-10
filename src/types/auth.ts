@@ -2,6 +2,7 @@
 export type AccessLevel = "operational" | "viewer" | "administrative";
 
 export interface UserData {
+  id?: string;  // Add id as an optional property
   email: string;
   accessLevel: AccessLevel;
   name?: string;

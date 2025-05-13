@@ -181,7 +181,7 @@ const OperationalForm = () => {
       console.log(`Salvando ${indicators.length} indicadores para ${terminal}, mês ${month}/${year}`);
       
       // Salvar todos os indicadores com informações do criador
-      const userId = user?.id;
+      const userId = user?.id; // This will no longer cause a type error
       
       const savePromises = indicators.map(indicator => 
         saveESGIndicator({
