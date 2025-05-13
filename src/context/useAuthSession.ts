@@ -42,6 +42,9 @@ export function useAuthSession() {
             if (!error && loadedProfile) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
               
+              // Log the raw access level from the database
+              console.log("AuthProvider: Nível de acesso bruto do banco:", loadedProfile.access_level);
+              
               // Normalizar nível de acesso
               const accessLevel = normalizeAccessLevel(loadedProfile.access_level);
               console.log("AuthProvider: Nível de acesso normalizado:", accessLevel);
@@ -80,6 +83,9 @@ export function useAuthSession() {
     // Set up auth state change listener
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (authUser && profileData) {
+        // Log the raw access level value from the database
+        console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
+        
         // Normalizar nível de acesso
         const accessLevel = normalizeAccessLevel(profileData.access_level);
         console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
@@ -105,6 +111,9 @@ export function useAuthSession() {
     const { success, user: authUser, profileData } = await login(email, password);
     
     if (success && authUser && profileData) {
+      // Log the raw access level from the database
+      console.log(`Login: Nível de acesso bruto do banco: "${profileData.access_level}"`);
+      
       // Normalize access level
       const accessLevel = normalizeAccessLevel(profileData.access_level);
       console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);

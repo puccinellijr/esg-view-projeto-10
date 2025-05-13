@@ -45,7 +45,13 @@ export const loadUserProfile = async (userId: string): Promise<{
     console.log('Perfil carregado do banco de dados:', profileResult.data);
     console.log('Nível de acesso do banco:', profileResult.data.access_level);
     
-    return { profileData: profileResult.data };
+    // Ensure access_level is returned exactly as stored in the database
+    return { 
+      profileData: {
+        ...profileResult.data,
+        access_level: profileResult.data.access_level
+      } 
+    };
   } catch (err) {
     console.error('Erro ao carregar perfil de usuário:', err);
     return { error: err };

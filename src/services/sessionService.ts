@@ -25,7 +25,7 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 
           if (!error && profileData) {
             console.log('Perfil carregado com sucesso:', profileData.name);
-            console.log('Nível de acesso carregado:', profileData.access_level);
+            console.log('Nível de acesso carregado (valor original):', profileData.access_level);
             onAuthStateChange(session.user, profileData);
           } else {
             console.error('Erro ao buscar perfil após login:', error);

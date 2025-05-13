@@ -7,8 +7,12 @@ export const normalizeAccessLevel = (accessLevel?: string): AccessLevel => {
   
   const normalizedLevel = accessLevel.toLowerCase().trim();
   
-  if (normalizedLevel === 'administrative') return 'administrative';
-  if (normalizedLevel === 'operational') return 'operational';
+  // Make sure we properly recognize all possible variations of access levels
+  if (normalizedLevel === 'administrative' || normalizedLevel === 'admin') return 'administrative';
+  if (normalizedLevel === 'operational' || normalizedLevel === 'operator') return 'operational';
+  if (normalizedLevel === 'viewer' || normalizedLevel === 'view') return 'viewer';
+  
+  console.log(`Nível de acesso desconhecido: "${accessLevel}", configurando como visualizador por segurança`);
   return 'viewer'; // Default to lowest access level if unknown
 };
 
@@ -17,6 +21,7 @@ export const checkAccessLevel = (userAccessLevel?: string, requiredLevel?: Acces
   if (!userAccessLevel || !requiredLevel) return false;
   
   const normalizedUserLevel = normalizeAccessLevel(userAccessLevel);
+  console.log(`Verificando acesso: nível do usuário ${normalizedUserLevel}, nível requerido ${requiredLevel}`);
   
   // Administrative has access to all levels
   if (normalizedUserLevel === 'administrative') return true;
