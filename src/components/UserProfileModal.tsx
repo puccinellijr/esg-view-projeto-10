@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,14 +22,24 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
-  const [terminal, setTerminal] = useState(user?.terminal || "");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [terminal, setTerminal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize form values when the modal opens or user changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setEmail(user.email || "");
+      setPhotoUrl(user.photoUrl || "");
+      setTerminal(user.terminal || "");
+    }
+  }, [user, isOpen]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +52,15 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     setIsLoading(true);
     
     try {
+      console.log("Atualizando perfil com dados:", {
+        name,
+        photoUrl,
+        terminal,
+        ...(newPassword ? { password: newPassword } : {})
+      });
+      
       const updated = await updateUserProfile({
         name,
-        email,
         photoUrl,
         terminal,
         ...(newPassword ? { password: newPassword } : {}),
@@ -67,6 +83,10 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       setIsLoading(false);
     }
   };
+  
+  if (!user) {
+    return null;
+  }
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

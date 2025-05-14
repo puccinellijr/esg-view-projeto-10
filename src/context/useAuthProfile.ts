@@ -17,7 +17,13 @@ export function useAuthProfile() {
         throw new Error('Usuário não encontrado');
       }
       
-      const { success } = await updateProfile(userData.user.id, data);
+      console.log('Atualizando perfil para usuário:', userData.user.id, data);
+      const { success, error } = await updateProfile(userData.user.id, data);
+      
+      if (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        return false;
+      }
       
       if (success) {
         // Update local state
@@ -30,9 +36,10 @@ export function useAuthProfile() {
             terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
           };
         });
+        return true;
       }
       
-      return success;
+      return false;
     } catch (error) {
       console.error('Erro ao atualizar perfil no contexto:', error);
       return false;

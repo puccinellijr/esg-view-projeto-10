@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,12 +13,22 @@ import ImageUpload from '@/components/ImageUpload';
 const UserProfile = () => {
   const { user, updateUserProfile, logout } = useAuth();
   
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [photoUrl, setPhotoUrl] = useState(user?.photoUrl || "");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize form when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setEmail(user.email || "");
+      setPhotoUrl(user.photoUrl || "");
+    }
+  }, [user]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,22 +38,46 @@ const UserProfile = () => {
       return;
     }
     
+    setIsLoading(true);
+    
     try {
-      await updateUserProfile({
+      console.log("Atualizando perfil com dados:", {
+        name, 
+        photoUrl,
+        ...(newPassword ? { password: newPassword } : {})
+      });
+      
+      const success = await updateUserProfile({
         name,
-        email,
         photoUrl,
         ...(newPassword ? { password: newPassword } : {}),
       });
       
-      toast.success("Perfil atualizado com sucesso");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      if (success) {
+        toast.success("Perfil atualizado com sucesso");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error("Erro ao atualizar perfil");
+      }
     } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
       toast.error("Erro ao atualizar perfil");
+    } finally {
+      setIsLoading(false);
     }
   };
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen flex w-full bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Carregando perfil...</h2>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex w-full bg-gray-50">
@@ -75,6 +109,7 @@ const UserProfile = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Seu nome completo"
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -87,6 +122,7 @@ const UserProfile = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu@email.com"
                       readOnly
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -97,6 +133,7 @@ const UserProfile = () => {
                       value={user?.accessLevel === "administrative" ? "Administrativo" : 
                              user?.accessLevel === "viewer" ? "Visualizador" : "Operacional"}
                       readOnly
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -112,6 +149,7 @@ const UserProfile = () => {
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="Digite sua senha atual"
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -123,6 +161,7 @@ const UserProfile = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Digite sua nova senha"
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -134,6 +173,7 @@ const UserProfile = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirme sua nova senha"
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -146,10 +186,16 @@ const UserProfile = () => {
                       logout();
                       toast.success("Desconectado com sucesso");
                     }}
+                    disabled={isLoading}
                   >
                     Sair
                   </Button>
-                  <Button type="submit">Salvar Alterações</Button>
+                  <Button 
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Salvando..." : "Salvar Alterações"}
+                  </Button>
                 </div>
               </form>
             </CardContent>

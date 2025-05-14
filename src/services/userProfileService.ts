@@ -71,7 +71,7 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
       
       if (authError) {
         console.error('Erro ao atualizar senha:', authError);
-        throw authError;
+        return { success: false, error: authError };
       }
     }
     
@@ -94,7 +94,7 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
       
       if (profileError) {
         console.error('Erro ao atualizar dados do perfil:', profileError);
-        throw profileError;
+        return { success: false, error: profileError };
       }
     } else {
       console.log('Nenhum dado de perfil para atualizar');
