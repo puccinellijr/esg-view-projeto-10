@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -470,6 +469,18 @@ const ManageUsers = () => {
             </DialogHeader>
             
             <div className="space-y-6 pt-2">
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={selectedUser.photoUrl} alt={selectedUser.name || selectedUser.email} />
+                  <AvatarFallback className="bg-blue-500 text-white">
+                    {getInitials(selectedUser.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">{selectedUser.name || selectedUser.email.split('@')[0]}</h3>
+                </div>
+              </div>
+            
               <div>
                 <Label className="text-muted-foreground">Email</Label>
                 <div className="mt-1 font-medium">{selectedUser.email}</div>
