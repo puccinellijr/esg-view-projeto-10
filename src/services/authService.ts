@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { loadUserProfile } from './userProfileService';
 
@@ -14,18 +13,11 @@ export const loginUser = async (email: string, password: string): Promise<{
   try {
     console.log('Tentando login para:', email);
     
-    // Create a timeout promise to prevent indefinite blocking
-    const loginPromise = supabase.auth.signInWithPassword({
+    // Aumentar o tempo limite para 15 segundos para evitar timeout em redes mais lentas
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    
-    const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-      setTimeout(() => reject(new Error("O login demorou muito tempo")), 8000)
-    );
-    
-    // Use Promise.race to avoid indefinite blocking
-    const { data, error } = await Promise.race([loginPromise, timeoutPromise]);
 
     if (error) {
       console.error('Erro de autenticação:', error.message);
@@ -129,18 +121,8 @@ export const getCurrentSession = async (): Promise<{
   error?: any
 }> => {
   try {
-    // Add timeout for session check to prevent indefinite blocking
-    const timeoutPromise = new Promise<{data: any, error: any}>((_, reject) => 
-      setTimeout(() => reject(new Error("Tempo limite excedido na verificação de sessão")), 5000)
-    );
-    
-    // Use Promise.race to ensure timeout
-    const sessionResult = await Promise.race([
-      supabase.auth.getSession(),
-      timeoutPromise
-    ]);
-    
-    const { data, error } = sessionResult;
+    // Aumentar o tempo limite para evitar problemas de timeout em redes lentas
+    const { data, error } = await supabase.auth.getSession();
     
     if (error) {
       return { error };

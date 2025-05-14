@@ -29,11 +29,20 @@ export const verifyUserAccessLevel = async (userId: string): Promise<{
       return { accessLevel: 'viewer' }; // Nível padrão por segurança
     }
     
+    // Manter o nível de acesso exato como está no banco de dados
     console.log(`Nível de acesso encontrado no banco: "${data.access_level}"`);
-    const normalizedLevel = normalizeAccessLevel(data.access_level);
-    console.log(`Nível de acesso normalizado: "${normalizedLevel}"`);
     
-    return { accessLevel: normalizedLevel };
+    // Para debug apenas - não altera o valor retornado
+    const normalizedLevelForLogging = normalizeAccessLevel(data.access_level);
+    console.log(`Nível de acesso normalizado (apenas para log): "${normalizedLevelForLogging}"`);
+    
+    // Garantir que um nível de acesso válido seja retornado
+    if (['administrative', 'operational', 'viewer'].includes(data.access_level)) {
+      return { accessLevel: data.access_level as AccessLevel };
+    }
+    
+    // Se não for um valor válido, normalizar para garantir segurança
+    return { accessLevel: normalizeAccessLevel(data.access_level) };
   } catch (err) {
     console.error('Erro ao verificar permissões do usuário:', err);
     return { error: err };
