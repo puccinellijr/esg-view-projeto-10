@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { UserData, UserUpdateData } from '@/types/auth';
 
@@ -110,6 +109,30 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
 };
 
 /**
+ * Checks if a user with the given email already exists
+ */
+const checkUserExists = async (email: string): Promise<boolean> => {
+  try {
+    // Check in user_profiles table
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .eq('email', email)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is what we want
+      console.error('Error checking if user exists:', error);
+    }
+    
+    return !!data; // Return true if data exists, false otherwise
+  } catch (err) {
+    console.error('Exception checking if user exists:', err);
+    return false; // Assume user doesn't exist if there's an error
+  }
+};
+
+/**
  * Creates a new user profile in Supabase
  */
 export const createUserProfile = async (userData: UserData, password: string): Promise<{
@@ -120,7 +143,17 @@ export const createUserProfile = async (userData: UserData, password: string): P
   try {
     console.log('Criando novo usuário:', userData.email);
     
-    // First, create the auth user
+    // First check if user already exists
+    const userExists = await checkUserExists(userData.email);
+    if (userExists) {
+      console.warn('Usuário com este email já existe:', userData.email);
+      return { 
+        success: false, 
+        error: { message: 'Um usuário com este email já existe.' }
+      };
+    }
+    
+    // Then, create the auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password: password,

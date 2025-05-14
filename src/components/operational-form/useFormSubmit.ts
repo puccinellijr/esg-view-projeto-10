@@ -28,8 +28,8 @@ export const useFormSubmit = ({ form, user, userTerminal }: UseFormSubmitProps) 
         return;
       }
 
-      // Mostrar toast de carregamento
-      toast.loading("Salvando dados...");
+      // Use a unique ID for the toast so we can dismiss it later
+      const toastId = toast.loading("Salvando dados...");
       
       // Preparar dados para salvar
       const indicators = [
@@ -136,14 +136,14 @@ export const useFormSubmit = ({ form, user, userTerminal }: UseFormSubmitProps) 
       const errors = results.filter(r => !r.success);
       if (errors.length > 0) {
         console.error("Erros ao salvar indicadores:", errors);
-        toast.dismiss();
+        toast.dismiss(toastId);
         toast.error(`${errors.length} erros ao salvar indicadores. Verifique o console.`);
         setIsSubmitting(false);
         return;
       }
       
-      // Sucesso
-      toast.dismiss();
+      // Sucesso - use the toastId to dismiss the loading toast
+      toast.dismiss(toastId);
       toast.success("Dados salvos com sucesso no banco de dados!");
       
       // Resetar formulário
@@ -168,6 +168,7 @@ export const useFormSubmit = ({ form, user, userTerminal }: UseFormSubmitProps) 
       });
       
     } catch (error) {
+      // Always dismiss the toast, even in case of error
       toast.dismiss();
       console.error("Erro ao salvar dados:", error);
       toast.error("Erro ao salvar dados. Verifique o console.");
