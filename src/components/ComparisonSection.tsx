@@ -16,40 +16,44 @@ interface ComparisonSectionProps {
     value1: number;
     value2: number;
   };
+  period1?: { month: string; year: string };
+  period2?: { month: string; year: string };
 }
 
 const ComparisonSection: React.FC<ComparisonSectionProps> = ({ 
   title, 
   data, 
   category,
-  tonnage
+  tonnage,
+  period1,
+  period2
 }) => {
   const isMobile = useIsMobile();
   const entries = Object.entries(data);
   
-  // Generate section background color based on category
+  // Generate vibrant section background color based on category
   const getSectionBgColor = () => {
     switch (category) {
       case 'environmental':
-        return 'bg-custom-blue/5'; // Light blue background
+        return 'bg-green-50'; // Light green background
       case 'governance':
-        return 'bg-custom-red/5'; // Light red background
+        return 'bg-purple-50'; // Light purple background
       case 'social':
-        return 'bg-custom-gray/5'; // Light gray background
+        return 'bg-blue-50'; // Light blue background
       default:
         return 'bg-gray-50';
     }
   };
 
-  // Generate section title color based on category
+  // Generate vibrant section title color based on category
   const getSectionTitleColor = () => {
     switch (category) {
       case 'environmental':
-        return 'text-custom-blue';
+        return 'text-green-700';
       case 'governance':
-        return 'text-custom-red';
+        return 'text-purple-700';
       case 'social':
-        return 'text-custom-gray';
+        return 'text-blue-700';
       default:
         return 'text-gray-800';
     }
@@ -92,6 +96,8 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
                     category={category}
                     tonnage1={category === 'environmental' && tonnage ? tonnage.value1 : undefined}
                     tonnage2={category === 'environmental' && tonnage ? tonnage.value2 : undefined}
+                    period1={period1}
+                    period2={period2}
                   />
                 </div>
               </div>

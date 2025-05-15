@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Info, ShieldAlert, Users, PieChart, BarChartIcon } from "lucide-react";
 import Chart3D from './Chart3D';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getMonthName } from '@/utils/dashboardUtils';
 
 interface ComparisonCardProps {
   title: string;
@@ -12,6 +13,8 @@ interface ComparisonCardProps {
   category: 'environmental' | 'governance' | 'social';
   tonnage1?: number;
   tonnage2?: number;
+  period1?: { month: string; year: string };
+  period2?: { month: string; year: string };
 }
 
 const ComparisonCard: React.FC<ComparisonCardProps> = ({ 
@@ -20,10 +23,12 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   value2, 
   category,
   tonnage1,
-  tonnage2
+  tonnage2,
+  period1,
+  period2
 }) => {
   const isMobile = useIsMobile();
-  const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('bar'); // Changed default to bar
   
   // Calcular valores para exibição, considerando divisão por tonelada para indicadores ambientais
   const getDisplayValues = () => {
@@ -53,22 +58,22 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   
   const { display1, display2, perTon } = getDisplayValues();
   
-  // Calculate comparison icon
+  // Calculate comparison icon with vibrant colors
   const getComparisonIcon = () => {
     // Para indicadores ambientais, comparar os valores divididos por tonelada
     const compareValue1 = category === 'environmental' && title !== 'tonelada' && tonnage1 && tonnage1 > 0 ? value1 / tonnage1 : value1;
     const compareValue2 = category === 'environmental' && title !== 'tonelada' && tonnage2 && tonnage2 > 0 ? value2 / tonnage2 : value2;
     
     if (compareValue1 > compareValue2) {
-      return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-blink">↑</span>;
-    } else if (compareValue1 < compareValue2) {
       return <span className="text-xl sm:text-2xl font-bold text-red-600 animate-blink">↓</span>;
+    } else if (compareValue1 < compareValue2) {
+      return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-blink">↑</span>;
     } else {
-      return <span className="text-xl sm:text-2xl font-bold text-gray-500 animate-blink">→</span>;
+      return <span className="text-xl sm:text-2xl font-bold text-gray-600 animate-blink">→</span>;
     }
   };
   
-  // Get category icon
+  // Get category icon with vibrant colors
   const getCategoryIcon = () => {
     const iconSize = isMobile ? "h-4 w-4" : "h-5 w-5";
     switch (category) {
@@ -83,23 +88,29 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     }
   };
   
-  // Generate the color based on category
+  // Generate vibrant background colors based on category
   const getBgColor = () => {
     switch (category) {
       case 'environmental':
-        return 'bg-esg-environmental';
+        return 'bg-green-600';
       case 'governance':
-        return 'bg-esg-governance';
+        return 'bg-purple-600';
       case 'social':
-        return 'bg-esg-social';
+        return 'bg-blue-600';
       default:
-        return 'bg-gray-200';
+        return 'bg-gray-600';
     }
   };
   
   // Toggle chart type
   const toggleChartType = () => {
     setChartType(prev => prev === 'pie' ? 'bar' : 'pie');
+  };
+  
+  // Format period labels using month names if available
+  const getPeriodLabel = (periodObj?: { month: string, year: string }) => {
+    if (!periodObj) return "Período";
+    return `${getMonthName(periodObj.month)}/${periodObj.year}`;
   };
   
   return (
@@ -113,11 +124,11 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
       
       <div className="p-2 sm:p-3 flex flex-col flex-grow items-center justify-center text-center">
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>Período 1:</strong> {display1}
+          <strong>{period1 ? getPeriodLabel(period1) : "Período 1"}:</strong> {display1}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>Período 2:</strong> {display2}
+          <strong>{period2 ? getPeriodLabel(period2) : "Período 2"}:</strong> {display2}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-2 flex items-center justify-center w-full">

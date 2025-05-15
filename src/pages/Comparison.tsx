@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -49,7 +49,7 @@ const Comparison = () => {
               )}
             </div>
             
-            <Card className="mb-4 sm:mb-6">
+            <Card className="mb-4 sm:mb-6 bg-white shadow-md border-blue-100">
               <CardContent className={`pt-4 sm:pt-6 ${isMobile ? 'px-3' : 'px-6'}`}>
                 <div className="grid grid-cols-1 gap-4 mb-4">
                   <TerminalSelector
@@ -86,21 +86,49 @@ const Comparison = () => {
                   data={esgData.environmental} 
                   category="environmental"
                   tonnage={esgData.tonnage}
+                  period1={period1}
+                  period2={period2}
                 />
                 <ComparisonSection 
                   title="Dimensão Social" 
                   data={esgData.social} 
                   category="social"
+                  period1={period1}
+                  period2={period2}
                 />
                 <ComparisonSection 
                   title="Dimensão Governança" 
                   data={esgData.governance} 
                   category="governance"
+                  period1={period1}
+                  period2={period2}
                 />
 
+                {/* Split bar charts into two separate charts */}
                 <div className="mt-6 sm:mt-10 p-3 sm:p-6 bg-white rounded-lg shadow">
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Visão Geral de Indicadores</h2>
-                  <ComparisonBarChart esgData={esgData} />
+                  
+                  <div className={`grid ${isMobile ? 'grid-cols-1 gap-8' : 'grid-cols-2 gap-6'}`}>
+                    {/* Environmental Chart */}
+                    <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+                      <ComparisonBarChart 
+                        esgData={esgData} 
+                        category="environmental"
+                        period1={period1}
+                        period2={period2}
+                      />
+                    </div>
+                    
+                    {/* Social and Governance Chart */}
+                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+                      <ComparisonBarChart 
+                        esgData={esgData} 
+                        category="social_governance"
+                        period1={period1}
+                        period2={period2}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

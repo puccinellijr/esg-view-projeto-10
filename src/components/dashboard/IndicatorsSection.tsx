@@ -26,22 +26,36 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
   tonnage,
   onEdit
 }) => {
-  // Get the soft background color for each category
+  // Get vibrant background color for each category
   const getSoftBgColor = () => {
     switch (category) {
       case 'environmental':
-        return 'bg-[#F2FCE2]'; // Soft green
+        return 'bg-green-100'; // Vibrant green
       case 'social':
-        return 'bg-[#ea384c]/10'; // Soft red with opacity
+        return 'bg-blue-100'; // Vibrant blue
       case 'governance':
-        return 'bg-[#D3E4FD]'; // Soft blue
+        return 'bg-purple-100'; // Vibrant purple
       default:
         return `bg-${bgColorClass}`;
     }
   };
 
+  // Get border color for each category
+  const getBorderColor = () => {
+    switch (category) {
+      case 'environmental':
+        return 'border-green-600'; // Vibrant green
+      case 'social':
+        return 'border-blue-600'; // Vibrant blue
+      case 'governance':
+        return 'border-purple-600'; // Vibrant purple
+      default:
+        return `border-${bgColorClass}`;
+    }
+  };
+
   return (
-    <Card className={`shadow-lg border-t-4 border-t-${bgColorClass} min-h-[500px] flex flex-col overflow-hidden`}>
+    <Card className={`shadow-lg border-t-4 ${getBorderColor()} min-h-[500px] flex flex-col overflow-hidden`}>
       <div className={`${getSoftBgColor()} p-4 w-full flex items-center gap-2`}>
         {iconComponent}
         <h2 className="text-black font-bold">{title}</h2>
