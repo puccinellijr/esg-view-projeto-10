@@ -9,9 +9,10 @@ interface UserAvatarProps {
   email?: string;
   photoUrl?: string;
   accessLevel?: AccessLevel | string;
+  onClick?: () => void;  // Added onClick prop
 }
 
-const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
+const UserAvatar = ({ email, photoUrl, accessLevel, onClick }: UserAvatarProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isMobile = useIsMobile();
   
@@ -27,6 +28,15 @@ const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
     return "Operacional";
   };
 
+  // Handle click with both the internal state change and the passed onClick handler
+  const handleClick = () => {
+    setIsProfileOpen(true);
+    // Call the passed onClick handler if provided
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <>
       <div className="flex items-center gap-1 sm:gap-2">
@@ -37,7 +47,7 @@ const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
         )}
         <Avatar 
           className="cursor-pointer h-8 w-8 sm:h-9 sm:w-9 border-2 border-white/20 hover:border-white transition-colors"
-          onClick={() => setIsProfileOpen(true)}
+          onClick={handleClick}
         >
           <AvatarImage src={photoUrl || ""} alt={email || "User"} />
           <AvatarFallback className="bg-blue-500 text-white text-xs sm:text-sm">
