@@ -124,11 +124,11 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
       
       <div className="p-2 sm:p-3 flex flex-col flex-grow items-center justify-center text-center">
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>{period1 ? getPeriodLabel(period1) : "Período 1"}:</strong> {display1}
+          <strong>{getPeriodLabel(period1)}:</strong> {display1}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-1 w-full text-center">
-          <strong>{period2 ? getPeriodLabel(period2) : "Período 2"}:</strong> {display2}
+          <strong>{getPeriodLabel(period2)}:</strong> {display2}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
         <p className="text-xs sm:text-sm mb-2 flex items-center justify-center w-full">

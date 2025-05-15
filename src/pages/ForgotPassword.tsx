@@ -1,51 +1,69 @@
 
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Mail } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // In a real application, this would send a request to a server to send a reset email
-    // For this demo, we'll just simulate it with a timeout
-    
-    // Check if the email exists in our mock users
-    const users = [
-      { email: "admin@example.com" },
-      { email: "viewer@example.com" },
-      { email: "operator@example.com" }
-    ];
-    
-    const userExists = users.some(user => user.email === email);
-    
-    if (!userExists) {
-      toast.error("Nenhuma conta encontrada com este endereço de email");
-      return;
+    try {
+      // Check if email is valid
+      if (!email || !email.includes('@')) {
+        toast({
+          title: "Erro",
+          description: "Por favor, informe um email válido",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Send password reset email using Supabase
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        console.error("Error sending reset email:", error);
+        toast({
+          title: "Erro",
+          description: error.message || "Erro ao enviar email de redefinição",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      setIsSubmitted(true);
+      toast({
+        title: "Sucesso",
+        description: "Instruções de redefinição de senha foram enviadas para seu email"
+      });
+      
+    } catch (error) {
+      console.error("Exception during password reset:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao processar sua solicitação",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Generate a reset token and store it (in a real app, this would be done server-side)
-    const resetToken = Math.random().toString(36).substring(2, 15);
-    sessionStorage.setItem(`reset_${email}`, resetToken);
-    
-    setIsSubmitted(true);
-    toast.success("Instruções para redefinição de senha foram enviadas para seu email");
-    
-    // In a real app, the user would click a link in their email to access the reset page
-    // For this demo, we'll simulate this process by automatically navigating after a delay
-    setTimeout(() => {
-      navigate(`/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`);
-    }, 3000); // Navigate after 3 seconds for demo purposes
   };
 
   return (
@@ -72,11 +90,16 @@ export default function ForgotPassword() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="border-gray-300"
                   required
+                  disabled={isLoading}
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-custom-blue text-white hover:bg-custom-blue/90">
-                Enviar Instruções de Redefinição
+              <Button 
+                type="submit" 
+                className="w-full bg-custom-blue text-white hover:bg-custom-blue/90"
+                disabled={isLoading}
+              >
+                {isLoading ? "Enviando..." : "Enviar Instruções de Redefinição"}
               </Button>
               
               <div className="text-center">

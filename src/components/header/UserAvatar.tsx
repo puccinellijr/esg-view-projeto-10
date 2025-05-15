@@ -27,9 +27,6 @@ const UserAvatar = ({ email, photoUrl, accessLevel }: UserAvatarProps) => {
     return "Operacional";
   };
 
-  // Add a console log to check props
-  console.log("UserAvatar - Props:", { email, photoUrl, accessLevel });
-
   return (
     <>
       <div className="flex items-center gap-1 sm:gap-2">

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { X } from "lucide-react";
+import { X, Camera } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,6 +28,9 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const [photoUrl, setPhotoUrl] = useState("");
   const [terminal, setTerminal] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   
   // Initialize form values when the modal opens or user changes
   useEffect(() => {
@@ -36,16 +39,89 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       setEmail(user.email || "");
       setPhotoUrl(user.photoUrl || "");
       setTerminal(user.terminal || "");
-      
-      console.log("UserProfileModal - User data loaded:", {
-        name: user.name,
-        email: user.email,
-        photoUrl: user.photoUrl,
-        terminal: user.terminal,
-        accessLevel: user.accessLevel
-      });
     }
   }, [user, isOpen]);
+  
+  useEffect(() => {
+    // Clean up camera stream when modal closes
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
+  // Handle starting the camera
+  const handleStartCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "user" }
+      });
+      setCameraStream(stream);
+      setIsCameraActive(true);
+      
+      // Wait for the video element to be ready in the next render
+      setTimeout(() => {
+        if (videoRef) {
+          videoRef.srcObject = stream;
+          videoRef.play();
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível acessar a câmera",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Handle taking a picture
+  const handleTakePicture = () => {
+    if (!videoRef) return;
+    
+    try {
+      // Create a canvas with the video dimensions
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.videoWidth;
+      canvas.height = videoRef.videoHeight;
+      
+      // Draw the current frame from video to canvas
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(videoRef, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to base64 image data URL
+        const imageDataUrl = canvas.toDataURL("image/jpeg");
+        setPhotoUrl(imageDataUrl);
+        
+        // Stop the camera stream
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+          setCameraStream(null);
+        }
+        
+        setIsCameraActive(false);
+      }
+    } catch (error) {
+      console.error("Error taking picture:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao capturar a foto",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Handle stopping the camera
+  const handleStopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setIsCameraActive(false);
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,15 +193,59 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="flex justify-center">
-            <ImageUpload
-              value={photoUrl}
-              onChange={setPhotoUrl}
-              name={name}
-              email={email}
-              className="scale-75"
-            />
-          </div>
+          {!isCameraActive ? (
+            <div className="flex flex-col items-center">
+              <ImageUpload
+                value={photoUrl}
+                onChange={setPhotoUrl}
+                name={name}
+                email={email}
+                className="scale-75"
+              />
+              
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleStartCamera}
+                className="mt-2 text-xs flex items-center gap-1"
+              >
+                <Camera size={14} /> Usar Câmera
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <div className="relative w-full h-48 bg-gray-200 rounded-md overflow-hidden">
+                <video 
+                  ref={ref => setVideoRef(ref)}
+                  className="w-full h-full object-cover"
+                  autoPlay 
+                  playsInline
+                />
+              </div>
+              
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleTakePicture}
+                  className="flex-1 text-xs"
+                >
+                  Capturar
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStopCamera}
+                  className="flex-1 text-xs"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
           
           <div className="space-y-1">
             <Label htmlFor="name">Nome</Label>
@@ -164,6 +284,8 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
                 <SelectContent>
                   <SelectItem value="Rio Grande">Rio Grande</SelectItem>
                   <SelectItem value="SP">SP</SelectItem>
+                  <SelectItem value="Alemoa">Alemoa</SelectItem>
+                  <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
                 </SelectContent>
               </Select>
             </div>

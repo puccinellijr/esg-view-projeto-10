@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useESGDashboardData } from '@/hooks/useESGDashboardData';
 import { useESGIndicatorEditor } from '@/hooks/useESGIndicatorEditor';
@@ -127,25 +126,25 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
           onEdit={handleEdit}
         />
         
-        {/* Social Section */}
+        {/* Social Section - Changed to red */}
         <IndicatorsSection 
           title="Dimensão Social"
           indicators={socialIndicators}
           category="social"
           iconComponent={getCategoryIcon('social')}
-          bgColorClass={getCategoryBgColor('social').bgClass}
+          bgColorClass="red-600" // Changed to a strong red
           isEditable={isEditable}
           tonnage={tonnage}
           onEdit={handleEdit}
         />
         
-        {/* Governance Section */}
+        {/* Governance Section - Changed to header blue */}
         <IndicatorsSection 
           title="Dimensão Governança"
           indicators={governanceIndicators}
           category="governance"
           iconComponent={getCategoryIcon('governance')}
-          bgColorClass={getCategoryBgColor('governance').bgClass}
+          bgColorClass="sidebar" // Using the same blue as the header (sidebar color)
           isEditable={isEditable}
           tonnage={tonnage}
           onEdit={handleEdit}
