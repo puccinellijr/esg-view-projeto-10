@@ -46,17 +46,18 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
       case 'environmental':
         return 'border-green-600'; // Vibrant green
       case 'social':
-        return 'border-red-600'; // Strong red
+        return 'border-red-600'; // Strong red - now uses a stronger red
       case 'governance':
-        return 'border-sidebar'; // Header blue
+        return 'border-sidebar'; // Header blue - uses the same blue as the header
       default:
         return `border-${bgColorClass}`;
     }
   };
 
-  // Add an animated icon wrapper
+  // Add an animated icon wrapper with slower animation
   const getIconWrapper = () => {
-    const iconClasses = "scale-125 transition-all duration-300 animate-pulse shadow-lg rounded-full p-1";
+    // Added 'duration-1000' for slower animation (was 300 before)
+    const iconClasses = "scale-125 transition-all duration-1000 animate-pulse shadow-lg rounded-full p-1";
     
     switch (category) {
       case 'environmental':
@@ -65,11 +66,11 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
         });
       case 'social':
         return React.cloneElement(iconComponent as React.ReactElement, {
-          className: `${iconClasses} text-white bg-gradient-to-br from-red-500 to-red-700`
+          className: `${iconClasses} text-white bg-gradient-to-br from-red-600 to-red-800`
         });
       case 'governance':
         return React.cloneElement(iconComponent as React.ReactElement, {
-          className: `${iconClasses} text-white bg-gradient-to-br from-blue-500 to-blue-700`
+          className: `${iconClasses} text-white bg-gradient-to-br from-sidebar to-blue-700`
         });
       default:
         return iconComponent;
@@ -80,10 +81,14 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
     <Card className={`shadow-lg border-t-4 ${getBorderColor()} min-h-[500px] flex flex-col overflow-hidden transition-transform hover:scale-[1.01]`}>
       <div className={`${getSoftBgColor()} p-4 w-full flex items-center gap-2`}>
         {getIconWrapper()}
-        <h2 className="text-black font-bold">{title}</h2>
+        <h2 className="text-black font-bold text-sm">
+          {title}
+        </h2>
       </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-black">Indicadores {title.split(" ")[1]}</CardTitle>
+        <CardTitle className="text-xs font-medium text-black">
+          Indicadores {title.split(" ")[1]}
+        </CardTitle>
       </CardHeader>
       <CardContent className="pt-2 flex-grow flex flex-col">
         <div className="space-y-3 flex-grow flex flex-col justify-between py-4">

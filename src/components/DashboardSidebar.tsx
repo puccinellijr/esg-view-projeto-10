@@ -40,12 +40,12 @@ const DashboardSidebar = () => {
 
   return (
     <>
-      <Sidebar className="bg-custom-blue text-white">
-        <SidebarHeader className="p-4">
+      <Sidebar className="bg-[#eeeeee] text-gray-800">
+        <SidebarHeader className="p-4 bg-[#eeeeee]">
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+                src="/logo.png" 
                 alt="Odjell Terminals Granel Química Logo" 
                 className="h-16 w-auto" 
                 onError={(e) => {
@@ -62,12 +62,12 @@ const DashboardSidebar = () => {
               <SidebarMenuButton 
                 asChild 
                 tooltip="Início" 
-                className={`hover:bg-white/10 ${location.pathname === "/dashboard" ? "bg-white/20" : ""}`}
+                className={`hover:bg-gray-200 ${location.pathname === "/dashboard" ? "bg-gray-300" : ""}`}
                 onClick={() => handleNavigate('/dashboard')}
               >
                 <Link 
                   to="/dashboard" 
-                  className="text-white"
+                  className="text-gray-800"
                 >
                   <Home />
                   <span>Início</span>
@@ -81,9 +81,9 @@ const DashboardSidebar = () => {
                 <SidebarMenuButton 
                   asChild
                   tooltip="Formulário" 
-                  className={`hover:bg-white/10 ${location.pathname === "/operational-form" ? "bg-white/20" : ""}`}
+                  className={`hover:bg-gray-200 ${location.pathname === "/operational-form" ? "bg-gray-300" : ""}`}
                 >
-                  <Link to="/operational-form" className="text-white">
+                  <Link to="/operational-form" className="text-gray-800">
                     <FileText />
                     <span>Formulário</span>
                   </Link>
@@ -94,8 +94,8 @@ const DashboardSidebar = () => {
             {/* Relatórios - Visible to all authenticated users */}
             {hasAccess('viewer') && (
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-white/10 ${location.pathname === "/comparison" ? "bg-white/20" : ""}`}>
-                  <Link to="/comparison" className="text-white">
+                <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-gray-200 ${location.pathname === "/comparison" ? "bg-gray-300" : ""}`}>
+                  <Link to="/comparison" className="text-gray-800">
                     <FileText />
                     <span>Relatórios</span>
                   </Link>
@@ -109,7 +109,7 @@ const DashboardSidebar = () => {
                 <>
                   <SidebarMenuButton 
                     tooltip="Configurações"
-                    className="hover:bg-white/10"
+                    className="hover:bg-gray-200"
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   >
                     <Settings />
@@ -154,7 +154,7 @@ const DashboardSidebar = () => {
               ) : (
                 <SidebarMenuButton 
                   tooltip="Configurações" 
-                  className="hover:bg-white/10"
+                  className="hover:bg-gray-200"
                   onClick={() => setIsProfileOpen(true)}
                 >
                   <Settings />
@@ -164,11 +164,11 @@ const DashboardSidebar = () => {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-4 mt-auto border-t border-white/10">
+        <SidebarFooter className="p-4 mt-auto border-t border-gray-300">
           <div className="flex flex-col gap-4">
             <SidebarMenuButton 
               tooltip="Sair"
-              className="hover:bg-white/10 text-white w-full"
+              className="hover:bg-gray-200 text-gray-800 w-full"
               onClick={handleLogout}
             >
               <LogOut />
@@ -176,7 +176,7 @@ const DashboardSidebar = () => {
             </SidebarMenuButton>
             
             {state !== "collapsed" && (
-              <div className="text-xs text-white/60 text-center">
+              <div className="text-xs text-gray-600 text-center">
                 Desenvolvido por TI GRANEL RIO GRANDE
               </div>
             )}

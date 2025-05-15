@@ -24,7 +24,7 @@ const HeaderLogo = ({ toggleSidebar, sidebarState }: HeaderLogoProps) => {
       {sidebarState === "collapsed" && (
         <div className="hidden md:flex items-center justify-center">
           <img 
-            src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+            src="/logo.png" 
             alt="Odjell Terminals Logo" 
             className="h-10 w-auto" 
             onError={(e) => {
