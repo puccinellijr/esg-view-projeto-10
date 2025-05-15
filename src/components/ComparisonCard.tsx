@@ -30,6 +30,14 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   const isMobile = useIsMobile();
   const [chartType, setChartType] = useState<'pie' | 'bar'>('bar'); // Default to bar chart
   
+  // Format title by replacing underscores with spaces and capitalizing first letter of each word
+  const formatTitle = (title: string) => {
+    return title
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+  
   // Calcular valores para exibição, considerando divisão por tonelada para indicadores ambientais
   const getDisplayValues = () => {
     // Se for um indicador ambiental e tiver tonelagem disponível
@@ -58,18 +66,21 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   
   const { display1, display2, perTon } = getDisplayValues();
   
-  // Calculate comparison icon with vibrant colors
+  // Calculate comparison icon with vibrant colors and make it 10% larger
   const getComparisonIcon = () => {
     // Para indicadores ambientais, comparar os valores divididos por tonelada
     const compareValue1 = category === 'environmental' && title !== 'tonelada' && tonnage1 && tonnage1 > 0 ? value1 / tonnage1 : value1;
     const compareValue2 = category === 'environmental' && title !== 'tonelada' && tonnage2 && tonnage2 > 0 ? value2 / tonnage2 : value2;
     
+    // Use text-2xl for mobile and text-3xl for desktop (10% larger than before)
+    const iconClasses = isMobile ? "text-2xl sm:text-3xl font-bold animate-pulse" : "text-3xl font-bold animate-pulse";
+    
     if (compareValue1 > compareValue2) {
-      return <span className="text-xl sm:text-2xl font-bold text-red-600 animate-pulse">↓</span>;
+      return <span className={`${iconClasses} text-red-600`}>↓</span>;
     } else if (compareValue1 < compareValue2) {
-      return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-pulse">↑</span>;
+      return <span className={`${iconClasses} text-green-600`}>↑</span>;
     } else {
-      return <span className="text-xl sm:text-2xl font-bold text-gray-600 animate-pulse">→</span>;
+      return <span className={`${iconClasses} text-gray-600`}>→</span>;
     }
   };
   
@@ -113,25 +124,28 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     return `${getMonthName(periodObj.month)}/${periodObj.year}`;
   };
   
+  // Get formatted title
+  const displayTitle = formatTitle(title);
+  
   return (
     <Card className="flex flex-col h-full overflow-hidden text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className={`flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 ${getBgColor()}`}>
         {getCategoryIcon()}
-        <h3 className="text-white font-bold text-xs sm:text-sm uppercase truncate">
-          {title.replace("_", " ")}
+        <h3 className="text-white font-bold text-sm sm:text-base uppercase truncate">
+          {displayTitle}
         </h3>
       </div>
       
       <div className="p-2 sm:p-3 flex flex-col flex-grow items-center justify-center text-center">
-        <p className="text-xs sm:text-sm mb-1 w-full text-center">
+        <p className="text-sm sm:text-base mb-1 w-full text-center font-medium">
           <strong>{getPeriodLabel(period1)}:</strong> {display1}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
-        <p className="text-xs sm:text-sm mb-1 w-full text-center">
+        <p className="text-sm sm:text-base mb-1 w-full text-center font-medium">
           <strong>{getPeriodLabel(period2)}:</strong> {display2}
           {perTon && <span className="text-xs text-gray-500">/ton</span>}
         </p>
-        <p className="text-xs sm:text-sm mb-2 flex items-center justify-center w-full">
+        <p className="text-sm sm:text-base mb-2 flex items-center justify-center w-full">
           <strong>Variação:</strong> {getComparisonIcon()}
         </p>
         

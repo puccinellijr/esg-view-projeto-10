@@ -26,7 +26,8 @@ const HeaderLogo = ({ toggleSidebar, sidebarState }: HeaderLogoProps) => {
           <img 
             src="/logo.png" 
             alt="Odjell Terminals Logo" 
-            className="h-10 w-auto" 
+            className="h-10 w-auto object-contain" 
+            loading="eager"
             onError={(e) => {
               e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
             }} 
