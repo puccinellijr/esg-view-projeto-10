@@ -37,9 +37,9 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
       case 'environmental':
         return 'bg-green-50'; // Light green background
       case 'governance':
-        return 'bg-purple-50'; // Light purple background
+        return 'bg-blue-50'; // Light blue background (matching header)
       case 'social':
-        return 'bg-blue-50'; // Light blue background
+        return 'bg-red-50'; // Light red background
       default:
         return 'bg-gray-50';
     }
@@ -51,16 +51,16 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
       case 'environmental':
         return 'text-green-700';
       case 'governance':
-        return 'text-purple-700';
+        return 'text-blue-700'; // Matching header blue
       case 'social':
-        return 'text-blue-700';
+        return 'text-red-700'; // Strong red color
       default:
         return 'text-gray-800';
     }
   };
   
   return (
-    <div className={`mt-6 sm:mt-10 mb-6 sm:mb-12 py-4 sm:py-8 px-2 sm:px-4 rounded-lg ${getSectionBgColor()}`}>
+    <div className={`mt-6 sm:mt-10 mb-6 sm:mb-12 py-4 sm:py-8 px-2 sm:px-4 rounded-lg ${getSectionBgColor()} shadow-md`}>
       <div className="text-center mb-4 sm:mb-6">
         <h2 className={`text-xl sm:text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -76,8 +76,8 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
         <div className="text-center mb-4 p-3 bg-white rounded-lg shadow-sm max-w-xs mx-auto">
           <h3 className="font-semibold mb-1">Tonelada movimentada:</h3>
           <div className="flex justify-between items-center text-sm">
-            <span>Período 1: {tonnage.value1.toLocaleString('pt-BR')}</span>
-            <span>Período 2: {tonnage.value2.toLocaleString('pt-BR')}</span>
+            <span>{period1 ? `${period1.month}/${period1.year}` : "Período 1"}: {tonnage.value1.toLocaleString('pt-BR')}</span>
+            <span>{period2 ? `${period2.month}/${period2.year}` : "Período 2"}: {tonnage.value2.toLocaleString('pt-BR')}</span>
           </div>
         </div>
       )}

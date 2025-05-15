@@ -14,11 +14,14 @@ export function useAuthProfile() {
       // Get the current user ID
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
-        throw new Error('Usuário não encontrado');
+        console.error('Usuário não encontrado na sessão');
+        throw new Error('Usuário não encontrado na sessão');
       }
       
-      console.log('Atualizando perfil para usuário:', userData.user.id, data);
-      const { success, error } = await updateProfile(userData.user.id, data);
+      const userId = userData.user.id;
+      console.log('Atualizando perfil para usuário:', userId, data);
+      
+      const { success, error } = await updateProfile(userId, data);
       
       if (error) {
         console.error('Erro ao atualizar perfil:', error);
@@ -32,7 +35,7 @@ export function useAuthProfile() {
           return {
             ...prev,
             name: data.name || prev.name,
-            photoUrl: data.photoUrl || prev.photoUrl,
+            photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
             terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
           };
         });

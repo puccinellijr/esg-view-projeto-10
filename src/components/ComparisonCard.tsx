@@ -28,7 +28,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   period2
 }) => {
   const isMobile = useIsMobile();
-  const [chartType, setChartType] = useState<'pie' | 'bar'>('bar'); // Changed default to bar
+  const [chartType, setChartType] = useState<'pie' | 'bar'>('bar'); // Default to bar chart
   
   // Calcular valores para exibição, considerando divisão por tonelada para indicadores ambientais
   const getDisplayValues = () => {
@@ -65,11 +65,11 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     const compareValue2 = category === 'environmental' && title !== 'tonelada' && tonnage2 && tonnage2 > 0 ? value2 / tonnage2 : value2;
     
     if (compareValue1 > compareValue2) {
-      return <span className="text-xl sm:text-2xl font-bold text-red-600 animate-blink">↓</span>;
+      return <span className="text-xl sm:text-2xl font-bold text-red-600 animate-pulse">↓</span>;
     } else if (compareValue1 < compareValue2) {
-      return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-blink">↑</span>;
+      return <span className="text-xl sm:text-2xl font-bold text-green-600 animate-pulse">↑</span>;
     } else {
-      return <span className="text-xl sm:text-2xl font-bold text-gray-600 animate-blink">→</span>;
+      return <span className="text-xl sm:text-2xl font-bold text-gray-600 animate-pulse">→</span>;
     }
   };
   
@@ -94,9 +94,9 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
       case 'environmental':
         return 'bg-green-600';
       case 'governance':
-        return 'bg-purple-600';
+        return 'bg-blue-700'; // Matching header blue
       case 'social':
-        return 'bg-blue-600';
+        return 'bg-red-600'; // Strong red
       default:
         return 'bg-gray-600';
     }
@@ -114,7 +114,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   };
   
   return (
-    <Card className="flex flex-col h-full overflow-hidden text-center">
+    <Card className="flex flex-col h-full overflow-hidden text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className={`flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-2 ${getBgColor()}`}>
         {getCategoryIcon()}
         <h3 className="text-white font-bold text-xs sm:text-sm uppercase truncate">

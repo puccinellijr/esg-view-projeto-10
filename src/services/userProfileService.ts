@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { UserData, UserUpdateData } from '@/types/auth';
 
@@ -170,7 +171,7 @@ export const createUserProfile = async (userData: UserData, password: string): P
     const userId = authData.user.id;
     console.log('Usuário criado com ID:', userId);
     
-    // Then, create the user profile
+    // Then, create the user profile with the same ID as the auth user
     const profileData = {
       id: userId,
       email: userData.email,
@@ -182,6 +183,19 @@ export const createUserProfile = async (userData: UserData, password: string): P
     
     console.log('Criando perfil de usuário:', profileData);
     
+    // Check if a profile with this ID already exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+      
+    if (existingProfile) {
+      console.error('Já existe um perfil com este ID:', userId);
+      return { success: false, error: { message: 'Já existe um perfil com este ID.' }};
+    }
+    
+    // Create the profile
     const { error: profileError } = await supabase
       .from('user_profiles')
       .insert([profileData]);

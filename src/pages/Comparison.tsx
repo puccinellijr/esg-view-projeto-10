@@ -110,7 +110,8 @@ const Comparison = () => {
                   
                   <div className={`grid ${isMobile ? 'grid-cols-1 gap-8' : 'grid-cols-2 gap-6'}`}>
                     {/* Environmental Chart */}
-                    <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+                    <div className="bg-green-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
+                      <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
                       <ComparisonBarChart 
                         esgData={esgData} 
                         category="environmental"
@@ -120,7 +121,8 @@ const Comparison = () => {
                     </div>
                     
                     {/* Social and Governance Chart */}
-                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
+                      <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
                       <ComparisonBarChart 
                         esgData={esgData} 
                         category="social_governance"

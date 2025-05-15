@@ -5,9 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import ImageUpload from "@/components/ImageUpload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,7 +18,6 @@ interface UserProfileModalProps {
 
 const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const { user, updateUserProfile } = useAuth();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   
   const [name, setName] = useState("");
@@ -38,6 +36,14 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       setEmail(user.email || "");
       setPhotoUrl(user.photoUrl || "");
       setTerminal(user.terminal || "");
+      
+      console.log("UserProfileModal - User data loaded:", {
+        name: user.name,
+        email: user.email,
+        photoUrl: user.photoUrl,
+        terminal: user.terminal,
+        accessLevel: user.accessLevel
+      });
     }
   }, [user, isOpen]);
   
@@ -45,7 +51,11 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     e.preventDefault();
     
     if (newPassword && newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem");
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -67,18 +77,29 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       });
       
       if (updated) {
-        toast.success("Perfil atualizado com sucesso");
+        toast({
+          title: "Sucesso",
+          description: "Perfil atualizado com sucesso"
+        });
         // Limpar os campos de senha
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
         onClose();
       } else {
-        toast.error("Erro ao atualizar perfil");
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar perfil",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
-      toast.error("Erro ao atualizar perfil");
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar perfil",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
