@@ -166,9 +166,9 @@ const UserProfile = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="page-confirm-password">Confirmar Senha</Label>
+                    <Label htmlFor="confirm-password">Confirmar Senha</Label>
                     <Input
-                      id="page-confirm-password"
+                      id="confirm-password"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}

@@ -22,33 +22,33 @@ import { Indicator } from '@/hooks/useESGDashboardData';
 export const getIndicatorIcon = (name: string) => {
   switch (name) {
     case 'litro_tm':
-      return <Droplet size={18} className="text-blue-600 animate-pulse-very-slow" />; // Blue for water
+      return <Droplet size={18} className="text-blue-600" />; // Blue for water
     case 'kg_tm':
-      return <Weight size={18} className="text-purple-600 animate-pulse-very-slow" />; // Purple for weight
+      return <Weight size={18} className="text-purple-600" />; // Purple for weight
     case 'kwh_tm':
-      return <Zap size={18} className="text-yellow-500 animate-pulse-very-slow" />; // Yellow for energy
+      return <Zap size={18} className="text-yellow-500" />; // Yellow for energy
     case 'litro_combustivel_tm':
-      return <Fuel size={18} className="text-orange-600 animate-pulse-very-slow" />; // Orange for fuel
+      return <Fuel size={18} className="text-orange-600" />; // Orange for fuel
     case 'residuo_tm':
-      return <Percent size={18} className="text-green-600 animate-pulse-very-slow" />; // Green for waste
+      return <Percent size={18} className="text-green-600" />; // Green for waste
     case 'incidente':
-      return <AlertTriangle size={18} className="text-red-600 animate-pulse-very-slow" />; // Red for incidents
+      return <AlertTriangle size={18} className="text-red-600" />; // Red for incidents
     case 'acidente':
-      return <Bandage size={18} className="text-red-700 animate-pulse-very-slow" />; // Deep red for accidents
+      return <Bandage size={18} className="text-red-700" />; // Deep red for accidents
     case 'denuncia_discriminacao':
-      return <Users size={18} className="text-pink-600 animate-pulse-very-slow" />; // Pink for discrimination
+      return <Users size={18} className="text-pink-600" />; // Pink for discrimination
     case 'mulher_trabalho':
-      return <Handshake size={18} className="text-teal-600 animate-pulse-very-slow" />; // Teal for work relations
+      return <Handshake size={18} className="text-teal-600" />; // Teal for work relations
     case 'denuncia_corrupcao':
-      return <Gavel size={18} className="text-purple-700 animate-pulse-very-slow" />; // Deep purple for corruption
+      return <Gavel size={18} className="text-purple-700" />; // Deep purple for corruption
     case 'reclamacao_vizinho':
-      return <Bell size={18} className="text-amber-600 animate-pulse-very-slow" />; // Amber for complaints
+      return <Bell size={18} className="text-amber-600" />; // Amber for complaints
     case 'incidente_cibernetico':
-      return <Server size={18} className="text-indigo-600 animate-pulse-very-slow" />; // Indigo for cyber incidents
+      return <Server size={18} className="text-indigo-600" />; // Indigo for cyber incidents
     case 'tonelada':
-      return <TruckIcon size={18} className="text-gray-700 animate-pulse-very-slow" />; // Gray for tonnage
+      return <TruckIcon size={18} className="text-gray-700" />; // Gray for tonnage
     default:
-      return <Leaf size={18} className="text-green-600 animate-pulse-very-slow" />; // Green default
+      return <Leaf size={18} className="text-green-600" />; // Green default
   }
 };
 
@@ -78,45 +78,6 @@ export const getCategoryBgColor = (category: 'environmental' | 'social' | 'gover
       return { color: 'blue-600', bgClass: 'blue-100' }; // Stronger blue
     case 'governance':
       return { color: 'purple-600', bgClass: 'purple-100' }; // Stronger purple
-  }
-};
-
-// Format the indicator name for display by replacing underscores and capitalizing
-export const formatIndicatorName = (name: string): string => {
-  // Special case handling for specific indicators
-  switch (name) {
-    case 'litro_tm':
-      return 'Litro / TM';
-    case 'kg_tm':
-      return 'KG / TM';
-    case 'kwh_tm':
-      return 'KWH / TM';
-    case 'litro_combustivel_tm':
-      return 'Litro Combustível / TM';
-    case 'residuo_tm':
-      return 'Resíduo / TM';
-    case 'incidente':
-      return 'Incidente';
-    case 'acidente':
-      return 'Acidente';
-    case 'denuncia_discriminacao':
-      return 'Denúncia Discriminação';
-    case 'mulher_trabalho':
-      return 'Mulher Trabalho';
-    case 'denuncia_corrupcao':
-      return 'Denúncia Corrupção';
-    case 'reclamacao_vizinho':
-      return 'Reclamação Vizinho';
-    case 'incidente_cibernetico':
-      return 'Incidente Cibernético';
-    case 'tonelada':
-      return 'Tonelada';
-    default:
-      // Generic formatting for other names
-      return name
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
   }
 };
 
