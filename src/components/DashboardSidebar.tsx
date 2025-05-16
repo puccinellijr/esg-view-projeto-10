@@ -40,8 +40,8 @@ const DashboardSidebar = () => {
 
   return (
     <>
-      <Sidebar className="bg-[#eeeeee] text-gray-800">
-        <SidebarHeader className="p-4 bg-[#eeeeee]">
+      <Sidebar className="text-gray-800">
+        <SidebarHeader className="p-4">
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
