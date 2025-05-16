@@ -297,9 +297,9 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="confirm-password">Confirmar Senha</Label>
+            <Label htmlFor="modal-confirm-password">Confirmar Senha</Label>
             <Input 
-              id="confirm-password" 
+              id="modal-confirm-password" 
               type="password" 
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)}

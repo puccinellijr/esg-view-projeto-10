@@ -44,7 +44,7 @@ const DashboardSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              isActive={pathname === '/dashboard'}
+              active={pathname === '/dashboard'}
               className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
             >
               <Link to="/dashboard" className="flex items-center gap-3">
@@ -59,7 +59,7 @@ const DashboardSidebar = () => {
             <SidebarMenuItem>
               <SidebarMenuButton 
                 asChild 
-                isActive={pathname === '/manage-users'}
+                active={pathname === '/manage-users'}
                 className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
               >
                 <Link to="/manage-users" className="flex items-center gap-3">
@@ -74,7 +74,7 @@ const DashboardSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              isActive={pathname === '/operational-form'}
+              active={pathname === '/operational-form'}
               className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
             >
               <Link to="/operational-form" className="flex items-center gap-3">
@@ -88,7 +88,7 @@ const DashboardSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              isActive={pathname === '/comparison'}
+              active={pathname === '/comparison'}
               className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
             >
               <Link to="/comparison" className="flex items-center gap-3">
@@ -102,7 +102,7 @@ const DashboardSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton 
               asChild 
-              isActive={pathname === '/profile'}
+              active={pathname === '/profile'}
               className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
             >
               <Link to="/profile" className="flex items-center gap-3">
