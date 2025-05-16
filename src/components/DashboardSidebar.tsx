@@ -1,47 +1,26 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight, LogOut } from 'lucide-react';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
+import { BarChart3, Settings, Users, FileTextIcon, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  Sidebar, 
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  useSidebar,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  SidebarSeparator
-} from "@/components/ui/sidebar";
-import { toast } from 'sonner';
-import UserProfileModal from "@/components/UserProfileModal";
 
 const DashboardSidebar = () => {
-  const { user, hasAccess, logout } = useAuth();
-  const { state } = useSidebar();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { pathname } = useLocation();
+  const { logout, user, hasAccess } = useAuth();
+  
+  // Get sidebar state to conditionally render content
+  const sidebarStateAttr = document.querySelector('[data-sidebar-state]')?.getAttribute('data-sidebar-state');
+  const state = sidebarStateAttr as "expanded" | "collapsed" | "hidden" || "expanded";
 
-  const handleLogout = () => {
-    logout();
-    toast.success('Sessão encerrada com sucesso');
-    navigate('/login');
-  };
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
-
+  // Check user permissions
+  const isAdmin = hasAccess('administrative');
+  
   return (
     <>
-      <Sidebar className="text-gray-800">
-        <SidebarHeader className="p-4">
+      <SidebarHeader>
+        {/* Only show logo when sidebar is expanded */}
+        <div className="flex flex-col items-center justify-center py-4">
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
@@ -49,147 +28,104 @@ const DashboardSidebar = () => {
                 alt="Odjell Terminals Granel Química Logo" 
                 className="h-16 w-auto" 
                 onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
-                }} 
+                  e.currentTarget.src = 'https://via.placeholder.com/200x80?text=Logo';
+                }}
               />
             </div>
           )}
-        </SidebarHeader>
-        <SidebarContent>
-          {/* Added top banner in the sidebar content */}
-          <div className="w-full h-[50px] bg-gray-200 mb-4"></div>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        {/* Added top banner in the sidebar content with the new color #104379 */}
+        <div className="w-full h-[50px] bg-[#104379] mb-4"></div>
+        
+        <SidebarMenu className="space-y-4 px-2 mt-5"> {/* Added mt-5 to push menu 5% down */}
+          {/* Início/Dashboard - Available to all users */}
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              active={pathname === '/dashboard'}
+              className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
+            >
+              <Link to="/dashboard" className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5" />
+                <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           
-          <SidebarMenu className="space-y-4 px-2 mt-5"> {/* Added mt-5 to push menu 5% down */}
-            {/* Início/Dashboard - Available to all users */}
+          {/* User Management - Admin Only */}
+          {isAdmin && (
             <SidebarMenuItem>
               <SidebarMenuButton 
                 asChild 
-                tooltip="Início" 
-                className={`hover:bg-gray-200 ${location.pathname === "/dashboard" ? "bg-gray-300" : ""}`}
-                onClick={() => handleNavigate('/dashboard')}
+                active={pathname === '/manage-users'}
+                className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
               >
-                <Link 
-                  to="/dashboard" 
-                  className="text-gray-800"
-                >
-                  <Home />
-                  <span>Início</span>
+                <Link to="/manage-users" className="flex items-center gap-3">
+                  <Users className="h-5 w-5" />
+                  <span>Usuários</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            
-            {/* Formulário - Available to operational users and higher */}
-            {hasAccess('operational') && (
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  tooltip="Formulário" 
-                  className={`hover:bg-gray-200 ${location.pathname === "/operational-form" ? "bg-gray-300" : ""}`}
-                >
-                  <Link to="/operational-form" className="text-gray-800">
-                    <FileText />
-                    <span>Formulário</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            
-            {/* Relatórios - Visible to all authenticated users */}
-            {hasAccess('viewer') && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-gray-200 ${location.pathname === "/comparison" ? "bg-gray-300" : ""}`}>
-                  <Link to="/comparison" className="text-gray-800">
-                    <FileText />
-                    <span>Relatórios</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            
-            {/* Settings - Available to all users but with different options */}
-            <SidebarMenuItem>
-              {hasAccess('administrative') ? (
-                <>
-                  <SidebarMenuButton 
-                    tooltip="Configurações"
-                    className="hover:bg-gray-200"
-                    onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                  >
-                    <Settings />
-                    <span>Configurações</span>
-                    {isSettingsOpen ? (
-                      <ChevronDown className="ml-auto h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="ml-auto h-4 w-4" />
-                    )}
-                  </SidebarMenuButton>
-                  
-                  {isSettingsOpen && (
-                    <SidebarMenuSub className="bg-white text-black rounded-md">
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/user/create"} className="text-black hover:bg-gray-100">
-                          <Link to="/settings/user/create">
-                            <UserPlus className="h-4 w-4" />
-                            <span>Cadastrar Usuário</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={location.pathname === "/settings/users"} className="text-black hover:bg-gray-100">
-                          <Link to="/settings/users">
-                            <Users className="h-4 w-4" />
-                            <span>Gerenciar Usuários</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton 
-                          className="text-black hover:bg-gray-100"
-                          onClick={() => setIsProfileOpen(true)}
-                        >
-                          <Settings className="h-4 w-4" />
-                          <span>Perfil do Usuário</span>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  )}
-                </>
-              ) : (
-                <SidebarMenuButton 
-                  tooltip="Configurações" 
-                  className="hover:bg-gray-200"
-                  onClick={() => setIsProfileOpen(true)}
-                >
-                  <Settings />
-                  <span>Configurações</span>
-                </SidebarMenuButton>
-              )}
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="p-4 mt-auto border-t border-gray-300">
-          <div className="flex flex-col gap-4">
+          )}
+          
+          {/* Data Form - Available to all users */}
+          <SidebarMenuItem>
             <SidebarMenuButton 
-              tooltip="Sair"
-              className="hover:bg-gray-200 text-gray-800 w-full"
-              onClick={handleLogout}
+              asChild 
+              active={pathname === '/operational-form'}
+              className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
             >
-              <LogOut />
-              <span>Sair</span>
+              <Link to="/operational-form" className="flex items-center gap-3">
+                <FileTextIcon className="h-5 w-5" />
+                <span>Formulário</span>
+              </Link>
             </SidebarMenuButton>
-            
-            {state !== "collapsed" && (
-              <div className="text-xs text-gray-600 text-center">
-                Desenvolvido por TI GRANEL RIO GRANDE
-              </div>
-            )}
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-      
-      {isProfileOpen && <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />}
+          </SidebarMenuItem>
+          
+          {/* Comparison - Available to all users */}
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              active={pathname === '/comparison'}
+              className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
+            >
+              <Link to="/comparison" className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5" />
+                <span>Comparação</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          {/* User Profile - Available to all users */}
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              active={pathname === '/profile'}
+              className="w-full flex items-center gap-4 px-4 py-2 rounded-md hover:bg-gray-200 text-black"
+            >
+              <Link to="/profile" className="flex items-center gap-3">
+                <Settings className="h-5 w-5" />
+                <span>Perfil</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <div className="p-4">
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-200 text-red-600"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Sair</span>
+          </button>
+        </div>
+      </SidebarFooter>
     </>
-  );
-};
+  )
+}
 
 export default DashboardSidebar;

@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Edit } from 'lucide-react';
 import { Indicator } from '@/hooks/useESGDashboardData';
+import { formatIndicatorName } from '@/utils/dashboardUtils';
 
 interface IndicatorItemProps {
   indicator: Indicator;
@@ -37,7 +38,7 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   return (
     <div className="flex items-center gap-2">
       {indicator.icon}
-      <span className="text-sm text-black">{indicator.name}</span>
+      <span className="text-sm text-black font-medium text-[1.05em]">{formatIndicatorName(indicator.name)}</span>
       <span className="ml-auto text-sm font-medium text-black">
         {displayValue}
         {indicator.category === 'environmental' && indicator.name !== 'tonelada' ? 

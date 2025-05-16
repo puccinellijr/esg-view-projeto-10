@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { X, Camera } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +30,9 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  
+  // Use ref instead of state for video element
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   
   // Initialize form values when the modal opens or user changes
   useEffect(() => {
@@ -43,7 +45,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   }, [user, isOpen]);
   
   useEffect(() => {
-    // Clean up camera stream when modal closes
+    // Clean up camera stream when modal closes or component unmounts
     return () => {
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
@@ -60,37 +62,33 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       setCameraStream(stream);
       setIsCameraActive(true);
       
-      // Wait for the video element to be ready in the next render
+      // Use ref instead of setting via state to avoid timing issues
       setTimeout(() => {
-        if (videoRef) {
-          videoRef.srcObject = stream;
-          videoRef.play();
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
         }
       }, 100);
     } catch (error) {
       console.error("Error accessing camera:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível acessar a câmera",
-        variant: "destructive"
-      });
+      toast.error("Não foi possível acessar a câmera");
     }
   };
   
   // Handle taking a picture
   const handleTakePicture = () => {
-    if (!videoRef) return;
+    if (!videoRef.current) return;
     
     try {
       // Create a canvas with the video dimensions
       const canvas = document.createElement("canvas");
-      canvas.width = videoRef.videoWidth;
-      canvas.height = videoRef.videoHeight;
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
       
       // Draw the current frame from video to canvas
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.drawImage(videoRef, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
         
         // Convert canvas to base64 image data URL
         const imageDataUrl = canvas.toDataURL("image/jpeg");
@@ -106,11 +104,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       }
     } catch (error) {
       console.error("Error taking picture:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao capturar a foto",
-        variant: "destructive"
-      });
+      toast.error("Erro ao capturar a foto");
     }
   };
   
@@ -127,11 +121,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     e.preventDefault();
     
     if (newPassword && newPassword !== confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive"
-      });
+      toast.error("As senhas não coincidem");
       return;
     }
     
@@ -145,6 +135,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         ...(newPassword ? { password: newPassword } : {})
       });
       
+      // Call the updateUserProfile function from AuthContext
       const updated = await updateUserProfile({
         name,
         photoUrl,
@@ -153,29 +144,18 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
       });
       
       if (updated) {
-        toast({
-          title: "Sucesso",
-          description: "Perfil atualizado com sucesso"
-        });
+        toast.success("Perfil atualizado com sucesso");
         // Limpar os campos de senha
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
         onClose();
       } else {
-        toast({
-          title: "Erro",
-          description: "Erro ao atualizar perfil",
-          variant: "destructive"
-        });
+        toast.error("Erro ao atualizar perfil");
       }
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar perfil",
-        variant: "destructive"
-      });
+      toast.error("Erro ao atualizar perfil");
     } finally {
       setIsLoading(false);
     }
@@ -217,10 +197,11 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             <div className="flex flex-col items-center">
               <div className="relative w-full h-48 bg-gray-200 rounded-md overflow-hidden">
                 <video 
-                  ref={ref => setVideoRef(ref)}
+                  ref={videoRef}
                   className="w-full h-full object-cover"
                   autoPlay 
                   playsInline
+                  muted
                 />
               </div>
               

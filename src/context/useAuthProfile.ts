@@ -21,6 +21,7 @@ export function useAuthProfile() {
       const userId = userData.user.id;
       console.log('Atualizando perfil para usuário:', userId, data);
       
+      // Call the service function to update profile in Supabase
       const { success, error } = await updateProfile(userId, data);
       
       if (error) {
@@ -29,7 +30,7 @@ export function useAuthProfile() {
       }
       
       if (success) {
-        // Update local state
+        // Update local state with the new data
         setUser(prev => {
           if (!prev) return null;
           return {
