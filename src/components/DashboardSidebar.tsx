@@ -45,7 +45,7 @@ const DashboardSidebar = () => {
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/logo.png" 
+                src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
                 alt="Odjell Terminals Granel Química Logo" 
                 className="h-16 w-auto" 
                 onError={(e) => {
@@ -56,7 +56,10 @@ const DashboardSidebar = () => {
           )}
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu className="space-y-4 px-2">
+          {/* Added top banner in the sidebar content */}
+          <div className="w-full h-[50px] bg-gray-200 mb-4"></div>
+          
+          <SidebarMenu className="space-y-4 px-2 mt-5"> {/* Added mt-5 to push menu 5% down */}
             {/* Início/Dashboard - Available to all users */}
             <SidebarMenuItem>
               <SidebarMenuButton 

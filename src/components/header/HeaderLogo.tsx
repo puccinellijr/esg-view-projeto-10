@@ -24,7 +24,7 @@ const HeaderLogo = ({ toggleSidebar, sidebarState }: HeaderLogoProps) => {
       {sidebarState === "collapsed" && (
         <div className="hidden md:flex items-center justify-center">
           <img 
-            src="/logo.png" 
+            src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
             alt="Odjell Terminals Logo" 
             className="h-10 w-auto object-contain" 
             loading="eager"

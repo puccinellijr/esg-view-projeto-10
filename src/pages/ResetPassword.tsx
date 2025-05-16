@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -90,7 +89,7 @@ export default function ResetPassword() {
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-sidebar to-sidebar/70 p-4">
       <Card className="w-full max-w-md bg-white/95 shadow-lg">
         <div className="flex justify-center p-6 border-b">
-          <img src="/logo.png" alt="Logo" className="h-16 object-contain" />
+          <img src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" alt="Logo" className="h-16 object-contain" />
         </div>
         <CardContent className="pt-6">
           {!isReset ? (
