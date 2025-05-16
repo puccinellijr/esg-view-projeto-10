@@ -56,8 +56,8 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
 
   // Add an animated icon wrapper with much slower animation
   const getIconWrapper = () => {
-    // Added 'duration-3000' for much slower animation (was 1000 before)
-    const iconClasses = "scale-125 transition-all duration-3000 animate-pulse shadow-lg rounded-full p-1";
+    // Added 'duration-5000' for much slower animation (even slower than before)
+    const iconClasses = "scale-125 transition-all duration-5000 animate-pulse shadow-xl rounded-full p-2 transform rotate-3d";
     
     switch (category) {
       case 'environmental':
@@ -80,13 +80,15 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
   return (
     <Card className={`shadow-lg border-t-4 ${getBorderColor()} min-h-[500px] flex flex-col overflow-hidden transition-transform hover:scale-[1.01]`}>
       <div className={`${getSoftBgColor()} p-4 w-full flex items-center gap-2`}>
-        {getIconWrapper()}
-        <h2 className="text-black font-bold text-xs">
+        <div className="transform perspective-1000 transition-transform duration-3000 hover:rotate-y-12">
+          {getIconWrapper()}
+        </div>
+        <h2 className="text-black font-bold text-[1.05em]">
           {title}
         </h2>
       </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xs font-medium text-black">
+        <CardTitle className="text-[1.05em] font-medium text-black">
           Indicadores {title.split(" ")[1]}
         </CardTitle>
       </CardHeader>

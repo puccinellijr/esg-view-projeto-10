@@ -11,6 +11,39 @@ interface IndicatorItemProps {
   onEdit: (indicator: Indicator) => void;
 }
 
+// Função para formatar o nome do indicador
+const formatIndicatorName = (name: string): string => {
+  // Substituir underscores por espaços
+  const nameWithSpaces = name.replace(/_/g, ' ');
+  
+  // Capitalizar primeira letra de cada palavra
+  return nameWithSpaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+// Casos especiais para nomes complexos
+const getSpecialFormattedName = (name: string): string => {
+  const specialNames: Record<string, string> = {
+    'litro_tm': 'Litro / TM',
+    'kg_tm': 'Kg / TM',
+    'kwh_tm': 'kWh / TM',
+    'litro_combustivel_tm': 'Litro Combustível / TM',
+    'residuo_tm': 'Resíduo / TM',
+    'incidente': 'Incidente',
+    'acidente': 'Acidente',
+    'denuncia_discriminacao': 'Denúncia Discriminação',
+    'mulher_trabalho': 'Mulheres no Trabalho',
+    'denuncia_corrupcao': 'Denúncia Corrupção',
+    'reclamacao_vizinho': 'Reclamação Vizinho',
+    'incidente_cibernetico': 'Incidente Cibernético',
+    'tonelada': 'Tonelada'
+  };
+
+  return specialNames[name] || formatIndicatorName(name);
+};
+
 const IndicatorItem: React.FC<IndicatorItemProps> = ({ 
   indicator, 
   isEditable, 
@@ -34,11 +67,22 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
     displayValue = calculatedValue.toFixed(4);
   }
   
+  // Obter nome formatado para exibição
+  const displayName = getSpecialFormattedName(indicator.name);
+  
   return (
     <div className="flex items-center gap-2">
-      {indicator.icon}
-      <span className="text-sm text-black">{indicator.name}</span>
-      <span className="ml-auto text-sm font-medium text-black">
+      {/* Ícone com efeito 3D mais atraente e animação mais lenta */}
+      <div className="transform transition-all duration-3000 hover:scale-110 animate-pulse">
+        <div className="p-1 rounded-lg shadow-lg bg-gradient-to-r">
+          {indicator.icon}
+        </div>
+      </div>
+      
+      {/* Nome do indicador com fonte 5% maior */}
+      <span className="text-[1.05em] text-black">{displayName}</span>
+      
+      <span className="ml-auto text-[1.05em] font-medium text-black">
         {displayValue}
         {indicator.category === 'environmental' && indicator.name !== 'tonelada' ? 
           <span className="text-xs text-gray-500 ml-1">/ton</span> : 
