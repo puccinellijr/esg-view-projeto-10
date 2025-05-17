@@ -143,6 +143,7 @@ export const createUserProfile = async (userData: UserData, password: string): P
 }> => {
   try {
     console.log('Criando novo usuário:', userData.email);
+    console.log('Dados completos do usuário:', JSON.stringify(userData));
     
     // First check if user already exists
     const userExists = await checkUserExists(userData.email);
@@ -176,12 +177,12 @@ export const createUserProfile = async (userData: UserData, password: string): P
       id: userId,
       email: userData.email,
       name: userData.name || userData.email.split('@')[0],
-      access_level: userData.accessLevel,
-      photo_url: userData.photoUrl,
-      terminal: userData.terminal
+      access_level: userData.accessLevel || 'viewer',
+      photo_url: userData.photoUrl || null,
+      terminal: userData.terminal || 'Rio Grande' // Ensure terminal has a default value
     };
     
-    console.log('Criando perfil de usuário:', profileData);
+    console.log('Criando perfil de usuário com dados:', profileData);
     
     // Check if a profile with this ID already exists
     const { data: existingProfile, error: checkError } = await supabase
@@ -202,9 +203,12 @@ export const createUserProfile = async (userData: UserData, password: string): P
     
     if (profileError) {
       console.error('Erro ao criar perfil do usuário:', profileError);
+      console.error('Detalhes do erro:', profileError.message, profileError.details);
+      
       // Try to cleanup the auth user if profile creation fails
       try {
         await supabase.auth.admin.deleteUser(userId);
+        console.log('Usuário de autenticação removido após falha na criação do perfil');
       } catch (e) {
         console.warn('Não foi possível limpar o usuário da autenticação após falha:', e);
       }

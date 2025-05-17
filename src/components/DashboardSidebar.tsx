@@ -45,7 +45,7 @@ const DashboardSidebar = () => {
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/lovable-uploads/b2f69cac-4f8c-4dcb-b91c-75d0f7d0274d.png" 
+                src="/lovable-uploads/logo-transparent.png" 
                 alt="Odjell Terminals Granel Química Logo" 
                 className="h-16 w-auto" 
                 onError={(e) => {
@@ -67,6 +67,7 @@ const DashboardSidebar = () => {
                 tooltip="Início" 
                 className={`hover:bg-gray-200 ${location.pathname === "/dashboard" ? "bg-gray-300" : ""}`}
                 onClick={() => handleNavigate('/dashboard')}
+                isActive={location.pathname === "/dashboard"}
               >
                 <Link 
                   to="/dashboard" 
@@ -85,6 +86,7 @@ const DashboardSidebar = () => {
                   asChild
                   tooltip="Formulário" 
                   className={`hover:bg-gray-200 ${location.pathname === "/operational-form" ? "bg-gray-300" : ""}`}
+                  isActive={location.pathname === "/operational-form"}
                 >
                   <Link to="/operational-form" className="text-gray-800">
                     <FileText />
@@ -97,7 +99,12 @@ const DashboardSidebar = () => {
             {/* Relatórios - Visible to all authenticated users */}
             {hasAccess('viewer') && (
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Relatórios" className={`hover:bg-gray-200 ${location.pathname === "/comparison" ? "bg-gray-300" : ""}`}>
+                <SidebarMenuButton 
+                  asChild 
+                  tooltip="Relatórios" 
+                  className={`hover:bg-gray-200 ${location.pathname === "/comparison" ? "bg-gray-300" : ""}`}
+                  isActive={location.pathname === "/comparison"}
+                >
                   <Link to="/comparison" className="text-gray-800">
                     <FileText />
                     <span>Relatórios</span>
@@ -114,6 +121,10 @@ const DashboardSidebar = () => {
                     tooltip="Configurações"
                     className="hover:bg-gray-200"
                     onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                    isActive={
+                      location.pathname === "/settings/user/create" || 
+                      location.pathname === "/settings/users"
+                    }
                   >
                     <Settings />
                     <span>Configurações</span>
@@ -159,6 +170,7 @@ const DashboardSidebar = () => {
                   tooltip="Configurações" 
                   className="hover:bg-gray-200"
                   onClick={() => setIsProfileOpen(true)}
+                  isActive={false}
                 >
                   <Settings />
                   <span>Configurações</span>
@@ -173,6 +185,7 @@ const DashboardSidebar = () => {
               tooltip="Sair"
               className="hover:bg-gray-200 text-gray-800 w-full"
               onClick={handleLogout}
+              isActive={false}
             >
               <LogOut />
               <span>Sair</span>

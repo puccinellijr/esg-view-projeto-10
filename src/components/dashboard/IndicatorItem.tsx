@@ -72,17 +72,17 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   
   return (
     <div className="flex items-center gap-2">
-      {/* Ícone com efeito 3D mais atraente e animação mais lenta */}
+      {/* Ícone com efeito 3D mais atraente e animação mais lenta - Aumentado em 30% */}
       <div className="transform transition-all duration-3000 hover:scale-110 animate-pulse">
-        <div className="p-1 rounded-lg shadow-lg bg-gradient-to-r">
-          {indicator.icon}
+        <div className="p-1 rounded-lg shadow-lg bg-gradient-to-r scale-130">
+          {React.cloneElement(indicator.icon as React.ReactElement, { size: 24 })}
         </div>
       </div>
       
-      {/* Nome do indicador com fonte 5% maior */}
-      <span className="text-[1.05em] text-black">{displayName}</span>
+      {/* Nome do indicador aumentado em 30% e em negrito */}
+      <span className="text-[1.3em] text-black font-bold">{displayName}</span>
       
-      <span className="ml-auto text-[1.05em] font-medium text-black">
+      <span className="ml-auto text-[1.3em] font-medium text-black">
         {displayValue}
         {indicator.category === 'environmental' && indicator.name !== 'tonelada' ? 
           <span className="text-xs text-gray-500 ml-1">/ton</span> : 

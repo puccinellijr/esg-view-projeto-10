@@ -132,6 +132,9 @@ export default {
 			transitionDuration: {
 				'3000': '3000ms',
 				'5000': '5000ms',
+			},
+			scale: {
+				'130': '1.3', // Add 30% scaling utility
 			}
 		}
 	},
