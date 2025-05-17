@@ -44,6 +44,20 @@ const getSpecialFormattedName = (name: string): string => {
   return specialNames[name] || formatIndicatorName(name);
 };
 
+// Get color based on indicator category
+const getCategoryColor = (category: string): string => {
+  switch(category) {
+    case 'environmental':
+      return 'bg-green-600 text-white';
+    case 'social':
+      return 'bg-red-600 text-white';
+    case 'governance':
+      return 'bg-blue-700 text-white'; // Matching header blue
+    default:
+      return 'bg-gray-600 text-white';
+  }
+};
+
 const IndicatorItem: React.FC<IndicatorItemProps> = ({ 
   indicator, 
   isEditable, 
@@ -70,13 +84,17 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   // Obter nome formatado para exibição
   const displayName = getSpecialFormattedName(indicator.name);
   
+  // Get category color
+  const categoryColor = getCategoryColor(indicator.category);
+  
   return (
     <div className="flex items-center gap-2">
-      {/* Ícone com efeito 3D mais atraente e animação mais lenta - Reduzido em 15% para mobile */}
+      {/* Ícone com efeito 3D colorido de acordo com a categoria */}
       <div className="transform transition-all duration-3000 hover:scale-110 animate-pulse">
-        <div className="p-1 rounded-lg shadow-lg bg-gradient-to-r md:scale-130 scale-[1.105]">
+        <div className={`p-1 rounded-lg shadow-lg ${categoryColor} md:scale-130 scale-[1.105]`}>
           {React.cloneElement(indicator.icon as React.ReactElement, { 
-            className: "md:size-6 size-5"
+            className: "md:size-6 size-5 fill-current",
+            fill: "currentColor" 
           })}
         </div>
       </div>

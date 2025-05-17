@@ -28,7 +28,9 @@ const HeaderLogo = ({ toggleSidebar, sidebarState }: HeaderLogoProps) => {
             alt="Odjell Terminals Logo" 
             className="h-10 w-auto object-contain" 
             loading="eager"
+            style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.1))' }}
             onError={(e) => {
+              console.error("Logo failed to load, using fallback");
               e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
             }} 
           />

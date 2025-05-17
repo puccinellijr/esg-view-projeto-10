@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight, LogOut } from 'lucide-react';
@@ -47,14 +46,17 @@ const DashboardSidebar = () => {
               <img 
                 src="/lovable-uploads/logo-transparent.png" 
                 alt="Odjell Terminals Granel Química Logo" 
-                className="h-16 w-auto" 
+                className="h-16 w-auto object-contain" 
+                style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.1))' }}
                 onError={(e) => {
+                  console.error("Logo failed to load, using fallback");
                   e.currentTarget.src = 'https://via.placeholder.com/150x80?text=Odjell+Terminals';
                 }} 
               />
             </div>
           )}
         </SidebarHeader>
+        
         <SidebarContent>
           {/* Added top banner in the sidebar content */}
           <div className="w-full h-[50px] bg-gray-200 mb-4"></div>

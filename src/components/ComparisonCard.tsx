@@ -89,13 +89,13 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     const iconSize = isMobile ? "h-4 w-4" : "h-5 w-5";
     switch (category) {
       case 'environmental':
-        return <Info className={`${iconSize} text-white`} />;
+        return <Info className={`${iconSize} text-white fill-white`} />;
       case 'governance':
-        return <ShieldAlert className={`${iconSize} text-white`} />;
+        return <ShieldAlert className={`${iconSize} text-white fill-white`} />;
       case 'social':
-        return <Users className={`${iconSize} text-white`} />;
+        return <Users className={`${iconSize} text-white fill-white`} />;
       default:
-        return <Info className={`${iconSize} text-white`} />;
+        return <Info className={`${iconSize} text-white fill-white`} />;
     }
   };
   
@@ -118,7 +118,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     setChartType(prev => prev === 'pie' ? 'bar' : 'pie');
   };
   
-  // Format period labels using month names if available
+  // Format period labels using month names instead of numbers
   const getPeriodLabel = (periodObj?: { month: string, year: string }) => {
     if (!periodObj) return "Período";
     return `${getMonthName(periodObj.month)}/${periodObj.year}`;
