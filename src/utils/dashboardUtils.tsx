@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Droplet, 
@@ -22,33 +21,33 @@ import { Indicator } from '@/hooks/useESGDashboardData';
 export const getIndicatorIcon = (name: string) => {
   switch (name) {
     case 'litro_tm':
-      return <Droplet size={18} className="text-blue-600" />; // Blue for water
+      return <Droplet size={18} className="text-blue-600" strokeWidth={0} fill="currentColor" />; // Blue filled water drop
     case 'kg_tm':
-      return <Weight size={18} className="text-purple-600" />; // Purple for weight
+      return <Weight size={18} className="text-purple-600" strokeWidth={0} fill="currentColor" />; // Purple filled weight
     case 'kwh_tm':
-      return <Zap size={18} className="text-yellow-500" />; // Yellow for energy
+      return <Zap size={18} className="text-yellow-500" strokeWidth={0} fill="currentColor" />; // Yellow filled energy
     case 'litro_combustivel_tm':
-      return <Fuel size={18} className="text-orange-600" />; // Orange for fuel
+      return <Fuel size={18} className="text-orange-600" strokeWidth={0} fill="currentColor" />; // Orange filled fuel
     case 'residuo_tm':
-      return <Percent size={18} className="text-green-600" />; // Green for waste
+      return <Percent size={18} className="text-green-600" strokeWidth={0} fill="currentColor" />; // Green filled waste
     case 'incidente':
-      return <AlertTriangle size={18} className="text-red-600" />; // Red for incidents
+      return <AlertTriangle size={18} className="text-red-600" strokeWidth={0} fill="currentColor" />; // Red filled incidents
     case 'acidente':
-      return <Bandage size={18} className="text-red-700" />; // Deep red for accidents
+      return <Bandage size={18} className="text-red-700" strokeWidth={0} fill="currentColor" />; // Deep red filled accidents
     case 'denuncia_discriminacao':
-      return <Users size={18} className="text-pink-600" />; // Pink for discrimination
+      return <Users size={18} className="text-pink-600" strokeWidth={0} fill="currentColor" />; // Pink filled discrimination
     case 'mulher_trabalho':
-      return <Handshake size={18} className="text-teal-600" />; // Teal for work relations
+      return <Handshake size={18} className="text-teal-600" strokeWidth={0} fill="currentColor" />; // Teal filled work relations
     case 'denuncia_corrupcao':
-      return <Gavel size={18} className="text-purple-700" />; // Deep purple for corruption
+      return <Gavel size={18} className="text-purple-700" strokeWidth={0} fill="currentColor" />; // Deep purple filled corruption
     case 'reclamacao_vizinho':
-      return <Bell size={18} className="text-amber-600" />; // Amber for complaints
+      return <Bell size={18} className="text-amber-600" strokeWidth={0} fill="currentColor" />; // Amber filled complaints
     case 'incidente_cibernetico':
-      return <Server size={18} className="text-indigo-600" />; // Indigo for cyber incidents
+      return <Server size={18} className="text-indigo-600" strokeWidth={0} fill="currentColor" />; // Indigo filled cyber incidents
     case 'tonelada':
-      return <TruckIcon size={18} className="text-gray-700" />; // Gray for tonnage
+      return <TruckIcon size={18} className="text-gray-700" strokeWidth={0} fill="currentColor" />; // Gray filled tonnage
     default:
-      return <Leaf size={18} className="text-green-600" />; // Green default
+      return <Leaf size={18} className="text-green-600" strokeWidth={0} fill="currentColor" />; // Green filled default
   }
 };
 

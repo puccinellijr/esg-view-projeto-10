@@ -62,33 +62,33 @@ const getCategoryColor = (category: string): string => {
 const getIndicatorColor = (name: string): string => {
   switch(name) {
     case 'litro_tm':
-      return 'text-blue-600 fill-blue-600'; // Blue for water
+      return 'text-blue-600'; // Blue for water
     case 'kg_tm':
-      return 'text-purple-600 fill-purple-600'; // Purple for weight
+      return 'text-purple-600'; // Purple for weight
     case 'kwh_tm':
-      return 'text-yellow-500 fill-yellow-500'; // Yellow for energy
+      return 'text-yellow-500'; // Yellow for energy
     case 'litro_combustivel_tm':
-      return 'text-orange-600 fill-orange-600'; // Orange for fuel
+      return 'text-orange-600'; // Orange for fuel
     case 'residuo_tm':
-      return 'text-green-600 fill-green-600'; // Green for waste
+      return 'text-green-600'; // Green for waste
     case 'incidente':
-      return 'text-red-600 fill-red-600'; // Red for incidents
+      return 'text-red-600'; // Red for incidents
     case 'acidente':
-      return 'text-red-700 fill-red-700'; // Deep red for accidents
+      return 'text-red-700'; // Deep red for accidents
     case 'denuncia_discriminacao':
-      return 'text-pink-600 fill-pink-600'; // Pink for discrimination
+      return 'text-pink-600'; // Pink for discrimination
     case 'mulher_trabalho':
-      return 'text-teal-600 fill-teal-600'; // Teal for work relations
+      return 'text-teal-600'; // Teal for work relations
     case 'denuncia_corrupcao':
-      return 'text-purple-700 fill-purple-700'; // Deep purple for corruption
+      return 'text-purple-700'; // Deep purple for corruption
     case 'reclamacao_vizinho':
-      return 'text-amber-600 fill-amber-600'; // Amber for complaints
+      return 'text-amber-600'; // Amber for complaints
     case 'incidente_cibernetico':
-      return 'text-indigo-600 fill-indigo-600'; // Indigo for cyber incidents
+      return 'text-indigo-600'; // Indigo for cyber incidents
     case 'tonelada':
-      return 'text-gray-700 fill-gray-700'; // Gray for tonnage
+      return 'text-gray-700'; // Gray for tonnage
     default:
-      return 'text-gray-600 fill-gray-600'; // Default fallback
+      return 'text-gray-600'; // Default fallback
   }
 };
 
@@ -118,22 +118,18 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   // Obter nome formatado para exibição
   const displayName = getSpecialFormattedName(indicator.name);
   
-  // Get category color
-  const categoryColor = getCategoryColor(indicator.category);
-  
   // Get indicator specific color
   const indicatorColor = getIndicatorColor(indicator.name);
   
   return (
     <div className="flex items-center gap-2">
-      {/* Ícone com efeito 3D colorido de acordo com o tipo de indicador */}
-      <div className="transform transition-all duration-3000 hover:scale-110 animate-pulse">
-        <div className={`p-1 rounded-lg shadow-lg ${categoryColor} md:scale-130 scale-[1.105]`}>
-          {React.cloneElement(indicator.icon as React.ReactElement, { 
-            className: `md:size-6 size-5 ${indicatorColor}`,
-            fill: "currentColor" 
-          })}
-        </div>
+      {/* Ícone sem background, apenas o símbolo com preenchimento interno */}
+      <div className="transform transition-all duration-3000 hover:scale-110">
+        {React.cloneElement(indicator.icon as React.ReactElement, { 
+          className: `md:size-6 size-5 ${indicatorColor}`,
+          fill: "currentColor",
+          strokeWidth: 0
+        })}
       </div>
       
       {/* Nome do indicador em negrito - Reduzido em 20% para mobile */}
