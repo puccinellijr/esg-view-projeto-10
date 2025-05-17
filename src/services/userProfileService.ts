@@ -155,12 +155,17 @@ export const createUserProfile = async (userData: UserData, password: string): P
       };
     }
     
-    // Then, create the auth user
+    // Then, create the auth user with complete data
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password: password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: {
+          name: userData.name,
+          access_level: userData.accessLevel || 'viewer',
+          terminal: userData.terminal || 'Rio Grande'
+        }
       }
     });
     
@@ -192,8 +197,20 @@ export const createUserProfile = async (userData: UserData, password: string): P
       .single();
       
     if (existingProfile) {
-      console.error('Já existe um perfil com este ID:', userId);
-      return { success: false, error: { message: 'Já existe um perfil com este ID.' }};
+      console.warn('Já existe um perfil com este ID:', userId);
+      // Instead of failing, update the profile
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update(profileData)
+        .eq('id', userId);
+        
+      if (updateError) {
+        console.error('Erro ao atualizar perfil existente:', updateError);
+        return { success: false, error: updateError };
+      }
+      
+      console.log('Perfil existente atualizado com sucesso');
+      return { success: true, userId };
     }
     
     // Create the profile
@@ -205,14 +222,24 @@ export const createUserProfile = async (userData: UserData, password: string): P
       console.error('Erro ao criar perfil do usuário:', profileError);
       console.error('Detalhes do erro:', profileError.message, profileError.details);
       
-      // Try to cleanup the auth user if profile creation fails
-      try {
-        await supabase.auth.admin.deleteUser(userId);
-        console.log('Usuário de autenticação removido após falha na criação do perfil');
-      } catch (e) {
-        console.warn('Não foi possível limpar o usuário da autenticação após falha:', e);
+      // Retry with upsert strategy
+      console.log('Tentando upsert como alternativa...');
+      const { error: upsertError } = await supabase
+        .from('user_profiles')
+        .upsert([profileData]);
+        
+      if (upsertError) {
+        console.error('Erro no upsert do perfil:', upsertError);
+        
+        // Try to cleanup the auth user if profile creation fails
+        try {
+          await supabase.auth.admin.deleteUser(userId);
+          console.log('Usuário de autenticação removido após falha na criação do perfil');
+        } catch (e) {
+          console.warn('Não foi possível limpar o usuário da autenticação após falha:', e);
+        }
+        return { success: false, error: upsertError };
       }
-      return { success: false, error: profileError };
     }
     
     console.log('Perfil de usuário criado com sucesso');

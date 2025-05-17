@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ interface UserProfileModalProps {
 const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const { user, updateUserProfile } = useAuth();
   const isMobile = useIsMobile();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +31,6 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   
   // Initialize form values when the modal opens or user changes
   useEffect(() => {
@@ -42,36 +42,53 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
     }
   }, [user, isOpen]);
   
+  // Clean up camera stream when component unmounts or modal closes
   useEffect(() => {
-    // Clean up camera stream when modal closes
     return () => {
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
+        setCameraStream(null);
       }
     };
   }, [cameraStream]);
 
+  // Clean up camera when modal closes
+  useEffect(() => {
+    if (!isOpen && cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+      setIsCameraActive(false);
+    }
+  }, [isOpen, cameraStream]);
+
   // Handle starting the camera
   const handleStartCamera = async () => {
     try {
+      console.log("Tentando acessar câmera...");
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: "user" }
       });
+      
       setCameraStream(stream);
       setIsCameraActive(true);
       
-      // Wait for the video element to be ready in the next render
+      // Wait for the next render cycle before attaching the stream to the video element
       setTimeout(() => {
-        if (videoRef) {
-          videoRef.srcObject = stream;
-          videoRef.play();
+        if (videoRef.current) {
+          console.log("Configurando elemento de vídeo");
+          videoRef.current.srcObject = stream;
+          videoRef.current.play()
+            .then(() => console.log("Reprodução de vídeo iniciada"))
+            .catch(err => console.error("Erro ao iniciar reprodução de vídeo:", err));
+        } else {
+          console.error("Elemento de vídeo não encontrado");
         }
       }, 100);
     } catch (error) {
       console.error("Error accessing camera:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível acessar a câmera",
+        description: "Não foi possível acessar a câmera. Verifique as permissões do navegador.",
         variant: "destructive"
       });
     }
@@ -79,21 +96,40 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   // Handle taking a picture
   const handleTakePicture = () => {
-    if (!videoRef) return;
+    console.log("Tentando capturar foto...");
+    if (!videoRef.current) {
+      console.error("Elemento de vídeo não encontrado ao capturar foto");
+      return;
+    }
     
     try {
       // Create a canvas with the video dimensions
       const canvas = document.createElement("canvas");
-      canvas.width = videoRef.videoWidth;
-      canvas.height = videoRef.videoHeight;
+      const videoElement = videoRef.current;
+      
+      // Check if video dimensions are available
+      if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+        console.error("Dimensões de vídeo indisponíveis:", videoElement.videoWidth, videoElement.videoHeight);
+        toast({
+          title: "Erro",
+          description: "A câmera não está pronta. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log("Dimensões do vídeo:", videoElement.videoWidth, "x", videoElement.videoHeight);
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
       
       // Draw the current frame from video to canvas
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.drawImage(videoRef, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
         
         // Convert canvas to base64 image data URL
         const imageDataUrl = canvas.toDataURL("image/jpeg");
+        console.log("Imagem capturada com sucesso, tamanho:", imageDataUrl.length);
         setPhotoUrl(imageDataUrl);
         
         // Stop the camera stream
@@ -103,6 +139,8 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         }
         
         setIsCameraActive(false);
+      } else {
+        console.error("Contexto de canvas não disponível");
       }
     } catch (error) {
       console.error("Error taking picture:", error);
@@ -116,8 +154,12 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   
   // Handle stopping the camera
   const handleStopCamera = () => {
+    console.log("Parando câmera...");
     if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream.getTracks().forEach(track => {
+        track.stop();
+        console.log("Track parada:", track.kind, track.readyState);
+      });
       setCameraStream(null);
     }
     setIsCameraActive(false);
@@ -217,10 +259,11 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
             <div className="flex flex-col items-center">
               <div className="relative w-full h-48 bg-gray-200 rounded-md overflow-hidden">
                 <video 
-                  ref={ref => setVideoRef(ref)}
+                  ref={videoRef}
                   className="w-full h-full object-cover"
                   autoPlay 
                   playsInline
+                  muted
                 />
               </div>
               
