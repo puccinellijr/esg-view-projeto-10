@@ -58,6 +58,40 @@ const getCategoryColor = (category: string): string => {
   }
 };
 
+// Get specific icon colors based on indicator name
+const getIndicatorColor = (name: string): string => {
+  switch(name) {
+    case 'litro_tm':
+      return 'text-blue-600 fill-blue-600'; // Blue for water
+    case 'kg_tm':
+      return 'text-purple-600 fill-purple-600'; // Purple for weight
+    case 'kwh_tm':
+      return 'text-yellow-500 fill-yellow-500'; // Yellow for energy
+    case 'litro_combustivel_tm':
+      return 'text-orange-600 fill-orange-600'; // Orange for fuel
+    case 'residuo_tm':
+      return 'text-green-600 fill-green-600'; // Green for waste
+    case 'incidente':
+      return 'text-red-600 fill-red-600'; // Red for incidents
+    case 'acidente':
+      return 'text-red-700 fill-red-700'; // Deep red for accidents
+    case 'denuncia_discriminacao':
+      return 'text-pink-600 fill-pink-600'; // Pink for discrimination
+    case 'mulher_trabalho':
+      return 'text-teal-600 fill-teal-600'; // Teal for work relations
+    case 'denuncia_corrupcao':
+      return 'text-purple-700 fill-purple-700'; // Deep purple for corruption
+    case 'reclamacao_vizinho':
+      return 'text-amber-600 fill-amber-600'; // Amber for complaints
+    case 'incidente_cibernetico':
+      return 'text-indigo-600 fill-indigo-600'; // Indigo for cyber incidents
+    case 'tonelada':
+      return 'text-gray-700 fill-gray-700'; // Gray for tonnage
+    default:
+      return 'text-gray-600 fill-gray-600'; // Default fallback
+  }
+};
+
 const IndicatorItem: React.FC<IndicatorItemProps> = ({ 
   indicator, 
   isEditable, 
@@ -87,22 +121,25 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   // Get category color
   const categoryColor = getCategoryColor(indicator.category);
   
+  // Get indicator specific color
+  const indicatorColor = getIndicatorColor(indicator.name);
+  
   return (
     <div className="flex items-center gap-2">
-      {/* Ícone com efeito 3D colorido de acordo com a categoria */}
+      {/* Ícone com efeito 3D colorido de acordo com o tipo de indicador */}
       <div className="transform transition-all duration-3000 hover:scale-110 animate-pulse">
         <div className={`p-1 rounded-lg shadow-lg ${categoryColor} md:scale-130 scale-[1.105]`}>
           {React.cloneElement(indicator.icon as React.ReactElement, { 
-            className: "md:size-6 size-5 fill-current",
+            className: `md:size-6 size-5 ${indicatorColor}`,
             fill: "currentColor" 
           })}
         </div>
       </div>
       
-      {/* Nome do indicador em negrito - Reduzido em 15% para mobile */}
-      <span className="md:text-[1.3em] text-[1.105em] text-black font-bold">{displayName}</span>
+      {/* Nome do indicador em negrito - Reduzido em 20% para mobile */}
+      <span className="md:text-[1.3em] text-[0.88em] text-black font-bold">{displayName}</span>
       
-      <span className="ml-auto md:text-[1.3em] text-[1.105em] font-medium text-black">
+      <span className="ml-auto md:text-[1.3em] text-[0.88em] font-medium text-black">
         {displayValue}
         {indicator.category === 'environmental' && indicator.name !== 'tonelada' ? 
           <span className="text-xs text-gray-500 ml-1">/ton</span> : 
