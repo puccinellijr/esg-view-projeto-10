@@ -110,7 +110,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   return (
     <main className="flex-1 bg-gray-50">
       <h1 className="text-2xl font-semibold mb-6 text-black">
-        Visão Geral - Terminal {selectedTerminal} - {getMonthName(selectedMonth)}/{selectedYear}
+        Resumo - Terminal {selectedTerminal}
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

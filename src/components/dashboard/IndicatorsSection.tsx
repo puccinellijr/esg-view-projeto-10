@@ -26,17 +26,17 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
   tonnage,
   onEdit
 }) => {
-  // Get vibrant background color for each category
+  // Get stronger background color for each category
   const getSoftBgColor = () => {
     switch (category) {
       case 'environmental':
-        return 'bg-green-100'; // Vibrant green
+        return 'bg-green-200'; // Stronger green
       case 'social':
-        return 'bg-red-100'; // Vibrant red
+        return 'bg-red-200'; // Stronger red
       case 'governance':
-        return 'bg-blue-100'; // Vibrant blue
+        return 'bg-blue-200'; // Stronger blue
       default:
-        return `bg-${bgColorClass}-100`;
+        return `bg-${bgColorClass}-200`;
     }
   };
 
@@ -44,11 +44,11 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
   const getBorderColor = () => {
     switch (category) {
       case 'environmental':
-        return 'border-green-600'; // Vibrant green
+        return 'border-green-700'; // Stronger green
       case 'social':
-        return 'border-red-600'; // Strong red - now uses a stronger red
+        return 'border-red-700'; // Stronger red
       case 'governance':
-        return 'border-sidebar'; // Header blue - uses the same blue as the header
+        return 'border-blue-800'; // Stronger blue
       default:
         return `border-${bgColorClass}`;
     }
@@ -62,15 +62,15 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
     switch (category) {
       case 'environmental':
         return React.cloneElement(iconComponent as React.ReactElement, {
-          className: `${iconClasses} text-white bg-gradient-to-br from-green-500 to-green-700`
+          className: `${iconClasses} text-white bg-gradient-to-br from-green-600 to-green-800`
         });
       case 'social':
         return React.cloneElement(iconComponent as React.ReactElement, {
-          className: `${iconClasses} text-white bg-gradient-to-br from-red-600 to-red-800`
+          className: `${iconClasses} text-white bg-gradient-to-br from-red-700 to-red-900`
         });
       case 'governance':
         return React.cloneElement(iconComponent as React.ReactElement, {
-          className: `${iconClasses} text-white bg-gradient-to-br from-sidebar to-blue-700`
+          className: `${iconClasses} text-white bg-gradient-to-br from-blue-700 to-blue-900`
         });
       default:
         return iconComponent;
