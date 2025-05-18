@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -16,6 +15,7 @@ interface UserProfileModalProps {
   onClose: () => void;
 }
 
+// Component implementation starts here
 const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   const { user, updateUserProfile } = useAuth();
   const isMobile = useIsMobile();
@@ -187,6 +187,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         ...(newPassword ? { password: newPassword } : {})
       });
       
+      // Atualizar usuário incluindo todos os dados necessários
       const updated = await updateUserProfile({
         name,
         photoUrl,

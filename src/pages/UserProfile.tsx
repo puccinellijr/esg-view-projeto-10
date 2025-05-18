@@ -47,6 +47,7 @@ const UserProfile = () => {
         ...(newPassword ? { password: newPassword } : {})
       });
       
+      // Garantir que a senha seja enviada para atualização quando preenchida
       const success = await updateUserProfile({
         name,
         photoUrl,

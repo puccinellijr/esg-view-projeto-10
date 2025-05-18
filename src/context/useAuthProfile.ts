@@ -37,6 +37,7 @@ export function useAuthProfile() {
             name: data.name || prev.name,
             photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
             terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
+            email: data.email || prev.email,
           };
         });
         return true;
