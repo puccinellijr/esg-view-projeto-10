@@ -2,6 +2,7 @@
 import React from 'react';
 import ComparisonCard from './ComparisonCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getMonthName } from '@/utils/dashboardUtils';
 
 interface ComparisonSectionProps {
   title: string;
@@ -59,6 +60,13 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
     }
   };
   
+  // Format the period display (month/year)
+  const formatPeriod = (period?: { month: string; year: string }) => {
+    if (!period) return "";
+    const monthName = getMonthName(period.month);
+    return `${monthName}/${period.year}`;
+  };
+  
   return (
     <div className={`mt-6 sm:mt-10 mb-6 sm:mb-12 py-4 sm:py-8 px-2 sm:px-4 rounded-lg ${getSectionBgColor()} shadow-md`}>
       <div className="text-center mb-4 sm:mb-6">
@@ -76,8 +84,8 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
         <div className="text-center mb-4 p-3 bg-white rounded-lg shadow-sm max-w-xs mx-auto">
           <h3 className="font-semibold mb-1">Tonelada movimentada:</h3>
           <div className="flex justify-between items-center text-sm">
-            <span>{period1 ? `${period1.month}/${period1.year}` : "Período 1"}: {tonnage.value1.toLocaleString('pt-BR')}</span>
-            <span>{period2 ? `${period2.month}/${period2.year}` : "Período 2"}: {tonnage.value2.toLocaleString('pt-BR')}</span>
+            <span>{formatPeriod(period1)}: {tonnage.value1.toLocaleString('pt-BR')}</span>
+            <span>{formatPeriod(period2)}: {tonnage.value2.toLocaleString('pt-BR')}</span>
           </div>
         </div>
       )}

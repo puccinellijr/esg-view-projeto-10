@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, ChevronDown, Users, UserPlus, ChevronRight, LogOut } from 'lucide-react';
@@ -44,7 +45,7 @@ const DashboardSidebar = () => {
           {state !== "collapsed" && (
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/lovable-uploads/logo-transparent.png" 
+                src="/lovable-uploads/d0c76e1c-80a6-43a5-9e7f-f2938dad990a.png" 
                 alt="Odjell Terminals Granel Química Logo" 
                 className="h-16 w-auto object-contain" 
                 style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.1))' }}

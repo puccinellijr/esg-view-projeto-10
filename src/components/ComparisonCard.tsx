@@ -39,6 +39,7 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
   };
   
   // Calcular valores para exibição, considerando divisão por tonelada para indicadores ambientais
+  // e formato sem casas decimais para governança e social
   const getDisplayValues = () => {
     // Se for um indicador ambiental e tiver tonelagem disponível
     if (
@@ -53,6 +54,15 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
         display1: (value1 / tonnage1).toFixed(4),
         display2: (value2 / tonnage2).toFixed(4),
         perTon: true
+      };
+    }
+    
+    // Para governança e social, exibir sem casas decimais
+    if (category === 'governance' || category === 'social') {
+      return {
+        display1: value1.toLocaleString('pt-BR', { maximumFractionDigits: 0 }),
+        display2: value2.toLocaleString('pt-BR', { maximumFractionDigits: 0 }),
+        perTon: false
       };
     }
     
@@ -118,10 +128,11 @@ const ComparisonCard: React.FC<ComparisonCardProps> = ({
     setChartType(prev => prev === 'pie' ? 'bar' : 'pie');
   };
   
-  // Format period labels using month names instead of numbers
+  // Format period labels using month names
   const getPeriodLabel = (periodObj?: { month: string, year: string }) => {
     if (!periodObj) return "Período";
-    return `${getMonthName(periodObj.month)}/${periodObj.year}`;
+    const monthName = getMonthName(periodObj.month);
+    return `${monthName}/${periodObj.year}`;
   };
   
   // Get formatted title
