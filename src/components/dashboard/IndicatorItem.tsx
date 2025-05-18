@@ -123,10 +123,10 @@ const IndicatorItem: React.FC<IndicatorItemProps> = ({
   
   return (
     <div className="flex items-center gap-2">
-      {/* Ícone sem background, apenas o símbolo com preenchimento interno */}
+      {/* Ícone sem background, apenas o símbolo com preenchimento interno - Aumentado em 20% */}
       <div className="transform transition-all duration-3000 hover:scale-110">
         {React.cloneElement(indicator.icon as React.ReactElement, { 
-          className: `md:size-6 size-5 ${indicatorColor}`,
+          className: `md:size-7 size-6 ${indicatorColor}`,
           fill: "currentColor",
           strokeWidth: 0
         })}
