@@ -141,7 +141,14 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
         {/* Environmental Summary */}
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="pt-4 sm:pt-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-center text-green-800">Ambiental</h3>
+            <div className="flex justify-between items-center mb-2 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-green-800">Ambiental</h3>
+              <div className="flex items-center space-x-1">
+                <img src="/lovable-uploads/daaf77d8-285e-4892-ad63-61484f3108e8.png" alt="SDG 3" className="h-5 w-auto" />
+                <img src="/lovable-uploads/bce0c470-9644-4b88-b89d-6ea778402830.png" alt="SDG 13" className="h-5 w-auto" />
+                <img src="/lovable-uploads/7accd2c6-e11c-4fb6-bda7-cff1b7f4279e.png" alt="SDG 7" className="h-5 w-auto" />
+              </div>
+            </div>
             <div className="h-32 sm:h-40">
               <Chart3D 
                 type="bar" 
@@ -156,7 +163,14 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
         {/* Social Summary */}
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="pt-4 sm:pt-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-center text-blue-800">Social</h3>
+            <div className="flex justify-between items-center mb-2 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-blue-800">Social</h3>
+              <div className="flex items-center space-x-1">
+                <img src="/lovable-uploads/1f81be8b-af8c-4907-8a8d-11630da5dc59.png" alt="SDG 8" className="h-5 w-auto" />
+                <img src="/lovable-uploads/44de5bfe-6035-4a7a-8c6c-40bba940c3aa.png" alt="SDG 12" className="h-5 w-auto" />
+                <img src="/lovable-uploads/28d930c2-0955-408a-bb2d-52d31f204e3d.png" alt="SDG 9" className="h-5 w-auto" />
+              </div>
+            </div>
             <div className="h-32 sm:h-40">
               <Chart3D 
                 type="bar" 
@@ -171,7 +185,12 @@ const KPISummarySection = ({ esgData, period1, period2 }: KPISummarySectionProps
         {/* Governance Summary */}
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardContent className="pt-4 sm:pt-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-center text-purple-800">Governança</h3>
+            <div className="flex justify-between items-center mb-2 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-purple-800">Governança</h3>
+              <div className="flex items-center">
+                <img src="/lovable-uploads/9296c21d-78f0-4f74-9479-31137ced4df5.png" alt="SDG 16" className="h-5 w-auto" />
+              </div>
+            </div>
             <div className="h-32 sm:h-40">
               <Chart3D 
                 type="bar" 

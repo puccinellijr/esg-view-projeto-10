@@ -76,16 +76,50 @@ const IndicatorsSection: React.FC<IndicatorsSectionProps> = ({
         return iconComponent;
     }
   };
+  
+  // Get SDG icons for each category
+  const getSDGIcons = () => {
+    switch (category) {
+      case 'environmental':
+        return (
+          <div className="flex items-center space-x-1">
+            <img src="/lovable-uploads/daaf77d8-285e-4892-ad63-61484f3108e8.png" alt="SDG 3" className="h-8 w-auto" />
+            <img src="/lovable-uploads/bce0c470-9644-4b88-b89d-6ea778402830.png" alt="SDG 13" className="h-8 w-auto" />
+            <img src="/lovable-uploads/7accd2c6-e11c-4fb6-bda7-cff1b7f4279e.png" alt="SDG 7" className="h-8 w-auto" />
+          </div>
+        );
+      case 'social':
+        return (
+          <div className="flex items-center space-x-1">
+            <img src="/lovable-uploads/1f81be8b-af8c-4907-8a8d-11630da5dc59.png" alt="SDG 8" className="h-8 w-auto" />
+            <img src="/lovable-uploads/44de5bfe-6035-4a7a-8c6c-40bba940c3aa.png" alt="SDG 12" className="h-8 w-auto" />
+            <img src="/lovable-uploads/28d930c2-0955-408a-bb2d-52d31f204e3d.png" alt="SDG 9" className="h-8 w-auto" />
+          </div>
+        );
+      case 'governance':
+        return (
+          <div className="flex items-center">
+            <img src="/lovable-uploads/9296c21d-78f0-4f74-9479-31137ced4df5.png" alt="SDG 16" className="h-8 w-auto" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Card className={`shadow-lg border-t-4 ${getBorderColor()} min-h-[500px] flex flex-col overflow-hidden transition-transform hover:scale-[1.01]`}>
-      <div className={`${getSoftBgColor()} p-4 w-full flex items-center gap-2`}>
-        <div className="transform perspective-1000 transition-transform duration-3000 hover:rotate-y-12">
-          {getIconWrapper()}
+      <div className={`${getSoftBgColor()} p-4 w-full flex items-center justify-between`}>
+        <div className="flex items-center gap-2">
+          <div className="transform perspective-1000 transition-transform duration-3000 hover:rotate-y-12">
+            {getIconWrapper()}
+          </div>
+          <h2 className="text-black font-bold text-[1.05em]">
+            {title}
+          </h2>
         </div>
-        <h2 className="text-black font-bold text-[1.05em]">
-          {title}
-        </h2>
+        {/* SDG Icons aligned to the right */}
+        {getSDGIcons()}
       </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-[1.05em] font-medium text-black">

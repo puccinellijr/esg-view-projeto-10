@@ -67,10 +67,43 @@ const ComparisonSection: React.FC<ComparisonSectionProps> = ({
     return `${monthName}/${period.year}`;
   };
   
+  // Get SDG icons for each category
+  const getCategorySDGIcons = () => {
+    switch (category) {
+      case 'environmental':
+        return (
+          <div className="flex items-center justify-center space-x-1 mt-2">
+            <img src="/lovable-uploads/daaf77d8-285e-4892-ad63-61484f3108e8.png" alt="SDG 3" className="h-6 w-auto" />
+            <img src="/lovable-uploads/bce0c470-9644-4b88-b89d-6ea778402830.png" alt="SDG 13" className="h-6 w-auto" />
+            <img src="/lovable-uploads/7accd2c6-e11c-4fb6-bda7-cff1b7f4279e.png" alt="SDG 7" className="h-6 w-auto" />
+          </div>
+        );
+      case 'social':
+        return (
+          <div className="flex items-center justify-center space-x-1 mt-2">
+            <img src="/lovable-uploads/1f81be8b-af8c-4907-8a8d-11630da5dc59.png" alt="SDG 8" className="h-6 w-auto" />
+            <img src="/lovable-uploads/44de5bfe-6035-4a7a-8c6c-40bba940c3aa.png" alt="SDG 12" className="h-6 w-auto" />
+            <img src="/lovable-uploads/28d930c2-0955-408a-bb2d-52d31f204e3d.png" alt="SDG 9" className="h-6 w-auto" />
+          </div>
+        );
+      case 'governance':
+        return (
+          <div className="flex items-center justify-center mt-2">
+            <img src="/lovable-uploads/9296c21d-78f0-4f74-9479-31137ced4df5.png" alt="SDG 16" className="h-6 w-auto" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+  
   return (
     <div className={`mt-6 sm:mt-10 mb-6 sm:mb-12 py-4 sm:py-8 px-2 sm:px-4 rounded-lg ${getSectionBgColor()} shadow-md`}>
       <div className="text-center mb-4 sm:mb-6">
-        <h2 className={`text-xl sm:text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
+        <div className="flex items-center justify-center">
+          <h2 className={`text-xl sm:text-2xl font-bold ${getSectionTitleColor()}`}>{title}</h2>
+        </div>
+        {getCategorySDGIcons()}
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
           Compare os valores entre os períodos selecionados
           {category === 'environmental' && tonnage && (
