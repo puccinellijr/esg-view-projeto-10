@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { 
   Droplet, 
   Weight, 
   Zap, 
   Fuel, 
-  Percent, 
+  Trash2, 
   AlertTriangle, 
   Bandage, 
   Users, 
   Handshake, 
-  Gavel, 
+  ShieldAlert, 
   Bell,
   Server,
   Leaf,
@@ -29,7 +30,7 @@ export const getIndicatorIcon = (name: string) => {
     case 'litro_combustivel_tm':
       return <Fuel size={18} className="text-orange-600" strokeWidth={0} fill="currentColor" />; // Orange filled fuel
     case 'residuo_tm':
-      return <Percent size={18} className="text-green-600" strokeWidth={0} fill="currentColor" />; // Green filled waste
+      return <Trash2 size={18} className="text-green-600" strokeWidth={0} fill="currentColor" />; // Green filled waste (changed from Percent to Trash2)
     case 'incidente':
       return <AlertTriangle size={18} className="text-red-600" strokeWidth={0} fill="currentColor" />; // Red filled incidents
     case 'acidente':
@@ -39,7 +40,7 @@ export const getIndicatorIcon = (name: string) => {
     case 'mulher_trabalho':
       return <Handshake size={18} className="text-teal-600" strokeWidth={0} fill="currentColor" />; // Teal filled work relations
     case 'denuncia_corrupcao':
-      return <Gavel size={18} className="text-purple-700" strokeWidth={0} fill="currentColor" />; // Deep purple filled corruption
+      return <ShieldAlert size={18} className="text-purple-700" strokeWidth={0} fill="currentColor" />; // Deep purple filled corruption (changed from Gavel to ShieldAlert)
     case 'reclamacao_vizinho':
       return <Bell size={18} className="text-amber-600" strokeWidth={0} fill="currentColor" />; // Amber filled complaints
     case 'incidente_cibernetico':
