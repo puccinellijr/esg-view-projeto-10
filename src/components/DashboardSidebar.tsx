@@ -18,7 +18,7 @@ import {
   SidebarSeparator
 } from "@/components/ui/sidebar";
 import { toast } from 'sonner';
-import UserProfileModal from "@/components/UserProfileModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 const DashboardSidebar = () => {
   const { user, hasAccess, logout } = useAuth();

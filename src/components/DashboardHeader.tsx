@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,7 +5,7 @@ import HeaderLogo from "./header/HeaderLogo";
 import WelcomeMessage from "./header/WelcomeMessage";
 import UserAvatar from "./header/UserAvatar";
 import { useState } from "react";
-import UserProfileModal from "@/components/UserProfileModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 const DashboardHeader = () => {
   const { user } = useAuth();
