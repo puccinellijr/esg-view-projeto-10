@@ -81,33 +81,10 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
     // Update password if provided - usando Auth API
     if (data.password) {
       console.log('Atualizando senha do usuário via Auth API');
-      
-      // Se a senha atual foi fornecida, primeiro verifique-a
-      if (data.currentPassword) {
-        // Verificar a senha atual
-        try {
-          // Tentar fazer login com as credenciais atuais para verificar a senha
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: userEmail,
-            password: data.currentPassword,
-          });
-          
-          if (signInError) {
-            console.error('Senha atual incorreta:', signInError);
-            return { success: false, error: { message: 'Senha atual incorreta' } };
-          }
-          
-          console.log('Senha atual verificada com sucesso');
-        } catch (verifyError) {
-          console.error('Erro ao verificar senha atual:', verifyError);
-          return { success: false, error: { message: 'Erro ao verificar senha atual' } };
-        }
-      }
-      
-      // Atualizar a senha - usando updateUser em vez de admin.updateUserById
-      const { error: authError } = await supabase.auth.updateUser({
-        password: data.password
-      });
+      const { error: authError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { password: data.password }
+      );
       
       if (authError) {
         console.error('Erro ao atualizar senha:', authError);
@@ -120,11 +97,10 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
     // Update email if provided (will update in both auth and user_profiles)
     if (data.email && data.email !== userEmail) {
       console.log('Atualizando email do usuário de', userEmail, 'para', data.email);
-      
-      // Use updateUser instead of admin.updateUserById which requires special permissions
-      const { error: emailError } = await supabase.auth.updateUser({ 
-        email: data.email 
-      });
+      const { error: emailError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { email: data.email }
+      );
       
       if (emailError) {
         console.error('Erro ao atualizar email:', emailError);

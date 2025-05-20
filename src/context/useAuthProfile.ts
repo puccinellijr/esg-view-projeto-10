@@ -35,7 +35,7 @@ export const useAuthProfile = () => {
       }
       
       if (success) {
-        // Update local state with the new data
+        // Update local state
         setUser(prev => {
           if (!prev) return null;
           return {
@@ -43,7 +43,7 @@ export const useAuthProfile = () => {
             name: data.name || prev.name,
             photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
             terminal: data.terminal === "none" ? null : (data.terminal !== undefined ? data.terminal : prev.terminal),
-            // Don't update email through this function as it requires special verification
+            email: data.email || prev.email,
           };
         });
         return true;

@@ -42,13 +42,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     
     if (newPassword && newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    
-    // If trying to change password but current password is not provided
-    if (newPassword && !currentPassword) {
-      toast.error("É necessário fornecer a senha atual para alterar a senha");
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -59,18 +57,15 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
         name,
         photoUrl,
         terminal: terminal === "none" ? null : terminal,
-        ...(newPassword ? { password: newPassword, currentPassword } : {})
+        ...(newPassword ? { password: newPassword } : {})
       });
       
-      // Incluir senha atual quando a nova senha for fornecida
+      // Atualizar usuário incluindo todos os dados necessários
       const updated = await updateUserProfile({
         name,
         photoUrl,
         terminal: terminal === "none" ? null : terminal,
-        ...(newPassword ? { 
-          password: newPassword,
-          currentPassword // Adicionar a senha atual para verificação
-        } : {})
+        ...(newPassword ? { password: newPassword } : {}),
       });
       
       if (updated) {
@@ -81,11 +76,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
         setConfirmPassword("");
         onClose();
       } else {
-        toast.error("Erro ao atualizar perfil. Verifique os dados e tente novamente.");
+        toast.error("Erro ao atualizar perfil");
       }
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
-      toast.error("Erro ao atualizar perfil. Por favor, tente novamente.");
+      toast.error("Erro ao atualizar perfil");
     } finally {
       setIsLoading(false);
     }
