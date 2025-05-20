@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -42,11 +41,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     
     if (newPassword && newPassword !== confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive"
-      });
+      // Fix: Using toast directly instead of passing a title property
+      toast.error("As senhas não coincidem");
       return;
     }
     
