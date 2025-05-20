@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Camera, Upload } from "lucide-react";
 
 interface ImageUploadProps {
   value: string;
@@ -17,7 +16,6 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: ImageUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(value || defaultImage || "");
 
   const getInitials = (name?: string, email?: string) => {
@@ -58,12 +56,8 @@ const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: 
     reader.readAsDataURL(file);
   };
 
-  const handleFileButtonClick = () => {
+  const handleButtonClick = () => {
     fileInputRef.current?.click();
-  };
-
-  const handleCameraButtonClick = () => {
-    cameraInputRef.current?.click();
   };
 
   return (
@@ -83,36 +77,14 @@ const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: 
         className="hidden"
       />
       
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        ref={cameraInputRef}
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      
-      <div className="flex gap-2 mt-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={handleFileButtonClick}
-          size="sm"
-          className="flex gap-1"
-        >
-          <Upload size={16} /> Arquivo
-        </Button>
-        
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={handleCameraButtonClick}
-          size="sm"
-          className="flex gap-1"
-        >
-          <Camera size={16} /> Câmera
-        </Button>
-      </div>
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={handleButtonClick}
+        className="mt-2"
+      >
+        {previewUrl ? "Alterar Foto" : "Adicionar Foto"}
+      </Button>
     </div>
   );
 };

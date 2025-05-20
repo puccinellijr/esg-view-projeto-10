@@ -16,7 +16,6 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import ImageUpload from '@/components/ImageUpload';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -58,8 +57,7 @@ const ManageUsers = () => {
   const handleEditUser = (user: any) => {
     setSelectedUser({
       ...user,
-      terminal: user.terminal || "none", // Ensure terminal has a value
-      photoUrl: user.photoUrl || "" // Ensure photoUrl has a value
+      terminal: user.terminal || "none" // Ensure terminal has a value
     });
     setIsEditDialogOpen(true);
     setNewPassword("");
@@ -118,19 +116,16 @@ const ManageUsers = () => {
       }
       
       // Update the user terminal if it changed
-      if (selectedUser.terminal !== undefined || selectedUser.photoUrl !== undefined) {
-        console.log(`Atualizando dados adicionais do usuário: terminal: ${selectedUser.terminal}, photoUrl: ${selectedUser.photoUrl}`);
-        const { error: updateError } = await supabase
+      if (selectedUser.terminal !== undefined) {
+        console.log(`Atualizando terminal do usuário para: ${selectedUser.terminal}`);
+        const { error: terminalError } = await supabase
           .from('user_profiles')
-          .update({ 
-            terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal,
-            photo_url: selectedUser.photoUrl || null
-          })
+          .update({ terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal })
           .eq('id', selectedUser.id);
           
-        if (updateError) {
-          console.error('Erro ao atualizar dados do usuário:', updateError);
-          toast.error('Erro ao atualizar dados do usuário');
+        if (terminalError) {
+          console.error('Erro ao atualizar terminal do usuário:', terminalError);
+          toast.error('Erro ao atualizar terminal do usuário');
           return;
         }
       }
@@ -141,8 +136,7 @@ const ManageUsers = () => {
           user.id === selectedUser.id ? {
             ...user,
             accessLevel: selectedUser.accessLevel,
-            terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal,
-            photoUrl: selectedUser.photoUrl
+            terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal
           } : user
         )
       );
@@ -161,30 +155,12 @@ const ManageUsers = () => {
     }
     return email ? email[0].toUpperCase() : 'U';
   };
-  
-  const handlePhotoChange = (url: string) => {
-    if (selectedUser) {
-      setSelectedUser({
-        ...selectedUser,
-        photoUrl: url
-      });
-    }
-  };
 
   // Component to render user edit form (shared between dialog and sheet)
   const UserEditForm = () => (
     <div className="space-y-4 py-4">
       {selectedUser && (
         <>
-          <div className="flex flex-col items-center mb-6">
-            <ImageUpload 
-              value={selectedUser.photoUrl || ""}
-              onChange={handlePhotoChange}
-              name={selectedUser.name}
-              email={selectedUser.email}
-            />
-          </div>
-          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div>{selectedUser.email}</div>
