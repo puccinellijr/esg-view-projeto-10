@@ -104,7 +104,7 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
         }
       }
       
-      // Atualizar a senha
+      // Atualizar a senha - usando updateUser em vez de admin.updateUserById
       const { error: authError } = await supabase.auth.updateUser({
         password: data.password
       });
@@ -120,10 +120,11 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
     // Update email if provided (will update in both auth and user_profiles)
     if (data.email && data.email !== userEmail) {
       console.log('Atualizando email do usuário de', userEmail, 'para', data.email);
-      const { error: emailError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { email: data.email }
-      );
+      
+      // Use updateUser instead of admin.updateUserById which requires special permissions
+      const { error: emailError } = await supabase.auth.updateUser({ 
+        email: data.email 
+      });
       
       if (emailError) {
         console.error('Erro ao atualizar email:', emailError);

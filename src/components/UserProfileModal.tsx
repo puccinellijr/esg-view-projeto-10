@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -45,6 +46,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       return;
     }
     
+    // If trying to change password but current password is not provided
+    if (newPassword && !currentPassword) {
+      toast.error("É necessário fornecer a senha atual para alterar a senha");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -74,11 +81,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
         setConfirmPassword("");
         onClose();
       } else {
-        toast.error("Erro ao atualizar perfil");
+        toast.error("Erro ao atualizar perfil. Verifique os dados e tente novamente.");
       }
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
-      toast.error("Erro ao atualizar perfil");
+      toast.error("Erro ao atualizar perfil. Por favor, tente novamente.");
     } finally {
       setIsLoading(false);
     }
