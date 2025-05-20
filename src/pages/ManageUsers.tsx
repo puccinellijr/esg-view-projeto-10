@@ -14,6 +14,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -24,6 +26,7 @@ const ManageUsers = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { hasAccess } = useAuth();
+  const isMobile = useIsMobile();
   
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -152,62 +155,142 @@ const ManageUsers = () => {
     }
     return email ? email[0].toUpperCase() : 'U';
   };
+
+  // Component to render user edit form (shared between dialog and sheet)
+  const UserEditForm = () => (
+    <div className="space-y-4 py-4">
+      {selectedUser && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div>{selectedUser.email}</div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="access-level">Nível de Acesso</Label>
+            <Select 
+              value={selectedUser.accessLevel} 
+              onValueChange={(value: AccessLevel) => 
+                setSelectedUser({...selectedUser, accessLevel: value})
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione o nível de acesso" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="administrative">Administrativo</SelectItem>
+                <SelectItem value="operational">Operacional</SelectItem>
+                <SelectItem value="viewer">Visualizador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="terminal">Terminal</Label>
+            <Select 
+              value={selectedUser.terminal || "none"} 
+              onValueChange={(value) => 
+                setSelectedUser({...selectedUser, terminal: value})
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione o terminal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                <SelectItem value="Alemoa">Alemoa</SelectItem>
+                <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="new-password">Nova Senha</Label>
+            <Input 
+              id="new-password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Digite para alterar a senha"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+            <Input 
+              id="confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirme a nova senha"
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
   
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col md:flex-row">
       <DashboardSidebar />
       <div className="flex-1 flex flex-col">
         <DashboardHeader />
-        <div className="container py-6 flex-1">
-          <header className="mb-6">
-            <h1 className="text-2xl font-bold">Gerenciar Usuários</h1>
+        <div className="container py-4 md:py-6 flex-1 px-2 md:px-6">
+          <header className="mb-4 md:mb-6">
+            <h1 className="text-xl md:text-2xl font-bold">Gerenciar Usuários</h1>
           </header>
           
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Nível de Acesso</TableHead>
-                  <TableHead>Terminal</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className={isMobile ? "px-2" : ""}>Usuário</TableHead>
+                  {!isMobile && <TableHead>Email</TableHead>}
+                  <TableHead className={isMobile ? "px-2" : ""}>Nível</TableHead>
+                  {!isMobile && <TableHead>Terminal</TableHead>}
+                  <TableHead className={isMobile ? "px-2" : ""}>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">Carregando...</TableCell>
+                    <TableCell colSpan={isMobile ? 3 : 5} className="text-center py-4">Carregando...</TableCell>
                   </TableRow>
                 ) : users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">Nenhum usuário encontrado</TableCell>
+                    <TableCell colSpan={isMobile ? 3 : 5} className="text-center py-4">Nenhum usuário encontrado</TableCell>
                   </TableRow>
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell>
+                      <TableCell className={isMobile ? "px-2" : ""}>
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
+                          <Avatar className={`${isMobile ? "h-6 w-6" : "h-8 w-8"}`}>
                             <AvatarImage src={user.photoUrl || ""} alt={user.name || user.email} />
                             <AvatarFallback>{getInitials(user.name || "", user.email)}</AvatarFallback>
                           </Avatar>
-                          <span>{user.name || "Sem nome"}</span>
+                          <span className="line-clamp-1">{user.name || user.email.split('@')[0]}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        {user.accessLevel === 'administrative' ? 'Administrativo' : 
-                         user.accessLevel === 'operational' ? 'Operacional' : 'Visualizador'}
+                      {!isMobile && <TableCell>{user.email}</TableCell>}
+                      <TableCell className={isMobile ? "px-2" : ""}>
+                        {isMobile ? (
+                          user.accessLevel === 'administrative' ? 'Admin' : 
+                          user.accessLevel === 'operational' ? 'Oper' : 'View'
+                        ) : (
+                          user.accessLevel === 'administrative' ? 'Administrativo' : 
+                          user.accessLevel === 'operational' ? 'Operacional' : 'Visualizador'
+                        )}
                       </TableCell>
-                      <TableCell>{user.terminal || "Nenhum"}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
-                            Editar
+                      {!isMobile && <TableCell>{user.terminal || "Nenhum"}</TableCell>}
+                      <TableCell className={isMobile ? "px-2" : ""}>
+                        <div className="flex gap-1 md:gap-2">
+                          <Button variant="outline" size={isMobile ? "icon" : "sm"} onClick={() => handleEditUser(user)}>
+                            {isMobile ? "E" : "Editar"}
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDeleteUser(user)}>
-                            Excluir
+                          <Button variant="destructive" size={isMobile ? "icon" : "sm"} onClick={() => handleDeleteUser(user)}>
+                            {isMobile ? "X" : "Excluir"}
                           </Button>
                         </div>
                       </TableCell>
@@ -218,95 +301,46 @@ const ManageUsers = () => {
             </Table>
           </div>
           
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Editar Usuário</DialogTitle>
-              </DialogHeader>
-              
-              {selectedUser && (
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div>{selectedUser.email}</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="access-level">Nível de Acesso</Label>
-                    <Select 
-                      value={selectedUser.accessLevel} 
-                      onValueChange={(value: AccessLevel) => 
-                        setSelectedUser({...selectedUser, accessLevel: value})
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o nível de acesso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="administrative">Administrativo</SelectItem>
-                        <SelectItem value="operational">Operacional</SelectItem>
-                        <SelectItem value="viewer">Visualizador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="terminal">Terminal</Label>
-                    <Select 
-                      value={selectedUser.terminal || "none"} 
-                      onValueChange={(value) => 
-                        setSelectedUser({...selectedUser, terminal: value})
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o terminal" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
-                        <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                        <SelectItem value="Alemoa">Alemoa</SelectItem>
-                        <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nova Senha</Label>
-                    <Input 
-                      id="new-password"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Digite para alterar a senha"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                    <Input 
-                      id="confirm-password"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirme a nova senha"
-                    />
+          {isMobile ? (
+            <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <SheetContent className="overflow-y-auto">
+                <div className="py-6">
+                  <h2 className="text-lg font-semibold mb-4">Editar Usuário</h2>
+                  <UserEditForm />
+                  <div className="flex flex-col space-y-2 mt-6">
+                    <Button onClick={handleUpdateUser}>
+                      Salvar
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                      Cancelar
+                    </Button>
                   </div>
                 </div>
-              )}
-              
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleUpdateUser}>
-                  Salvar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </SheetContent>
+            </Sheet>
+          ) : (
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Editar Usuário</DialogTitle>
+                </DialogHeader>
+                
+                <UserEditForm />
+                
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleUpdateUser}>
+                    Salvar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
           
           <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-[95%] mx-auto md:max-w-lg">
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -314,8 +348,8 @@ const ManageUsers = () => {
                   Esta ação não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              <AlertDialogFooter className="flex flex-col sm:flex-row">
+                <AlertDialogCancel className="mb-2 sm:mb-0">
                   Cancelar
                 </AlertDialogCancel>
                 <AlertDialogAction onClick={confirmDeleteUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
