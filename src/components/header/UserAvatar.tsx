@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import UserProfileModal from "@/components/UserProfileModal";
+import { UserProfileModal } from "@/components/UserProfileModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AccessLevel } from "@/types/auth";
 

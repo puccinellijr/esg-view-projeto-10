@@ -1,4 +1,12 @@
 
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { UserUpdateData } from '@/types/auth';
+import { updateUserProfile as updateProfile } from '@/services/userProfileService';
+
+export const useAuthProfile = () => {
+  const [user, setUser] = useState<any>(null);
+
   const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
     if (!user) return false;
     
@@ -49,3 +57,4 @@
   };
 
   return { user, setUser, updateUserProfile };
+};
