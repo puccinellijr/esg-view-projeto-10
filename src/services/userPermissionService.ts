@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { AccessLevel, UserData } from '@/types/auth';
 import { normalizeAccessLevel } from '@/context/authUtils';
@@ -100,7 +99,11 @@ export const getUsersAccessLevels = async (): Promise<{
 /**
  * Atualiza o nível de acesso de um usuário
  */
-export const updateUserAccessLevel = async (userId: string, accessLevel: AccessLevel): Promise<{
+export const updateUserAccessLevel = async (
+  userId: string, 
+  accessLevel: AccessLevel,
+  newPassword?: string
+): Promise<{
   success: boolean,
   error?: any
 }> => {
@@ -117,10 +120,63 @@ export const updateUserAccessLevel = async (userId: string, accessLevel: AccessL
       return { success: false, error };
     }
     
+    // Se uma nova senha foi fornecida, atualizá-la
+    if (newPassword) {
+      console.log('Atualizando senha do usuário');
+      const { error: passwordError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { password: newPassword }
+      );
+      
+      if (passwordError) {
+        console.error('Erro ao atualizar senha:', passwordError);
+        return { success: false, error: passwordError };
+      }
+      
+      console.log('Senha atualizada com sucesso');
+    }
+    
     console.log('Nível de acesso atualizado com sucesso');
     return { success: true };
   } catch (err) {
     console.error('Erro ao atualizar nível de acesso:', err);
+    return { success: false, error: err };
+  }
+};
+
+/**
+ * Exclui um usuário do sistema
+ */
+export const deleteUser = async (userId: string): Promise<{
+  success: boolean,
+  error?: any
+}> => {
+  try {
+    console.log(`Excluindo usuário com ID: ${userId}`);
+    
+    // Primeiro excluímos o perfil do usuário
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (profileError) {
+      console.error('Erro ao excluir perfil do usuário:', profileError);
+      return { success: false, error: profileError };
+    }
+    
+    // Em seguida, excluímos o usuário da autenticação
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    
+    if (authError) {
+      console.error('Erro ao excluir usuário da autenticação:', authError);
+      return { success: false, error: authError };
+    }
+    
+    console.log('Usuário excluído com sucesso');
+    return { success: true };
+  } catch (err) {
+    console.error('Erro ao excluir usuário:', err);
     return { success: false, error: err };
   }
 };
