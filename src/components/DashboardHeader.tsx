@@ -1,17 +1,15 @@
+
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import HeaderLogo from "./header/HeaderLogo";
 import WelcomeMessage from "./header/WelcomeMessage";
 import UserAvatar from "./header/UserAvatar";
-import { useState } from "react";
-import { UserProfileModal } from "@/components/UserProfileModal";
 
 const DashboardHeader = () => {
   const { user } = useAuth();
   const { toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   // Get user's first name only for welcome message
   const getUserDisplayName = () => {
@@ -39,11 +37,8 @@ const DashboardHeader = () => {
           email={user?.email} 
           photoUrl={user?.photoUrl}
           accessLevel={user?.accessLevel}
-          onClick={() => setIsProfileOpen(true)}
         />
       </div>
-      
-      {isProfileOpen && <UserProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />}
     </header>
   );
 };
