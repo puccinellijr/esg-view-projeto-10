@@ -1,12 +1,4 @@
 
-import { useState } from 'react';
-import { UserData, UserUpdateData } from '@/types/auth';
-import { updateUserProfile as updateProfile } from '@/services/userProfileService';
-import { supabase } from '@/lib/supabase';
-
-export function useAuthProfile() {
-  const [user, setUser] = useState<UserData | null>(null);
-
   const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
     if (!user) return false;
     
@@ -21,7 +13,13 @@ export function useAuthProfile() {
       const userId = userData.user.id;
       console.log('Atualizando perfil para usuário:', userId, data);
       
-      const { success, error } = await updateProfile(userId, data);
+      // Handle "none" value for terminal
+      const updatedData = {
+        ...data,
+        terminal: data.terminal === "none" ? null : data.terminal
+      };
+      
+      const { success, error } = await updateProfile(userId, updatedData);
       
       if (error) {
         console.error('Erro ao atualizar perfil:', error);
@@ -36,7 +34,7 @@ export function useAuthProfile() {
             ...prev,
             name: data.name || prev.name,
             photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
-            terminal: data.terminal !== undefined ? data.terminal : prev.terminal,
+            terminal: data.terminal === "none" ? null : (data.terminal !== undefined ? data.terminal : prev.terminal),
             email: data.email || prev.email,
           };
         });
@@ -51,4 +49,3 @@ export function useAuthProfile() {
   };
 
   return { user, setUser, updateUserProfile };
-}
