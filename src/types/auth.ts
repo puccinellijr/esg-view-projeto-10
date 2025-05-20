@@ -15,5 +15,6 @@ export interface UserUpdateData {
   email?: string;
   photoUrl?: string;
   password?: string;
+  currentPassword?: string; // Adicionando a senha atual para verificação
   terminal?: string | null;
 }

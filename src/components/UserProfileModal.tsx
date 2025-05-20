@@ -41,7 +41,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     
     if (newPassword && newPassword !== confirmPassword) {
-      // Fix: Using toast directly instead of passing a title property
       toast.error("As senhas não coincidem");
       return;
     }
@@ -53,15 +52,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
         name,
         photoUrl,
         terminal: terminal === "none" ? null : terminal,
-        ...(newPassword ? { password: newPassword } : {})
+        ...(newPassword ? { password: newPassword, currentPassword } : {})
       });
       
-      // Atualizar usuário incluindo todos os dados necessários
+      // Incluir senha atual quando a nova senha for fornecida
       const updated = await updateUserProfile({
         name,
         photoUrl,
         terminal: terminal === "none" ? null : terminal,
-        ...(newPassword ? { password: newPassword } : {}),
+        ...(newPassword ? { 
+          password: newPassword,
+          currentPassword // Adicionar a senha atual para verificação
+        } : {})
       });
       
       if (updated) {

@@ -81,10 +81,33 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
     // Update password if provided - usando Auth API
     if (data.password) {
       console.log('Atualizando senha do usuário via Auth API');
-      const { error: authError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { password: data.password }
-      );
+      
+      // Se a senha atual foi fornecida, primeiro verifique-a
+      if (data.currentPassword) {
+        // Verificar a senha atual
+        try {
+          // Tentar fazer login com as credenciais atuais para verificar a senha
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: data.currentPassword,
+          });
+          
+          if (signInError) {
+            console.error('Senha atual incorreta:', signInError);
+            return { success: false, error: { message: 'Senha atual incorreta' } };
+          }
+          
+          console.log('Senha atual verificada com sucesso');
+        } catch (verifyError) {
+          console.error('Erro ao verificar senha atual:', verifyError);
+          return { success: false, error: { message: 'Erro ao verificar senha atual' } };
+        }
+      }
+      
+      // Atualizar a senha
+      const { error: authError } = await supabase.auth.updateUser({
+        password: data.password
+      });
       
       if (authError) {
         console.error('Erro ao atualizar senha:', authError);
