@@ -9,7 +9,7 @@ interface UserAvatarProps {
   email?: string;
   photoUrl?: string;
   accessLevel?: AccessLevel | string;
-  onClick?: () => void;  // Added onClick prop
+  onClick?: () => void;
 }
 
 const UserAvatar = ({ email, photoUrl, accessLevel, onClick }: UserAvatarProps) => {
@@ -28,10 +28,8 @@ const UserAvatar = ({ email, photoUrl, accessLevel, onClick }: UserAvatarProps) 
     return "Operacional";
   };
 
-  // Handle click with both the internal state change and the passed onClick handler
   const handleClick = () => {
     setIsProfileOpen(true);
-    // Call the passed onClick handler if provided
     if (onClick) {
       onClick();
     }

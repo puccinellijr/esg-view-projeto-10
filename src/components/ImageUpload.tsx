@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Camera, Upload } from "lucide-react";
 
 interface ImageUploadProps {
   value: string;
@@ -16,6 +17,7 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: ImageUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string>(value || defaultImage || "");
 
   const getInitials = (name?: string, email?: string) => {
@@ -60,9 +62,13 @@ const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: 
     fileInputRef.current?.click();
   };
 
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click();
+  };
+
   return (
     <div className={cn("flex flex-col items-center", className)}>
-      <Avatar className="h-20 w-20 md:h-24 md:w-24 mb-2">
+      <Avatar className="h-20 w-20 md:h-24 md:w-24 mb-2 cursor-pointer" onClick={handleCameraClick}>
         <AvatarImage src={previewUrl} alt={name || email || "User"} />
         <AvatarFallback className="bg-blue-500 text-white text-xl">
           {getInitials(name, email)}
@@ -77,15 +83,38 @@ const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: 
         className="hidden"
       />
       
-      <Button 
-        type="button" 
-        variant="outline" 
-        onClick={handleButtonClick}
-        className="mt-2 text-xs sm:text-sm"
-        size="sm"
-      >
-        {previewUrl ? "Alterar Foto" : "Adicionar Foto"}
-      </Button>
+      <input
+        type="file"
+        accept="image/*"
+        capture="user"
+        ref={cameraInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      
+      <div className="flex gap-2 mt-2">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleButtonClick}
+          className="text-xs sm:text-sm flex gap-1 items-center"
+          size="sm"
+        >
+          <Upload className="h-4 w-4" />
+          Arquivo
+        </Button>
+        
+        <Button 
+          type="button" 
+          variant="outline"
+          onClick={handleCameraClick}
+          className="text-xs sm:text-sm flex gap-1 items-center"
+          size="sm"
+        >
+          <Camera className="h-4 w-4" />
+          Câmera
+        </Button>
+      </div>
     </div>
   );
 };

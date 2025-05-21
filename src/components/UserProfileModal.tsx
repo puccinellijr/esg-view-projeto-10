@@ -17,7 +17,6 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { toast } = useToast();
   const { user, updateUserProfile, hasAccess } = useAuth();
   const isMobile = useIsMobile();
   
@@ -47,21 +46,13 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     
     if (newPassword && newPassword !== confirmPassword) {
       setPasswordError("As senhas não coincidem");
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive"
-      });
+      toast.error("As senhas não coincidem");
       return;
     }
     
     if (newPassword && !currentPassword) {
       setPasswordError("A senha atual é necessária para definir uma nova senha");
-      toast({
-        title: "Erro",
-        description: "A senha atual é necessária para definir uma nova senha",
-        variant: "destructive"
-      });
+      toast.error("A senha atual é necessária para definir uma nova senha");
       return;
     }
     
@@ -90,10 +81,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       });
       
       if (updated) {
-        toast({
-          title: "Sucesso",
-          description: "Perfil atualizado com sucesso"
-        });
+        toast.success("Perfil atualizado com sucesso");
         // Limpar os campos de senha
         setCurrentPassword("");
         setNewPassword("");
@@ -103,11 +91,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       }
     } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);
-      toast({
-        title: "Erro",
-        description: error?.message || "Erro ao atualizar perfil",
-        variant: "destructive"
-      });
+      toast.error(error?.message || "Erro ao atualizar perfil");
     } finally {
       setIsLoading(false);
     }
