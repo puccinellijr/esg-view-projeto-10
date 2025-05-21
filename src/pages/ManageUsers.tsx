@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNavigate } from 'react-router-dom';
+import ImageUpload from '@/components/ImageUpload';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -123,7 +124,11 @@ const ManageUsers = () => {
         console.log(`Atualizando terminal do usuário para: ${selectedUser.terminal}`);
         const { error: terminalError } = await supabase
           .from('user_profiles')
-          .update({ terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal })
+          .update({ 
+            terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal,
+            name: selectedUser.name,
+            photo_url: selectedUser.photoUrl
+          })
           .eq('id', selectedUser.id);
           
         if (terminalError) {
@@ -138,6 +143,8 @@ const ManageUsers = () => {
         prevUsers.map((user) => 
           user.id === selectedUser.id ? {
             ...user,
+            name: selectedUser.name,
+            photoUrl: selectedUser.photoUrl,
             accessLevel: selectedUser.accessLevel,
             terminal: selectedUser.terminal === "none" ? null : selectedUser.terminal
           } : user
@@ -146,11 +153,6 @@ const ManageUsers = () => {
       
       setIsEditDialogOpen(false);
       toast.success("Usuário atualizado com sucesso");
-      
-      // Redirect to dashboard if this is right after creating a new user
-      if (window.location.search.includes('new=true')) {
-        navigate('/dashboard');
-      }
     } catch (err) {
       console.error('Erro ao atualizar usuário:', err);
       toast.error("Erro ao atualizar usuário");
@@ -170,10 +172,12 @@ const ManageUsers = () => {
       {selectedUser && (
         <>
           <div className="flex flex-col items-center mb-6">
-            <Avatar className="h-16 w-16 md:h-20 md:w-20">
-              <AvatarImage src={selectedUser.photoUrl || ""} alt={selectedUser.name || selectedUser.email} />
-              <AvatarFallback>{getInitials(selectedUser.name || "", selectedUser.email)}</AvatarFallback>
-            </Avatar>
+            <ImageUpload 
+              value={selectedUser.photoUrl || ""} 
+              onChange={(url) => setSelectedUser({...selectedUser, photoUrl: url})}
+              name={selectedUser.name || ""}
+              email={selectedUser.email}
+            />
           </div>
           
           <div className="space-y-2">
@@ -260,16 +264,16 @@ const ManageUsers = () => {
   );
   
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row w-full">
       <DashboardSidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full">
         <DashboardHeader />
-        <div className="container py-4 md:py-6 flex-1 px-2 md:px-6">
+        <div className="container py-4 md:py-6 flex-1 px-2 md:px-6 w-full max-w-none">
           <header className="mb-4 md:mb-6">
             <h1 className="text-xl md:text-2xl font-bold">Gerenciar Usuários</h1>
           </header>
           
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-auto w-full">
             <Table>
               <TableHeader>
                 <TableRow>

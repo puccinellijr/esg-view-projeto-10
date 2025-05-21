@@ -51,7 +51,8 @@ const CreateUser = () => {
       
       if (result.success) {
         toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}`);
-        navigate("/settings/users");
+        // Redirect to dashboard instead of users page
+        navigate("/dashboard");
       } else {
         toast.error(`Erro ao criar usuário: ${result.error?.message || 'Erro desconhecido'}`);
       }
