@@ -50,7 +50,7 @@ const CreateUser = () => {
       );
       
       if (result.success) {
-        toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}`);
+        toast.success(`Usuário ${name} criado com sucesso para o terminal ${terminal}. Um email de confirmação foi enviado.`);
         // Redirect to dashboard instead of users page
         navigate("/dashboard");
       } else {

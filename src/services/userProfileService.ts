@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { UserData, UserUpdateData } from '@/types/auth';
 
@@ -198,15 +199,17 @@ export const createUserProfile = async (userData: UserData, password: string): P
       name: userData.name || userData.email.split('@')[0],
     };
     
-    // Create the auth user with complete data - Using admin API to prevent session change
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // Create user with regular signUp since admin.createUser is not allowed from browser
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: validUserData.email,
       password: password,
-      email_confirm: true,
-      user_metadata: {
-        name: validUserData.name,
-        access_level: validUserData.accessLevel,
-        terminal: validUserData.terminal
+      options: {
+        data: {
+          name: validUserData.name,
+          access_level: validUserData.accessLevel,
+          terminal: validUserData.terminal
+        },
+        emailRedirectTo: `${window.location.origin}/login`
       }
     });
     
