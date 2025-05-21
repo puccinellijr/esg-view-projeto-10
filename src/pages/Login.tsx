@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -149,11 +148,12 @@ export default function Login() {
                 required
                 disabled={isLoading || connectionStatus === "error"}
               />
-              <div className="text-right">
+              
+              
                 <Link to="/forgot-password" className="text-sm text-custom-blue hover:underline">
                   Esqueceu a senha?
                 </Link>
-              </div>
+              
             </div>
             
             <Button 
