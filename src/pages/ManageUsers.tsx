@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
-import { useAuth, AccessLevel } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { getUsersAccessLevels, updateUserAccessLevel, deleteUser } from '@/services/userPermissionService';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import DashboardHeader from '@/components/DashboardHeader';
@@ -16,6 +16,7 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useNavigate } from 'react-router-dom';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -27,6 +28,8 @@ const ManageUsers = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const { hasAccess } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const isAdmin = hasAccess('administrative');
   
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -143,6 +146,11 @@ const ManageUsers = () => {
       
       setIsEditDialogOpen(false);
       toast.success("Usuário atualizado com sucesso");
+      
+      // Redirect to dashboard if this is right after creating a new user
+      if (window.location.search.includes('new=true')) {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Erro ao atualizar usuário:', err);
       toast.error("Erro ao atualizar usuário");
@@ -161,49 +169,69 @@ const ManageUsers = () => {
     <div className="space-y-4 py-4">
       {selectedUser && (
         <>
+          <div className="flex flex-col items-center mb-6">
+            <Avatar className="h-16 w-16 md:h-20 md:w-20">
+              <AvatarImage src={selectedUser.photoUrl || ""} alt={selectedUser.name || selectedUser.email} />
+              <AvatarFallback>{getInitials(selectedUser.name || "", selectedUser.email)}</AvatarFallback>
+            </Avatar>
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div>{selectedUser.email}</div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="access-level">Nível de Acesso</Label>
-            <Select 
-              value={selectedUser.accessLevel} 
-              onValueChange={(value: AccessLevel) => 
-                setSelectedUser({...selectedUser, accessLevel: value})
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione o nível de acesso" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="administrative">Administrativo</SelectItem>
-                <SelectItem value="operational">Operacional</SelectItem>
-                <SelectItem value="viewer">Visualizador</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="name">Nome</Label>
+            <Input 
+              id="name"
+              value={selectedUser.name || ''}
+              onChange={(e) => setSelectedUser({...selectedUser, name: e.target.value})}
+            />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="terminal">Terminal</Label>
-            <Select 
-              value={selectedUser.terminal || "none"} 
-              onValueChange={(value) => 
-                setSelectedUser({...selectedUser, terminal: value})
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione o terminal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                <SelectItem value="Alemoa">Alemoa</SelectItem>
-                <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {isAdmin && (
+            <div className="space-y-2">
+              <Label htmlFor="access-level">Nível de Acesso</Label>
+              <Select 
+                value={selectedUser.accessLevel} 
+                onValueChange={(value: string) => 
+                  setSelectedUser({...selectedUser, accessLevel: value})
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="administrative">Administrativo</SelectItem>
+                  <SelectItem value="operational">Operacional</SelectItem>
+                  <SelectItem value="viewer">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          {isAdmin && (
+            <div className="space-y-2">
+              <Label htmlFor="terminal">Terminal</Label>
+              <Select 
+                value={selectedUser.terminal || "none"} 
+                onValueChange={(value) => 
+                  setSelectedUser({...selectedUser, terminal: value})
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione o terminal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  <SelectItem value="Rio Grande">Rio Grande</SelectItem>
+                  <SelectItem value="Alemoa">Alemoa</SelectItem>
+                  <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="new-password">Nova Senha</Label>
@@ -289,9 +317,11 @@ const ManageUsers = () => {
                           <Button variant="outline" size={isMobile ? "icon" : "sm"} onClick={() => handleEditUser(user)}>
                             {isMobile ? "E" : "Editar"}
                           </Button>
-                          <Button variant="destructive" size={isMobile ? "icon" : "sm"} onClick={() => handleDeleteUser(user)}>
-                            {isMobile ? "X" : "Excluir"}
-                          </Button>
+                          {isAdmin && (
+                            <Button variant="destructive" size={isMobile ? "icon" : "sm"} onClick={() => handleDeleteUser(user)}>
+                              {isMobile ? "X" : "Excluir"}
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

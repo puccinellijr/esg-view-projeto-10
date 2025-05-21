@@ -15,5 +15,6 @@ export interface UserUpdateData {
   email?: string;
   photoUrl?: string;
   password?: string;
+  currentPassword?: string;
   terminal?: string | null;
 }
