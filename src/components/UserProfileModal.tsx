@@ -38,7 +38,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       setPhotoUrl(user.photoUrl || "");
       setTerminal(user.terminal || "none");
     }
-  }, [user]);
+  }, [user, isOpen]); // Reset form when modal is opened
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +62,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       console.log("Atualizando perfil com dados:", {
         name,
         photoUrl,
-        terminal: isAdmin ? (terminal === "none" ? null : terminal) : undefined,
+        terminal: isAdmin ? terminal : undefined,
         ...(newPassword ? { 
           password: newPassword,
           currentPassword 
@@ -73,7 +73,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       const updated = await updateUserProfile({
         name,
         photoUrl,
-        terminal: isAdmin ? (terminal === "none" ? null : terminal) : undefined,
+        terminal: isAdmin ? terminal : undefined,
         ...(newPassword ? { 
           password: newPassword,
           currentPassword 
@@ -88,6 +88,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
         setConfirmPassword("");
         setPasswordError("");
         onClose();
+      } else {
+        toast.error("Erro ao atualizar perfil");
       }
     } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);

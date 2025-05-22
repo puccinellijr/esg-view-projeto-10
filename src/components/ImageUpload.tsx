@@ -1,7 +1,4 @@
 
-// Now let's add the camera functionality to the ImageUpload component
-// This is just a minimal change to allow enabling the camera
-
 import React, { useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -89,18 +86,30 @@ const ImageUpload = ({
   
   const handleCaptureImage = () => {
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg');
+      try {
+        const canvas = document.createElement('canvas');
+        const video = videoRef.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
         
-        setPreviewUrl(dataUrl);
-        onChange(dataUrl);
-        handleStopCamera();
+        if (ctx) {
+          // Draw the video frame to the canvas
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert to data URL
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          
+          // Set the preview and update parent
+          setPreviewUrl(dataUrl);
+          onChange(dataUrl);
+          
+          // Stop the camera
+          handleStopCamera();
+        }
+      } catch (err) {
+        console.error("Error capturing image:", err);
+        toast.error("Erro ao capturar imagem");
       }
     }
   };
@@ -146,6 +155,7 @@ const ImageUpload = ({
               className="w-full"
               muted 
               playsInline
+              autoPlay
             />
           </div>
           
