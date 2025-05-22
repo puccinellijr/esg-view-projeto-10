@@ -14,9 +14,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard"; // Changed to direct import instead of lazy loading
 
-// Lazy load components para melhorar performance
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+// Lazy load components para melhorar performance (except Dashboard which is directly imported now)
 const OperationalForm = lazy(() => import("./pages/OperationalForm"));
 const Comparison = lazy(() => import("./pages/Comparison"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
