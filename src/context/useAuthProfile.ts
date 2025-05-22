@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { UserUpdateData } from '@/types/auth';
 import { updateUserProfile as updateProfile } from '@/services/userProfileService';
@@ -7,9 +7,23 @@ import { updateUserProfile as updateProfile } from '@/services/userProfileServic
 export const useAuthProfile = () => {
   const [user, setUser] = useState<any>(null);
 
+  // Get current user from supabase session when component mounts
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
-    if (!user) return false;
-    
     try {
       // Get the current user ID
       const { data: userData } = await supabase.auth.getUser();
