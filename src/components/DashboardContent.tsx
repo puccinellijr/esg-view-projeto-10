@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useESGDashboardData } from '@/hooks/useESGDashboardData';
 import { useESGIndicatorEditor } from '@/hooks/useESGIndicatorEditor';
 import IndicatorEditDialog from './dashboard/IndicatorEditDialog';
@@ -31,7 +32,8 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
     governanceIndicators: rawGovernanceIndicators,
     tonnageIndicator: rawTonnageIndicator,
     isLoading: dataIsLoading,
-    tonnage
+    tonnage,
+    refetch
   } = useESGDashboardData({
     selectedMonth,
     selectedYear,
@@ -47,6 +49,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   const [tonnageIndicator, setTonnageIndicator] = useState(
     rawTonnageIndicator ? { ...rawTonnageIndicator, icon: addIconsToIndicators([rawTonnageIndicator])[0].icon } : null
   );
+  
+  // Check if no data is found
+  const noDataFound = !dataIsLoading && 
+    rawIndicators.length > 0 && 
+    rawIndicators.every(ind => ind.value === "N/D");
   
   // Update local state when raw data changes
   useEffect(() => {
@@ -85,6 +92,11 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         ind.name === updatedIndicator.name ? { ...ind, value: updatedIndicator.value, id: updatedIndicator.id } : ind
       ));
     }
+    
+    // Refresh data from the server after a short delay
+    setTimeout(() => {
+      refetch();
+    }, 500);
   };
   
   // Set up the editor hook
@@ -113,43 +125,50 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
         Resumo - Terminal {selectedTerminal}
       </h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Environmental Section */}
-        <IndicatorsSection 
-          title="Dimensão Ambiental"
-          indicators={environmentalIndicators}
-          category="environmental"
-          iconComponent={getCategoryIcon('environmental')}
-          bgColorClass={getCategoryBgColor('environmental').bgClass}
-          isEditable={isEditable}
-          tonnage={tonnage}
-          onEdit={handleEdit}
-        />
-        
-        {/* Social Section - Changed to red */}
-        <IndicatorsSection 
-          title="Dimensão Social"
-          indicators={socialIndicators}
-          category="social"
-          iconComponent={getCategoryIcon('social')}
-          bgColorClass="red-600" // Changed to a strong red
-          isEditable={isEditable}
-          tonnage={tonnage}
-          onEdit={handleEdit}
-        />
-        
-        {/* Governance Section - Changed to header blue */}
-        <IndicatorsSection 
-          title="Dimensão Governança"
-          indicators={governanceIndicators}
-          category="governance"
-          iconComponent={getCategoryIcon('governance')}
-          bgColorClass="sidebar" // Using the same blue as the header (sidebar color)
-          isEditable={isEditable}
-          tonnage={tonnage}
-          onEdit={handleEdit}
-        />
-      </div>
+      {noDataFound ? (
+        <div className="flex flex-col items-center justify-center py-12 px-4 bg-white rounded-lg shadow-md">
+          <p className="text-lg text-gray-600 mb-4">Não há dados disponíveis para este período.</p>
+          <p className="text-sm text-gray-400">Tente selecionar outro mês, ano ou terminal.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Environmental Section */}
+          <IndicatorsSection 
+            title="Dimensão Ambiental"
+            indicators={environmentalIndicators}
+            category="environmental"
+            iconComponent={getCategoryIcon('environmental')}
+            bgColorClass={getCategoryBgColor('environmental').bgClass}
+            isEditable={isEditable}
+            tonnage={tonnage}
+            onEdit={handleEdit}
+          />
+          
+          {/* Social Section - Changed to red */}
+          <IndicatorsSection 
+            title="Dimensão Social"
+            indicators={socialIndicators}
+            category="social"
+            iconComponent={getCategoryIcon('social')}
+            bgColorClass="red-600" // Changed to a strong red
+            isEditable={isEditable}
+            tonnage={tonnage}
+            onEdit={handleEdit}
+          />
+          
+          {/* Governance Section - Changed to header blue */}
+          <IndicatorsSection 
+            title="Dimensão Governança"
+            indicators={governanceIndicators}
+            category="governance"
+            iconComponent={getCategoryIcon('governance')}
+            bgColorClass="sidebar" // Using the same blue as the header (sidebar color)
+            isEditable={isEditable}
+            tonnage={tonnage}
+            onEdit={handleEdit}
+          />
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <IndicatorEditDialog 

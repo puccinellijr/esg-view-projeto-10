@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Loader2 } from 'lucide-react';
 
 interface Period {
   month: string;
@@ -16,6 +17,7 @@ interface PeriodComparisonFormProps {
   onPeriod1Change: (field: 'month' | 'year', value: string) => void;
   onPeriod2Change: (field: 'month' | 'year', value: string) => void;
   onCompare: () => void;
+  isLoading?: boolean;
 }
 
 const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
@@ -23,7 +25,8 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
   period2,
   onPeriod1Change,
   onPeriod2Change,
-  onCompare
+  onCompare,
+  isLoading = false
 }) => {
   const isMobile = useIsMobile();
   
@@ -93,8 +96,16 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
         <Button 
           onClick={onCompare} 
           className="bg-blue-500 hover:bg-blue-600 w-full sm:w-auto"
+          disabled={isLoading}
         >
-          Comparar
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            'Comparar'
+          )}
         </Button>
       </div>
     </div>

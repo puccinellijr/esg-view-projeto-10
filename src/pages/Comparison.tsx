@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -12,6 +12,7 @@ import ExportButton from '@/components/ExportButton';
 import KPISummarySection from '@/components/KPISummarySection';
 import ComparisonBarChart from '@/components/ComparisonBarChart';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Loader2 } from 'lucide-react';
 
 const Comparison = () => {
   const isMobile = useIsMobile();
@@ -27,6 +28,14 @@ const Comparison = () => {
     isDataFetched,
     fetchData
   } = useESGData();
+
+  // Initial data load when component mounts
+  useEffect(() => {
+    console.log('Comparison page mounted, will fetch data');
+    fetchData();
+    // We only want to run this once when the component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <SidebarProvider>
@@ -63,13 +72,15 @@ const Comparison = () => {
                   onPeriod1Change={updatePeriod1}
                   onPeriod2Change={updatePeriod2}
                   onCompare={fetchData}
+                  isLoading={isLoading}
                 />
               </CardContent>
             </Card>
             
             {isLoading && (
-              <div className="flex justify-center items-center h-32">
-                <p className="text-gray-500">Carregando dados...</p>
+              <div className="flex flex-col justify-center items-center h-64 gap-4">
+                <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+                <p className="text-gray-500 font-medium text-lg">Carregando dados...</p>
               </div>
             )}
             
@@ -136,8 +147,9 @@ const Comparison = () => {
             )}
             
             {!isLoading && isDataFetched && !esgData && (
-              <div className="flex justify-center items-center h-32">
-                <p className="text-gray-500">Nenhum dado encontrado para os períodos selecionados.</p>
+              <div className="flex flex-col justify-center items-center h-64 gap-2">
+                <p className="text-gray-500 text-lg">Nenhum dado encontrado para os períodos selecionados.</p>
+                <p className="text-gray-400 text-sm">Selecione diferentes períodos e tente novamente.</p>
               </div>
             )}
           </main>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
 import DashboardContent from '@/components/DashboardContent';
@@ -48,41 +48,46 @@ const Dashboard = () => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
-  // Find the most recent month with data
-  useEffect(() => {
-    const fetchMostRecentMonth = async () => {
-      setIsLoading(true);
-      try {
-        // Query to find the most recent month/year with data
-        const { data, error } = await supabase
-          .from('esg_indicators')
-          .select('month, year')
-          .eq('terminal', selectedTerminal)
-          .order('year', { ascending: false })
-          .order('month', { ascending: false })
-          .limit(1);
+  // Memoize the fetchMostRecentMonth function to avoid recreation on each render
+  const fetchMostRecentMonth = useCallback(async () => {
+    setIsLoading(true);
+    console.log('Fetching most recent month for terminal:', selectedTerminal);
+    
+    try {
+      // Query to find the most recent month/year with data
+      const { data, error } = await supabase
+        .from('esg_indicators')
+        .select('month, year')
+        .eq('terminal', selectedTerminal)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false })
+        .limit(1);
 
-        if (error) {
-          console.error("Error fetching most recent month:", error);
-        } else if (data && data.length > 0) {
-          // Update selected month and year from the most recent data
-          setSelectedMonth(data[0].month.toString());
-          setSelectedYear(data[0].year.toString());
-          console.log(`Most recent data found: Month ${data[0].month}, Year ${data[0].year}`);
-        } else {
-          console.log("No data found, using current month/year");
-          // Set current month (1-12) if no data found
-          setSelectedMonth((new Date().getMonth() + 1).toString());
-        }
-      } catch (err) {
-        console.error("Error in fetching most recent month:", err);
-      } finally {
-        setIsLoading(false);
+      if (error) {
+        console.error("Error fetching most recent month:", error);
+        toast.error("Erro ao carregar dados mais recentes");
+      } else if (data && data.length > 0) {
+        // Update selected month and year from the most recent data
+        setSelectedMonth(data[0].month.toString());
+        setSelectedYear(data[0].year.toString());
+        console.log(`Most recent data found: Month ${data[0].month}, Year ${data[0].year}`);
+      } else {
+        console.log("No data found, using current month/year");
+        // Set current month (1-12) if no data found
+        setSelectedMonth((new Date().getMonth() + 1).toString());
       }
-    };
-
-    fetchMostRecentMonth();
+    } catch (err) {
+      console.error("Error in fetching most recent month:", err);
+      toast.error("Erro ao carregar períodos");
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedTerminal]);
+
+  // Find the most recent month with data when terminal changes
+  useEffect(() => {
+    fetchMostRecentMonth();
+  }, [selectedTerminal, fetchMostRecentMonth]);
 
   const handleRefreshData = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -144,9 +149,10 @@ const Dashboard = () => {
                 variant="outline" 
                 className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0"
                 onClick={handleRefreshData}
+                disabled={isLoading}
               >
-                <RefreshCw className="h-4 w-4" />
-                Atualizar
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Carregando...' : 'Atualizar'}
               </Button>
             </div>
             

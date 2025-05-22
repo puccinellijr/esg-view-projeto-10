@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -28,6 +28,7 @@ export const useESGDashboardData = ({
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [tonnage, setTonnage] = useState<number>(0);
+  const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   
   // Get month name for display
   const getMonthName = (month: string) => {
@@ -38,40 +39,50 @@ export const useESGDashboardData = ({
     return monthNames[parseInt(month) - 1];
   };
 
+  // Memoize the fetchData function to avoid recreation on each render
+  const fetchData = useCallback(async () => {
+    // Debounce requests that happen within 300ms of each other
+    const now = Date.now();
+    if (now - lastFetchTimestamp < 300) {
+      console.log("Skipping fetch due to debounce");
+      return;
+    }
+    
+    setLastFetchTimestamp(now);
+    setIsLoading(true);
+    
+    try {
+      console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
+      
+      // Buscar indicadores do Supabase
+      const { data, error } = await supabase
+        .from('esg_indicators')
+        .select('*')
+        .eq('terminal', selectedTerminal)
+        .eq('month', parseInt(selectedMonth))
+        .eq('year', parseInt(selectedYear))
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Process data and update indicators state
+      processIndicatorData(data);
+      
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+      toast.error("Erro ao carregar indicadores");
+      handleFetchError();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp]);
+  
   // Fetch data effect
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
-        
-        // Buscar indicadores do Supabase
-        const { data, error } = await supabase
-          .from('esg_indicators')
-          .select('*')
-          .eq('terminal', selectedTerminal)
-          .eq('month', parseInt(selectedMonth))
-          .eq('year', parseInt(selectedYear))
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Process data and update indicators state
-        processIndicatorData(data);
-        
-      } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-        toast.error("Erro ao carregar indicadores");
-        handleFetchError();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     fetchData();
-  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger]);
+  }, [fetchData]);
   
   // Define expected indicators that should always be displayed
   const expectedIndicators = [
@@ -166,6 +177,12 @@ export const useESGDashboardData = ({
     setIndicators(fallbackIndicators);
   };
   
+  // Expose a function to manually trigger a data refetch
+  const refetch = () => {
+    console.log("Manual refetch triggered");
+    fetchData();
+  };
+  
   // Filter indicators by category
   const environmentalIndicators = indicators
     .filter(ind => ind.category === 'environmental' && ind.name !== 'tonelada');
@@ -180,6 +197,7 @@ export const useESGDashboardData = ({
     governanceIndicators,
     tonnageIndicator,
     isLoading,
-    tonnage
+    tonnage,
+    refetch
   };
 };
