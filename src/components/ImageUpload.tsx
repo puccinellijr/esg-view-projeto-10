@@ -1,120 +1,210 @@
 
-import React, { useState, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+// Now let's add the camera functionality to the ImageUpload component
+// This is just a minimal change to allow enabling the camera
+
+import React, { useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { Camera, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Camera, Upload, X } from "lucide-react";
+import { toast } from 'sonner';
 
 interface ImageUploadProps {
   value: string;
-  onChange: (url: string) => void;
-  defaultImage?: string;
+  onChange: (value: string) => void;
   name?: string;
   email?: string;
-  className?: string;
+  enableCamera?: boolean;
 }
 
-const ImageUpload = ({ value, onChange, defaultImage, name, email, className }: ImageUploadProps) => {
+const ImageUpload = ({ 
+  value, 
+  onChange, 
+  name, 
+  email,
+  enableCamera = false 
+}: ImageUploadProps) => {
+  const [previewUrl, setPreviewUrl] = useState<string>(value || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>(value || defaultImage || "");
-
-  const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name
-        .split(' ')
-        .map((word) => word[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  
+  const getInitials = () => {
+    if (name && name.trim() !== '') {
+      const initials = name.split(' ').map(part => part[0]?.toUpperCase()).filter(Boolean).join('').slice(0, 2);
+      return initials;
+    } else if (email) {
+      return email.substring(0, 2).toUpperCase();
     }
-    return email ? email.substring(0, 2).toUpperCase() : "U";
+    return 'U';
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    
-    if (!file) return;
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error("Por favor, selecione apenas arquivos de imagem");
-      return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("O arquivo é muito grande. O tamanho máximo é 5MB.");
+        return;
+      }
+
+      // Read as data URL for preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        setPreviewUrl(result);
+        onChange(result); // Send back to parent
+      };
+      reader.readAsDataURL(file);
     }
-    
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("O arquivo é muito grande. Tamanho máximo: 5MB");
-      return;
+  };
+  
+  const handleRemoveImage = () => {
+    setPreviewUrl('');
+    onChange('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setPreviewUrl(result);
-      onChange(result);
-    };
-    reader.readAsDataURL(file);
   };
-
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+  
+  const handleStartCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: false 
+      });
+      
+      setStream(mediaStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.play();
+      }
+      
+      setIsCapturing(true);
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+    }
   };
-
-  const handleCameraClick = () => {
-    cameraInputRef.current?.click();
-  };
-
-  return (
-    <div className={cn("flex flex-col items-center", className)}>
-      <Avatar className="h-20 w-20 md:h-24 md:w-24 mb-2 cursor-pointer" onClick={handleCameraClick}>
-        <AvatarImage src={previewUrl} alt={name || email || "User"} />
-        <AvatarFallback className="bg-blue-500 text-white text-xl">
-          {getInitials(name, email)}
-        </AvatarFallback>
-      </Avatar>
+  
+  const handleCaptureImage = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
       
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      
-      <input
-        type="file"
-        accept="image/*"
-        capture="user"
-        ref={cameraInputRef}
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      
-      <div className="flex gap-2 mt-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={handleButtonClick}
-          className="text-xs sm:text-sm flex gap-1 items-center"
-          size="sm"
-        >
-          <Upload className="h-4 w-4" />
-          Arquivo
-        </Button>
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg');
         
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={handleCameraClick}
-          className="text-xs sm:text-sm flex gap-1 items-center"
-          size="sm"
-        >
-          <Camera className="h-4 w-4" />
-          Câmera
-        </Button>
+        setPreviewUrl(dataUrl);
+        onChange(dataUrl);
+        handleStopCamera();
+      }
+    }
+  };
+  
+  const handleStopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setIsCapturing(false);
+  };
+  
+  return (
+    <div className="w-full flex flex-col items-center space-y-4">
+      <div className="relative">
+        <Avatar className="h-28 w-28 border-2">
+          {previewUrl ? (
+            <AvatarImage src={previewUrl} alt={name || "User"} className="object-cover" />
+          ) : (
+            <AvatarFallback className="bg-blue-500 text-white text-xl">
+              {getInitials()}
+            </AvatarFallback>
+          )}
+        </Avatar>
+        
+        {previewUrl && (
+          <button 
+            onClick={handleRemoveImage} 
+            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+            type="button"
+            aria-label="Remove image"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
+      
+      {isCapturing ? (
+        <div className="space-y-4 w-full max-w-xs">
+          <div className="relative rounded-md overflow-hidden border border-gray-300">
+            <video 
+              ref={videoRef} 
+              className="w-full"
+              muted 
+              playsInline
+            />
+          </div>
+          
+          <div className="flex justify-center space-x-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleCaptureImage}
+              className="flex items-center"
+            >
+              <Camera className="h-4 w-4 mr-1" />
+              Capturar
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleStopCamera}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center"
+          >
+            <Upload className="h-4 w-4 mr-1" />
+            Enviar foto
+          </Button>
+          
+          {enableCamera && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleStartCamera}
+              className="flex items-center"
+            >
+              <Camera className="h-4 w-4 mr-1" />
+              Usar câmera
+            </Button>
+          )}
+        </div>
+      )}
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
     </div>
   );
 };

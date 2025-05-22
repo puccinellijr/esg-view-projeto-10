@@ -38,6 +38,10 @@ const DashboardSidebar = () => {
     navigate(path);
   };
 
+  const handleOpenProfile = () => {
+    setIsProfileOpen(true);
+  };
+
   return (
     <>
       <Sidebar className="text-gray-800">
@@ -159,7 +163,7 @@ const DashboardSidebar = () => {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton 
                           className="text-black hover:bg-gray-100"
-                          onClick={() => setIsProfileOpen(true)}
+                          onClick={handleOpenProfile}
                         >
                           <Settings className="h-4 w-4" />
                           <span>Perfil do Usuário</span>
@@ -172,7 +176,7 @@ const DashboardSidebar = () => {
                 <SidebarMenuButton 
                   tooltip="Configurações" 
                   className="hover:bg-gray-200"
-                  onClick={() => setIsProfileOpen(true)}
+                  onClick={handleOpenProfile}
                   isActive={false}
                 >
                   <Settings />
@@ -184,16 +188,6 @@ const DashboardSidebar = () => {
         </SidebarContent>
         <SidebarFooter className="p-4 mt-auto border-t border-gray-300">
           <div className="flex flex-col gap-4">
-            <SidebarMenuButton 
-              tooltip="Sair"
-              className="hover:bg-gray-200 text-gray-800 w-full"
-              onClick={handleLogout}
-              isActive={false}
-            >
-              <LogOut />
-              <span>Sair</span>
-            </SidebarMenuButton>
-            
             {state !== "collapsed" && (
               <div className="text-xs text-gray-600 text-center">
                 Desenvolvido por TI GRANEL RIO GRANDE

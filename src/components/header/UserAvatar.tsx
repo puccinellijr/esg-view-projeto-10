@@ -1,7 +1,5 @@
 
-import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserProfileModal } from "@/components/UserProfileModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AccessLevel } from "@/types/auth";
 
@@ -13,7 +11,6 @@ interface UserAvatarProps {
 }
 
 const UserAvatar = ({ email, photoUrl, accessLevel, onClick }: UserAvatarProps) => {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isMobile = useIsMobile();
   
   const getInitials = (email: string) => {
@@ -28,39 +25,23 @@ const UserAvatar = ({ email, photoUrl, accessLevel, onClick }: UserAvatarProps) 
     return "Operacional";
   };
 
-  const handleClick = () => {
-    setIsProfileOpen(true);
-    if (onClick) {
-      onClick();
-    }
-  };
-
   return (
-    <>
-      <div className="flex items-center gap-1 sm:gap-2">
-        {!isMobile && (
-          <span className="text-xs md:text-sm hidden sm:inline max-w-[180px] lg:max-w-none truncate">
-            {email} ({getAccessLevelLabel(accessLevel)})
-          </span>
-        )}
-        <Avatar 
-          className="cursor-pointer h-8 w-8 sm:h-9 sm:w-9 border-2 border-white/20 hover:border-white transition-colors"
-          onClick={handleClick}
-        >
-          <AvatarImage src={photoUrl || ""} alt={email || "User"} />
-          <AvatarFallback className="bg-blue-500 text-white text-xs sm:text-sm">
-            {getInitials(email || "")}
-          </AvatarFallback>
-        </Avatar>
-      </div>
-      
-      {isProfileOpen && (
-        <UserProfileModal 
-          isOpen={isProfileOpen} 
-          onClose={() => setIsProfileOpen(false)} 
-        />
+    <div className="flex items-center gap-1 sm:gap-2">
+      {!isMobile && (
+        <span className="text-xs md:text-sm hidden sm:inline max-w-[180px] lg:max-w-none truncate">
+          {email} ({getAccessLevelLabel(accessLevel)})
+        </span>
       )}
-    </>
+      <Avatar 
+        className="cursor-pointer h-8 w-8 sm:h-9 sm:w-9 border-2 border-white/20 hover:border-white transition-colors"
+        onClick={onClick}
+      >
+        <AvatarImage src={photoUrl || ""} alt={email || "User"} />
+        <AvatarFallback className="bg-blue-500 text-white text-xs sm:text-sm">
+          {getInitials(email || "")}
+        </AvatarFallback>
+      </Avatar>
+    </div>
   );
 };
 

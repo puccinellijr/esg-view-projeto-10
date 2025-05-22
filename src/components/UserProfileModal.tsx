@@ -105,6 +105,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
           onChange={setPhotoUrl}
           name={name}
           email={email}
+          enableCamera={true}
         />
       </div>
       
