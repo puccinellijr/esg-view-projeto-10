@@ -21,13 +21,7 @@ export const useAuthProfile = () => {
       const userId = userData.user.id;
       console.log('Atualizando perfil para usuário:', userId, data);
       
-      // Handle "none" value for terminal
-      const updatedData = {
-        ...data,
-        terminal: data.terminal === "none" ? null : data.terminal
-      };
-      
-      const { success, error } = await updateProfile(userId, updatedData);
+      const { success, error } = await updateProfile(userId, data);
       
       if (error) {
         console.error('Erro ao atualizar perfil:', error);
@@ -42,8 +36,6 @@ export const useAuthProfile = () => {
             ...prev,
             name: data.name || prev.name,
             photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
-            terminal: data.terminal === "none" ? null : (data.terminal !== undefined ? data.terminal : prev.terminal),
-            email: data.email || prev.email,
           };
         });
         return true;

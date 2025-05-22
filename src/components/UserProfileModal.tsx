@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from '@/context/AuthContext';
 import ImageUpload from './ImageUpload';
@@ -17,76 +16,38 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user, updateUserProfile, hasAccess } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const isMobile = useIsMobile();
   
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [terminal, setTerminal] = useState<string>("none");
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const isAdmin = hasAccess('administrative');
   
   useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       setName(user.name || "");
-      setEmail(user.email || "");
       setPhotoUrl(user.photoUrl || "");
-      setTerminal(user.terminal || "none");
     }
   }, [user, isOpen]); // Reset form when modal is opened
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError("");
-    
-    if (newPassword && newPassword !== confirmPassword) {
-      setPasswordError("As senhas não coincidem");
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    
-    if (newPassword && !currentPassword) {
-      setPasswordError("A senha atual é necessária para definir uma nova senha");
-      toast.error("A senha atual é necessária para definir uma nova senha");
-      return;
-    }
-    
     setIsLoading(true);
     
     try {
       console.log("Atualizando perfil com dados:", {
         name,
         photoUrl,
-        terminal: isAdmin ? terminal : undefined,
-        ...(newPassword ? { 
-          password: newPassword,
-          currentPassword 
-        } : {})
       });
       
       // Atualizar usuário incluindo todos os dados necessários
       const updated = await updateUserProfile({
         name,
         photoUrl,
-        terminal: isAdmin ? terminal : undefined,
-        ...(newPassword ? { 
-          password: newPassword,
-          currentPassword 
-        } : {})
       });
       
       if (updated) {
         toast.success("Perfil atualizado com sucesso");
-        // Limpar os campos de senha
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        setPasswordError("");
         onClose();
       } else {
         toast.error("Erro ao atualizar perfil");
@@ -106,7 +67,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
           value={photoUrl} 
           onChange={setPhotoUrl}
           name={name}
-          email={email}
+          email={user?.email}
           enableCamera={true}
         />
       </div>
@@ -119,69 +80,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isLoading}
+            autoFocus
           />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            readOnly
-            disabled={true}
-          />
-        </div>
-        
-        {isAdmin && (
-          <div className="space-y-2">
-            <Label htmlFor="terminal">Terminal Padrão</Label>
-            <Select value={terminal} onValueChange={setTerminal} disabled={isLoading}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione um terminal padrão" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                <SelectItem value="Rio Grande">Rio Grande</SelectItem>
-                <SelectItem value="Alemoa">Alemoa</SelectItem>
-                <SelectItem value="Santa Helena de Goiás">Santa Helena de Goiás</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        
-        <div className="space-y-2">
-          <Label htmlFor="current-password">Senha Atual</Label>
-          <Input
-            id="current-password"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="new-password">Nova Senha</Label>
-          <Input
-            id="new-password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-          <Input
-            id="confirm-password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={isLoading}
-          />
-          {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
         </div>
       </div>
       

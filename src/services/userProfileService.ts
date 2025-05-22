@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { UserData, UserUpdateData } from '@/types/auth';
 
@@ -63,59 +62,10 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
   try {
     console.log('Atualizando perfil de usuário:', userId, data);
     
-    // Buscar email do usuário antes para garantir sincronização
-    const { data: userData, error: userError } = await supabase
-      .from('user_profiles')
-      .select('email')
-      .eq('id', userId)
-      .single();
-    
-    if (userError) {
-      console.error('Erro ao buscar email do usuário:', userError);
-      return { success: false, error: userError };
-    }
-    
-    const userEmail = userData.email;
-    console.log('Email do usuário para atualização:', userEmail);
-    
-    // Update password if provided - usando Auth API
-    if (data.password) {
-      console.log('Atualizando senha do usuário via Auth API');
-      const { error: authError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { password: data.password }
-      );
-      
-      if (authError) {
-        console.error('Erro ao atualizar senha:', authError);
-        return { success: false, error: authError };
-      }
-      
-      console.log('Senha atualizada com sucesso na autenticação');
-    }
-    
-    // Update email if provided (will update in both auth and user_profiles)
-    if (data.email && data.email !== userEmail) {
-      console.log('Atualizando email do usuário de', userEmail, 'para', data.email);
-      const { error: emailError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { email: data.email }
-      );
-      
-      if (emailError) {
-        console.error('Erro ao atualizar email:', emailError);
-        return { success: false, error: emailError };
-      }
-      
-      console.log('Email atualizado com sucesso na autenticação');
-    }
-    
     // Prepare update data for user_profiles table
     const updateData: Record<string, any> = {};
     if (data.name) updateData.name = data.name;
     if (data.photoUrl !== undefined) updateData.photo_url = data.photoUrl;
-    if (data.terminal !== undefined) updateData.terminal = data.terminal;
-    if (data.email && data.email !== userEmail) updateData.email = data.email; // Also update email in profiles table
     
     // Only update if there are fields to update
     if (Object.keys(updateData).length > 0) {
@@ -137,7 +87,7 @@ export const updateUserProfile = async (userId: string, data: UserUpdateData): P
       console.log('Nenhum dado de perfil para atualizar na tabela user_profiles');
     }
     
-    console.log('Perfil atualizado com sucesso em Auth e tabela user_profiles');
+    console.log('Perfil atualizado com sucesso na tabela user_profiles');
     return { success: true };
   } catch (error) {
     console.error('Erro ao atualizar perfil:', error);
