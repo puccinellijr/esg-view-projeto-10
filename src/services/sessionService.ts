@@ -82,3 +82,4 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLevel: AccessLevel): boolean => {
   return checkAccess(userAccessLevel, requiredLevel);
 };
+

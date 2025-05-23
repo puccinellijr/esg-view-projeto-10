@@ -24,3 +24,4 @@ if (!rootElement) {
     // Fallback UI could be added here if needed
   }
 }
+
