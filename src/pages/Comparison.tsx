@@ -119,30 +119,36 @@ const Comparison = () => {
                 <div className="mt-6 sm:mt-10">
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Visão Geral de Indicadores</h2>
                   
-                  {/* Desktop layout: 20% smaller and centered */}
+                  {/* Desktop layout: 20% smaller and centered with proper grid alignment */}
                   {!isMobile && (
                     <div className="flex justify-center">
-                      <div className="w-4/5 grid grid-cols-2 gap-6">
-                        {/* Environmental Chart */}
-                        <div className="bg-green-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
-                          <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
-                          <ComparisonBarChart 
-                            esgData={esgData} 
-                            category="environmental"
-                            period1={period1}
-                            period2={period2}
-                          />
-                        </div>
-                        
-                        {/* Social and Governance Chart */}
-                        <div className="bg-blue-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
-                          <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
-                          <ComparisonBarChart 
-                            esgData={esgData} 
-                            category="social_governance"
-                            period1={period1}
-                            period2={period2}
-                          />
+                      <div className="w-4/5 max-w-6xl">
+                        <div className="grid grid-cols-2 gap-8">
+                          {/* Environmental Chart */}
+                          <div className="bg-green-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                            <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
+                            <div className="w-full h-80">
+                              <ComparisonBarChart 
+                                esgData={esgData} 
+                                category="environmental"
+                                period1={period1}
+                                period2={period2}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Social and Governance Chart */}
+                          <div className="bg-blue-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                            <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
+                            <div className="w-full h-80">
+                              <ComparisonBarChart 
+                                esgData={esgData} 
+                                category="social_governance"
+                                period1={period1}
+                                period2={period2}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
