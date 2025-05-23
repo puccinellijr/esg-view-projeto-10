@@ -10,12 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const DashboardHeader = () => {
   const { user, logout } = useAuth();
   const { toggleSidebar, state } = useSidebar();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Get user's first name only for welcome message
   const getUserDisplayName = () => {
@@ -29,10 +31,27 @@ const DashboardHeader = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success('Sessão encerrada com sucesso');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      if (isLoggingOut) return; // Prevent multiple clicks
+      
+      setIsLoggingOut(true);
+      toast.loading('Encerrando sessão...');
+      
+      // Call logout function
+      await logout();
+      
+      toast.dismiss();
+      toast.success('Sessão encerrada com sucesso');
+      
+      // Use replace: true to prevent going back with the browser's back button
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Erro ao realizar logout:', error);
+      toast.error('Erro ao encerrar sessão');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -61,9 +80,10 @@ const DashboardHeader = () => {
                 variant="ghost" 
                 className="justify-start"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair do Sistema</span>
+                <span>{isLoggingOut ? 'Saindo...' : 'Sair do Sistema'}</span>
               </Button>
             </div>
           </PopoverContent>

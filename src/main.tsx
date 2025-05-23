@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+// Get base URL from vite config
+const baseUrl = import.meta.env.BASE_URL || '/esg-view/';
+console.log(`Initializing app with base URL: ${baseUrl}`);
+
 // Use a more efficient rendering approach with error boundaries
 const rootElement = document.getElementById("root");
 
