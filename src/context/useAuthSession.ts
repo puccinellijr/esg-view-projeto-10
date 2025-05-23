@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { UserData } from '@/types/auth';
 import { 
@@ -133,29 +134,11 @@ export function useAuthSession() {
     return success;
   };
 
-  // Improved logout function with better error handling and state management
+  // Wrapper functions for auth operations
   const logoutUser = async (): Promise<void> => {
-    try {
-      // First, immediately set the user to null to trigger UI updates
-      setUser(null);
-      
-      console.log('Iniciando processo de logout...');
-      
-      // Then perform the actual logout operation
-      const { success, error } = await logout();
-      
-      if (!success) {
-        console.error('Erro ao desconectar:', error);
-        // Even if the API logout fails, keep the user logged out locally
-      }
-      
-      // Add a small delay to ensure everything is processed
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log('Logout realizado com sucesso');
-    } catch (error) {
-      console.error('Exceção durante logout:', error);
-      // Ensure user is still set to null even if there's an error
+    const { success, error } = await logout();
+    if (!success) {
+      console.error('Erro ao desconectar:', error);
     }
   };
 

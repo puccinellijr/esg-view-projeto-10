@@ -39,13 +39,10 @@ const queryClient = new QueryClient({
   },
 });
 
-// Get the base URL from Vite's env or fallback to /esg-view/
-const baseUrl = import.meta.env.BASE_URL || '/esg-view/';
-
 // O AppRoutes foi removido e o conteúdo foi movido diretamente para o App
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter basename={baseUrl}>
+    <BrowserRouter>
       <AuthProvider>
         <TooltipProvider>
           <SidebarProvider>

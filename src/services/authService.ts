@@ -55,30 +55,13 @@ export const logoutUser = async (): Promise<{
   error?: any
 }> => {
   try {
-    console.log('Iniciando logout no serviço de autenticação...');
-    
-    // Use the option scope: 'local' to ensure we're only signing out locally
-    // This prevents issues if the network connection to Supabase is flaky
-    const { error } = await supabase.auth.signOut({ 
-      scope: 'local' 
-    });
-    
+    const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Erro no processo de logout:', error);
       throw error;
     }
-    
-    // Double check that we're logged out by verifying session
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      console.warn('Sessão ainda presente após logout! Tentando novamente...');
-      await supabase.auth.signOut();
-    }
-    
-    console.log('Logout concluído com sucesso');
     return { success: true };
   } catch (error) {
-    console.error('Exceção durante logout:', error);
+    console.error('Erro ao desconectar:', error);
     return { success: false, error };
   }
 };

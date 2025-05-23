@@ -49,23 +49,9 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
           };
           onAuthStateChange(session.user, minimalProfile);
         }
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        console.log('Usuário desconectado ou removido');
-        // Immediately notify about the session change
+      } else if (event === 'SIGNED_OUT') {
+        console.log('Usuário desconectado');
         onAuthStateChange(null, null);
-        
-        // Double-check session status after a short delay
-        setTimeout(async () => {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session) {
-            console.warn('Sessão ainda ativa após evento de logout - forçando limpeza');
-            await supabase.auth.signOut({ scope: 'local' });
-            onAuthStateChange(null, null);
-          }
-        }, 500);
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token atualizado');
-        // No action needed, session is still valid
       }
     }
   );
@@ -82,4 +68,3 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
 export const checkAccessLevel = (userAccessLevel: string | undefined, requiredLevel: AccessLevel): boolean => {
   return checkAccess(userAccessLevel, requiredLevel);
 };
-
