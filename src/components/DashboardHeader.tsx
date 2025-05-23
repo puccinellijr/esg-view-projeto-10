@@ -29,10 +29,31 @@ const DashboardHeader = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success('Sessão encerrada com sucesso');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      console.log('DashboardHeader: Iniciando logout...');
+      
+      // Show logout message immediately
+      toast.success('Encerrando sessão...');
+      
+      // Perform logout
+      await logout();
+      
+      console.log('DashboardHeader: Logout realizado, redirecionando...');
+      
+      // Force navigation to login page with replace to prevent back navigation
+      navigate('/login', { replace: true });
+      
+      // Show final success message
+      toast.success('Sessão encerrada com sucesso');
+      
+    } catch (error) {
+      console.error('Erro durante logout:', error);
+      toast.error('Erro ao encerrar sessão');
+      
+      // Even if there's an error, try to navigate to login
+      navigate('/login', { replace: true });
+    }
   };
 
   return (

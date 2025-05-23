@@ -115,33 +115,65 @@ const Comparison = () => {
                   period2={period2}
                 />
 
-                {/* Split bar charts into two separate charts */}
-                <div className="mt-6 sm:mt-10 p-3 sm:p-6 bg-white rounded-lg shadow">
+                {/* Charts section with improved layout - 20% smaller and centered on desktop, horizontal on mobile */}
+                <div className="mt-6 sm:mt-10">
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Visão Geral de Indicadores</h2>
                   
-                  <div className={`grid ${isMobile ? 'grid-cols-1 gap-8' : 'grid-cols-2 gap-6'}`}>
-                    {/* Environmental Chart */}
-                    <div className="bg-green-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
-                      <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
-                      <ComparisonBarChart 
-                        esgData={esgData} 
-                        category="environmental"
-                        period1={period1}
-                        period2={period2}
-                      />
+                  {/* Desktop layout: 20% smaller and centered */}
+                  {!isMobile && (
+                    <div className="flex justify-center">
+                      <div className="w-4/5 grid grid-cols-2 gap-6">
+                        {/* Environmental Chart */}
+                        <div className="bg-green-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
+                          <ComparisonBarChart 
+                            esgData={esgData} 
+                            category="environmental"
+                            period1={period1}
+                            period2={period2}
+                          />
+                        </div>
+                        
+                        {/* Social and Governance Chart */}
+                        <div className="bg-blue-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
+                          <ComparisonBarChart 
+                            esgData={esgData} 
+                            category="social_governance"
+                            period1={period1}
+                            period2={period2}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    
-                    {/* Social and Governance Chart */}
-                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4 shadow-md hover:shadow-lg transition-shadow">
-                      <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
-                      <ComparisonBarChart 
-                        esgData={esgData} 
-                        category="social_governance"
-                        period1={period1}
-                        period2={period2}
-                      />
+                  )}
+                  
+                  {/* Mobile layout: one below the other horizontally */}
+                  {isMobile && (
+                    <div className="flex flex-col gap-6">
+                      {/* Environmental Chart */}
+                      <div className="bg-green-50 rounded-lg p-3 shadow-md">
+                        <h3 className="text-lg font-semibold text-green-700 mb-3 text-center">Dimensão Ambiental</h3>
+                        <ComparisonBarChart 
+                          esgData={esgData} 
+                          category="environmental"
+                          period1={period1}
+                          period2={period2}
+                        />
+                      </div>
+                      
+                      {/* Social and Governance Chart */}
+                      <div className="bg-blue-50 rounded-lg p-3 shadow-md">
+                        <h3 className="text-lg font-semibold text-blue-700 mb-3 text-center">Dimensões Social e Governança</h3>
+                        <ComparisonBarChart 
+                          esgData={esgData} 
+                          category="social_governance"
+                          period1={period1}
+                          period2={period2}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

@@ -28,6 +28,7 @@ export function useAuthSession() {
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
+          setUser(null);
           setIsInitialized(true);
           return;
         }
@@ -99,6 +100,7 @@ export function useAuthSession() {
           terminal: profileData.terminal
         });
       } else {
+        console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
       }
     });
@@ -134,12 +136,27 @@ export function useAuthSession() {
     return success;
   };
 
-  // Wrapper functions for auth operations
+  // Improved logout function
   const logoutUser = async (): Promise<void> => {
-    const { success, error } = await logout();
-    if (!success) {
-      console.error('Erro ao desconectar:', error);
+    console.log('Iniciando processo de logout...');
+    
+    // Clear user state immediately to prevent UI inconsistencies
+    setUser(null);
+    
+    try {
+      const { success, error } = await logout();
+      if (!success) {
+        console.error('Erro no logout do Supabase:', error);
+      } else {
+        console.log('Logout do Supabase realizado com sucesso');
+      }
+    } catch (err) {
+      console.error('Exceção durante logout:', err);
     }
+    
+    // Force a small delay to ensure all auth listeners have processed the logout
+    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log('Logout concluído');
   };
 
   const resetPassword = async (email: string): Promise<boolean> => {

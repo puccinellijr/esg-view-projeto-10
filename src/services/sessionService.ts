@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { loadUserProfile } from './userProfileService';
 import { AccessLevel } from '@/types/auth';
@@ -50,8 +49,17 @@ export const setupAuthListener = (onAuthStateChange: AuthStateChangeCallback) =>
           onAuthStateChange(session.user, minimalProfile);
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('Usuário desconectado');
+        console.log('Usuário desconectado - limpando estado');
         onAuthStateChange(null, null);
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token atualizado');
+        // Keep current user state on token refresh
+      } else {
+        console.log(`Evento de autenticação não tratado: ${event}`);
+        // For other events, don't change user state unless it's a sign out
+        if (!session) {
+          onAuthStateChange(null, null);
+        }
       }
     }
   );
