@@ -136,64 +136,69 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData, catego
   return (
     <div className="w-full h-auto p-2 sm:p-4 comparison-bar-chart">
       <h3 className="text-lg sm:text-xl font-bold text-center mb-3">{getTitle()}</h3>
-      <ChartContainer config={chartConfig} className="h-[400px] sm:h-[500px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            layout="horizontal"
-            data={chartData}
-            margin={{ 
-              top: 20, 
-              right: isMobile ? 20 : 40, 
-              left: isMobile ? 80 : 120, 
-              bottom: isMobile ? 20 : 30 
-            }}
-            barGap={isMobile ? 2 : 4}
-            barSize={isMobile ? 12 : 20}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              type="number"
-              tick={{ fontSize: isMobile ? 10 : 12, fill: '#374151', fontWeight: 'bold' }}
-              axisLine={{ stroke: '#9CA3AF', strokeWidth: 2 }}
-              tickLine={{ stroke: '#9CA3AF' }}
-            />
-            <YAxis 
-              type="category"
-              dataKey="name" 
-              tick={{ fontSize: isMobile ? 9 : 11, fill: '#374151', fontWeight: 'bold' }}
-              width={isMobile ? 80 : 120}
-              axisLine={{ stroke: '#9CA3AF', strokeWidth: 2 }}
-              tickLine={{ stroke: '#9CA3AF' }}
-            />
-            <Tooltip content={<CustomTooltip period1={period1} period2={period2} />} />
-            <Legend
-              wrapperStyle={{ 
-                fontSize: isMobile ? 11 : 13,
-                paddingTop: isMobile ? 10 : 15,
-                fontWeight: 'bold'
+      {/* Reduzido a largura em 50% - agora usando w-1/2 e centralizado */}
+      <div className="w-1/2 mx-auto">
+        <ChartContainer config={chartConfig} className="h-[300px] sm:h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="horizontal"
+              data={chartData}
+              margin={{ 
+                top: 20, 
+                right: isMobile ? 15 : 30, 
+                left: isMobile ? 60 : 100, 
+                bottom: isMobile ? 15 : 25 
               }}
-            />
-            <Bar 
-              dataKey="periodo1" 
-              name={period1 ? `${getMonthName(period1.month)}/${period1.year}` : "Período 1"} 
-              fill={getPeriod1Color()}
-              radius={[0, 4, 4, 0]}
-              className="animate-fade-in"
-              stroke="#FFFFFF"
-              strokeWidth={1}
-            />
-            <Bar 
-              dataKey="periodo2" 
-              name={period2 ? `${getMonthName(period2.month)}/${period2.year}` : "Período 2"}  
-              fill={getPeriod2Color()}
-              radius={[0, 4, 4, 0]}
-              className="animate-fade-in"
-              stroke="#FFFFFF"
-              strokeWidth={1}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
+              barGap={isMobile ? 3 : 6}
+              barSize={isMobile ? 15 : 25}
+              maxBarSize={30}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis 
+                type="number"
+                domain={[0, 'dataMax']}
+                tick={{ fontSize: isMobile ? 10 : 12, fill: '#374151', fontWeight: 'bold' }}
+                axisLine={{ stroke: '#9CA3AF', strokeWidth: 2 }}
+                tickLine={{ stroke: '#9CA3AF' }}
+              />
+              <YAxis 
+                type="category"
+                dataKey="name" 
+                tick={{ fontSize: isMobile ? 9 : 11, fill: '#374151', fontWeight: 'bold' }}
+                width={isMobile ? 60 : 100}
+                axisLine={{ stroke: '#9CA3AF', strokeWidth: 2 }}
+                tickLine={{ stroke: '#9CA3AF' }}
+              />
+              <Tooltip content={<CustomTooltip period1={period1} period2={period2} />} />
+              <Legend
+                wrapperStyle={{ 
+                  fontSize: isMobile ? 11 : 13,
+                  paddingTop: isMobile ? 10 : 15,
+                  fontWeight: 'bold'
+                }}
+              />
+              <Bar 
+                dataKey="periodo1" 
+                name={period1 ? `${getMonthName(period1.month)}/${period1.year}` : "Período 1"} 
+                fill={getPeriod1Color()}
+                radius={[0, 4, 4, 0]}
+                className="animate-fade-in"
+                stroke="#FFFFFF"
+                strokeWidth={1}
+              />
+              <Bar 
+                dataKey="periodo2" 
+                name={period2 ? `${getMonthName(period2.month)}/${period2.year}` : "Período 2"}  
+                fill={getPeriod2Color()}
+                radius={[0, 4, 4, 0]}
+                className="animate-fade-in"
+                stroke="#FFFFFF"
+                strokeWidth={1}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
     </div>
   );
 };
