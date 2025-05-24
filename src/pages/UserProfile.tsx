@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,9 +8,11 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useAuth } from '@/context/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
   const { user, updateUserProfile, logout } = useAuth();
+  const navigate = useNavigate();
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -59,6 +60,10 @@ const UserProfile = () => {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        // Redirect to home page after successful update
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       } else {
         toast.error("Erro ao atualizar perfil");
       }

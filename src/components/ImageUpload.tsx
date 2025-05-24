@@ -66,21 +66,32 @@ const ImageUpload = ({
   const handleStartCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
         audio: false 
       });
       
       setStream(mediaStream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-      }
-      
       setIsCapturing(true);
+      
+      // Wait for next tick to ensure video element is in DOM
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play().catch(err => {
+            console.error("Error playing video:", err);
+            toast.error("Erro ao iniciar visualização da câmera");
+          });
+        }
+      }, 100);
+      
     } catch (err) {
       console.error("Error accessing camera:", err);
       toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+      setIsCapturing(false);
     }
   };
   
@@ -148,14 +159,20 @@ const ImageUpload = ({
       </div>
       
       {isCapturing ? (
-        <div className="space-y-4 w-full max-w-xs">
-          <div className="relative rounded-md overflow-hidden border border-gray-300">
+        <div className="space-y-4 w-full max-w-sm">
+          <div className="relative rounded-md overflow-hidden border border-gray-300 bg-black">
             <video 
               ref={videoRef} 
-              className="w-full"
+              className="w-full h-48 object-cover"
               muted 
               playsInline
               autoPlay
+              style={{ 
+                display: 'block',
+                width: '100%',
+                height: '192px',
+                objectFit: 'cover'
+              }}
             />
           </div>
           

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -9,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import ImageUpload from './ImageUpload';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -18,6 +18,7 @@ interface UserProfileModalProps {
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
   const { user, updateUserProfile } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const [name, setName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
@@ -49,6 +50,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       if (updated) {
         toast.success("Perfil atualizado com sucesso");
         onClose();
+        // Redirect to home page after successful update
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
       } else {
         toast.error("Erro ao atualizar perfil");
       }
