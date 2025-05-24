@@ -40,14 +40,14 @@ const CustomTooltip = ({ active, payload, label, period1, period2 }: any) => {
     const period2Label = period2 ? `${getMonthName(period2.month)}/${period2.year}` : 'Período 2';
     
     return (
-      <div className="bg-white p-2 sm:p-4 shadow-md rounded-md border border-gray-200 text-xs sm:text-sm">
-        <p className="font-bold mb-1 sm:mb-2 text-xs sm:text-sm">{label}</p>
-        <p className="text-xs sm:text-sm text-green-600">
-          <span className="inline-block w-2 h-2 sm:w-3 sm:h-3 bg-green-500 mr-1 sm:mr-2 rounded-full"></span>
+      <div className="bg-white p-1 sm:p-2 shadow-md rounded-md border border-gray-200 text-xs">
+        <p className="font-bold mb-1 text-xs">{label}</p>
+        <p className="text-xs text-green-600">
+          <span className="inline-block w-2 h-2 bg-green-500 mr-1 rounded-full"></span>
           {period1Label}: {payload[0].value.toFixed(4)}
         </p>
-        <p className="text-xs sm:text-sm text-blue-600">
-          <span className="inline-block w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 mr-1 sm:mr-2 rounded-full"></span>
+        <p className="text-xs text-blue-600">
+          <span className="inline-block w-2 h-2 bg-blue-500 mr-1 rounded-full"></span>
           {period2Label}: {payload[1].value.toFixed(4)}
         </p>
       </div>
@@ -102,20 +102,6 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData, catego
   
   const chartData = processChartData();
   
-  // Define color for each category
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'environmental':
-        return '#16A34A'; // vibrant green
-      case 'social':
-        return '#2563EB'; // vibrant blue
-      case 'governance':
-        return '#9333EA'; // vibrant purple
-      default:
-        return '#4B5563'; // gray
-    }
-  };
-  
   // Get title based on category
   const getTitle = () => {
     if (category === 'environmental') {
@@ -147,68 +133,55 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData, catego
     period2: { label: period2 ? `${getMonthName(period2.month)}/${period2.year}` : 'Período 2', color: getPeriod2Color() },
   };
   
-  // Determine chart height based on screen size and data length
-  const getChartHeight = () => {
-    const baseHeight = isMobile ? 400 : 600;
-    const itemCount = chartData.length;
-    
-    // Adjust height based on number of items for better readability on mobile
-    if (isMobile && itemCount > 10) {
-      return Math.max(baseHeight, itemCount * 30); // 30px per item minimum on mobile
-    }
-    
-    return baseHeight;
-  };
-  
   return (
-    <div className="w-full h-auto p-2 sm:p-4 comparison-bar-chart">
-      <h3 className="text-lg sm:text-xl font-bold text-center mb-3">{getTitle()}</h3>
-      <ChartContainer config={chartConfig} className="h-[400px] sm:h-[500px]">
+    <div className="w-full h-auto p-1 sm:p-2 comparison-bar-chart">
+      <h3 className="text-sm sm:text-base font-bold text-center mb-2">{getTitle()}</h3>
+      <ChartContainer config={chartConfig} className="h-[160px] sm:h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             margin={{ 
-              top: 20, 
-              right: isMobile ? 10 : 30, 
-              left: isMobile ? 10 : 30, 
-              bottom: isMobile ? 120 : 100 
+              top: 10, 
+              right: isMobile ? 5 : 15, 
+              left: isMobile ? 5 : 15, 
+              bottom: isMobile ? 40 : 50 
             }}
-            barGap={isMobile ? 0 : 4}
-            barSize={isMobile ? 8 : 16}
+            barGap={isMobile ? 0 : 2}
+            barSize={isMobile ? 4 : 8}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 
               angle={-45} 
               textAnchor="end" 
-              height={isMobile ? 120 : 100}
-              tick={{ fontSize: isMobile ? 8 : 12 }}
+              height={isMobile ? 40 : 50}
+              tick={{ fontSize: isMobile ? 6 : 8 }}
               interval={0}
-              tickMargin={isMobile ? 15 : 10}
+              tickMargin={isMobile ? 8 : 10}
             />
             <YAxis 
-              tick={{ fontSize: isMobile ? 8 : 12 }}
-              width={isMobile ? 40 : 50}
+              tick={{ fontSize: isMobile ? 6 : 8 }}
+              width={isMobile ? 25 : 30}
             />
             <Tooltip content={<CustomTooltip period1={period1} period2={period2} />} />
             <Legend
               wrapperStyle={{ 
-                fontSize: isMobile ? 10 : 12,
-                paddingTop: isMobile ? 5 : 10
+                fontSize: isMobile ? 8 : 10,
+                paddingTop: isMobile ? 2 : 5
               }}
             />
             <Bar 
               dataKey="periodo1" 
               name={period1 ? `${getMonthName(period1.month)}/${period1.year}` : "Período 1"} 
               fill={getPeriod1Color()}
-              radius={[3, 3, 0, 0]}
+              radius={[2, 2, 0, 0]}
               className="animate-fade-in"
             />
             <Bar 
               dataKey="periodo2" 
               name={period2 ? `${getMonthName(period2.month)}/${period2.year}` : "Período 2"}  
               fill={getPeriod2Color()}
-              radius={[3, 3, 0, 0]}
+              radius={[2, 2, 0, 0]}
               className="animate-fade-in"
             />
           </BarChart>
