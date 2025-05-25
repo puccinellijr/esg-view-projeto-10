@@ -11,6 +11,7 @@ import {
 import { setupAuthListener } from '@/services/sessionService';
 import { loadUserProfile } from '@/services/userProfileService';
 import { normalizeAccessLevel } from './authUtils';
+import { startSessionRefresh, stopSessionRefresh } from '@/services/sessionRefreshService';
 
 export function useAuthSession() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -50,6 +51,9 @@ export function useAuthSession() {
 
         if (sessionUser) {
           console.log("AuthProvider: Sessão encontrada para usuário:", sessionUser.email);
+          
+          // Start session refresh when user is authenticated
+          startSessionRefresh();
           
           try {
             // Add timeout for profile loading
@@ -108,10 +112,12 @@ export function useAuthSession() {
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
           setUser(null);
+          stopSessionRefresh();
         }
       } catch (err) {
         console.error("AuthProvider: Erro ao inicializar:", err);
         setUser(null);
+        stopSessionRefresh();
       } finally {
         console.log("AuthProvider: Inicialização concluída");
         setIsInitialized(true);
@@ -127,6 +133,9 @@ export function useAuthSession() {
     // Set up auth state change listener
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (authUser && profileData) {
+        // Start session refresh when user is authenticated
+        startSessionRefresh();
+        
         // Log the raw access level value from the database
         console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
         
@@ -146,6 +155,7 @@ export function useAuthSession() {
       } else {
         console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
+        stopSessionRefresh();
         setIsLoading(false);
       }
     });
@@ -154,6 +164,7 @@ export function useAuthSession() {
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }
+      stopSessionRefresh();
       cleanupListener();
     };
   }, []);
@@ -165,6 +176,9 @@ export function useAuthSession() {
       const { success, user: authUser, profileData } = await login(email, password);
       
       if (success && authUser && profileData) {
+        // Start session refresh on successful login
+        startSessionRefresh();
+        
         // Log the raw access level from the database
         console.log(`Login: Nível de acesso bruto do banco: "${profileData.access_level}"`);
         
@@ -195,6 +209,9 @@ export function useAuthSession() {
   const logoutUser = async (): Promise<void> => {
     console.log('Iniciando processo de logout...');
     setIsLoading(true);
+    
+    // Stop session refresh immediately
+    stopSessionRefresh();
     
     // Clear user state immediately to prevent UI inconsistencies
     setUser(null);

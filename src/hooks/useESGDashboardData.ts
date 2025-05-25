@@ -1,7 +1,7 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { ensureValidSession } from '@/services/sessionRefreshService';
 
 // Define indicator types
 export interface Indicator {
@@ -51,33 +51,26 @@ export const useESGDashboardData = ({
     setLastFetchTimestamp(now);
     setIsLoading(true);
     
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.warn("Dashboard data fetch timeout, showing N/D for all indicators");
-      setIsLoading(false);
-      handleFetchError();
-    }, 15000); // 15 second timeout
-    
     try {
+      // Check and refresh session if needed before making the request
+      const sessionValid = await ensureValidSession();
+      if (!sessionValid) {
+        console.warn("Sessão inválida ou expirada");
+        toast.error("Sessão expirada - faça login novamente");
+        handleFetchError();
+        setIsLoading(false);
+        return;
+      }
+      
       console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
       
-      // Buscar indicadores do Supabase com timeout
-      const fetchPromise = supabase
+      const { data, error } = await supabase
         .from('esg_indicators')
         .select('*')
         .eq('terminal', selectedTerminal)
         .eq('month', parseInt(selectedMonth))
         .eq('year', parseInt(selectedYear))
         .order('created_at', { ascending: false });
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 10000)
-      );
-      
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-      
-      // Clear timeout if we get a response
-      clearTimeout(timeoutId);
       
       if (error) {
         throw error;
@@ -88,10 +81,16 @@ export const useESGDashboardData = ({
       
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
-      toast.error("Erro ao carregar indicadores");
+      
+      // Check if it's a session/auth related error
+      if (error.message?.includes('JWT') || error.message?.includes('session') || 
+          error.message?.includes('unauthorized') || error.message?.includes('403')) {
+        toast.error("Sessão expirada - faça login novamente");
+      } else {
+        toast.error("Erro ao carregar indicadores");
+      }
       handleFetchError();
     } finally {
-      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp]);

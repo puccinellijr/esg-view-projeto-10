@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
 import { toast } from 'sonner';
+import { ensureValidSession } from '@/services/sessionRefreshService';
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
@@ -33,25 +34,20 @@ export const useESGData = () => {
     setLastFetchTimestamp(now);
     setIsLoading(true);
     
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.warn("ESG comparison data fetch timeout");
-      setIsLoading(false);
-      toast.error("Timeout ao buscar dados - tente novamente");
-    }, 15000); // 15 second timeout
-    
-    console.log(`Fetching ESG comparison data for terminal: ${terminal}, periods: ${period1.month}/${period1.year} and ${period2.month}/${period2.year}`);
-    
     try {
-      // Create a timeout promise
-      const fetchPromise = fetchESGData(terminal, period1, period2);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Fetch timeout')), 12000)
-      );
+      // Check and refresh session if needed before making the request
+      const sessionValid = await ensureValidSession();
+      if (!sessionValid) {
+        console.warn("Sessão inválida ou expirada");
+        toast.error("Sessão expirada - faça login novamente");
+        setIsLoading(false);
+        return;
+      }
       
-      const data = await Promise.race([fetchPromise, timeoutPromise]) as ESGComparisonData;
+      console.log(`Fetching ESG comparison data for terminal: ${terminal}, periods: ${period1.month}/${period1.year} and ${period2.month}/${period2.year}`);
       
-      clearTimeout(timeoutId);
+      const data = await fetchESGData(terminal, period1, period2);
+      
       setESGData(data);
       setIsDataFetched(true);
       
@@ -60,14 +56,16 @@ export const useESGData = () => {
       }
     } catch (error) {
       console.error("Error fetching ESG data:", error);
-      if (error.message === 'Fetch timeout') {
-        toast.error("Timeout ao buscar dados - tente novamente");
+      
+      // Check if it's a session/auth related error
+      if (error.message?.includes('JWT') || error.message?.includes('session') || 
+          error.message?.includes('unauthorized') || error.message?.includes('403')) {
+        toast.error("Sessão expirada - faça login novamente");
       } else {
         toast.error("Erro ao buscar dados para comparação");
       }
       setESGData(null);
     } finally {
-      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };
