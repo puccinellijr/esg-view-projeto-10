@@ -51,17 +51,33 @@ export const useESGDashboardData = ({
     setLastFetchTimestamp(now);
     setIsLoading(true);
     
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn("Dashboard data fetch timeout, showing N/D for all indicators");
+      setIsLoading(false);
+      handleFetchError();
+    }, 15000); // 15 second timeout
+    
     try {
       console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
       
-      // Buscar indicadores do Supabase
-      const { data, error } = await supabase
+      // Buscar indicadores do Supabase com timeout
+      const fetchPromise = supabase
         .from('esg_indicators')
         .select('*')
         .eq('terminal', selectedTerminal)
         .eq('month', parseInt(selectedMonth))
         .eq('year', parseInt(selectedYear))
         .order('created_at', { ascending: false });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 10000)
+      );
+      
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      
+      // Clear timeout if we get a response
+      clearTimeout(timeoutId);
       
       if (error) {
         throw error;
@@ -75,6 +91,7 @@ export const useESGDashboardData = ({
       toast.error("Erro ao carregar indicadores");
       handleFetchError();
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp]);

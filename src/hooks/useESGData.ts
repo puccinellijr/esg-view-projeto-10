@@ -33,10 +33,25 @@ export const useESGData = () => {
     setLastFetchTimestamp(now);
     setIsLoading(true);
     
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn("ESG comparison data fetch timeout");
+      setIsLoading(false);
+      toast.error("Timeout ao buscar dados - tente novamente");
+    }, 15000); // 15 second timeout
+    
     console.log(`Fetching ESG comparison data for terminal: ${terminal}, periods: ${period1.month}/${period1.year} and ${period2.month}/${period2.year}`);
     
     try {
-      const data = await fetchESGData(terminal, period1, period2);
+      // Create a timeout promise
+      const fetchPromise = fetchESGData(terminal, period1, period2);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Fetch timeout')), 12000)
+      );
+      
+      const data = await Promise.race([fetchPromise, timeoutPromise]) as ESGComparisonData;
+      
+      clearTimeout(timeoutId);
       setESGData(data);
       setIsDataFetched(true);
       
@@ -45,9 +60,14 @@ export const useESGData = () => {
       }
     } catch (error) {
       console.error("Error fetching ESG data:", error);
-      toast.error("Erro ao buscar dados para comparação");
+      if (error.message === 'Fetch timeout') {
+        toast.error("Timeout ao buscar dados - tente novamente");
+      } else {
+        toast.error("Erro ao buscar dados para comparação");
+      }
       setESGData(null);
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };

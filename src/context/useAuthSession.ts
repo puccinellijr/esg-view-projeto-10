@@ -15,21 +15,36 @@ import { normalizeAccessLevel } from './authUtils';
 export function useAuthSession() {
   const [user, setUser] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialize session and set up listener
   useEffect(() => {
     console.log("AuthProvider: Inicializando...");
+    let initializationTimeout: NodeJS.Timeout;
     
     const checkSession = async () => {
       try {
         console.log("AuthProvider: Verificando sessão...");
+        setIsLoading(true);
+        
+        // Set a timeout to prevent infinite loading
+        initializationTimeout = setTimeout(() => {
+          console.warn("AuthProvider: Timeout na inicialização, definindo como não autenticado");
+          setUser(null);
+          setIsInitialized(true);
+          setIsLoading(false);
+        }, 10000); // 10 seconds timeout
         
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
+        
+        // Clear timeout if we get a response
+        clearTimeout(initializationTimeout);
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
           setUser(null);
           setIsInitialized(true);
+          setIsLoading(false);
           return;
         }
 
@@ -37,8 +52,16 @@ export function useAuthSession() {
           console.log("AuthProvider: Sessão encontrada para usuário:", sessionUser.email);
           
           try {
-            // Buscar detalhes do usuário do perfil
-            const { profileData: loadedProfile, error } = await loadUserProfile(sessionUser.id);
+            // Add timeout for profile loading
+            const profilePromise = loadUserProfile(sessionUser.id);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile loading timeout')), 8000)
+            );
+            
+            const { profileData: loadedProfile, error } = await Promise.race([
+              profilePromise,
+              timeoutPromise
+            ]) as any;
 
             if (!error && loadedProfile) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
@@ -60,11 +83,27 @@ export function useAuthSession() {
               });
             } else {
               console.error('Erro ao buscar perfil:', error);
-              setUser(null);
+              // Create minimal user data to prevent blocking
+              setUser({
+                id: sessionUser.id,
+                email: sessionUser.email || '',
+                accessLevel: 'viewer',
+                name: sessionUser.email?.split('@')[0] || 'Usuário',
+                photoUrl: null,
+                terminal: 'Rio Grande'
+              });
             }
           } catch (profileErr) {
             console.error('Exceção ao buscar perfil:', profileErr);
-            setUser(null);
+            // Create minimal user data to prevent blocking
+            setUser({
+              id: sessionUser.id,
+              email: sessionUser.email || '',
+              accessLevel: 'viewer',
+              name: sessionUser.email?.split('@')[0] || 'Usuário',
+              photoUrl: null,
+              terminal: 'Rio Grande'
+            });
           }
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
@@ -76,6 +115,10 @@ export function useAuthSession() {
       } finally {
         console.log("AuthProvider: Inicialização concluída");
         setIsInitialized(true);
+        setIsLoading(false);
+        if (initializationTimeout) {
+          clearTimeout(initializationTimeout);
+        }
       }
     };
 
@@ -99,46 +142,59 @@ export function useAuthSession() {
           photoUrl: profileData.photo_url,
           terminal: profileData.terminal
         });
+        setIsLoading(false);
       } else {
         console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
+        setIsLoading(false);
       }
     });
 
-    return cleanupListener;
+    return () => {
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+      }
+      cleanupListener();
+    };
   }, []);
 
   // Login function
   const loginUser = async (email: string, password: string): Promise<boolean> => {
-    const { success, user: authUser, profileData } = await login(email, password);
-    
-    if (success && authUser && profileData) {
-      // Log the raw access level from the database
-      console.log(`Login: Nível de acesso bruto do banco: "${profileData.access_level}"`);
+    setIsLoading(true);
+    try {
+      const { success, user: authUser, profileData } = await login(email, password);
       
-      // Normalize access level
-      const accessLevel = normalizeAccessLevel(profileData.access_level);
-      console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);
+      if (success && authUser && profileData) {
+        // Log the raw access level from the database
+        console.log(`Login: Nível de acesso bruto do banco: "${profileData.access_level}"`);
+        
+        // Normalize access level
+        const accessLevel = normalizeAccessLevel(profileData.access_level);
+        console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);
+        
+        setUser({
+          id: authUser.id,
+          email: authUser.email || '',
+          accessLevel: accessLevel,
+          name: profileData.name,
+          photoUrl: profileData.photo_url,
+          terminal: profileData.terminal
+        });
+        
+        // Wait a brief moment to ensure the event has time to process
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
       
-      setUser({
-        id: authUser.id,
-        email: authUser.email || '',
-        accessLevel: accessLevel,
-        name: profileData.name,
-        photoUrl: profileData.photo_url,
-        terminal: profileData.terminal
-      });
-      
-      // Wait a brief moment to ensure the event has time to process
-      await new Promise(resolve => setTimeout(resolve, 300));
+      return success;
+    } finally {
+      setIsLoading(false);
     }
-    
-    return success;
   };
 
   // Improved logout function
   const logoutUser = async (): Promise<void> => {
     console.log('Iniciando processo de logout...');
+    setIsLoading(true);
     
     // Clear user state immediately to prevent UI inconsistencies
     setUser(null);
@@ -152,6 +208,8 @@ export function useAuthSession() {
       }
     } catch (err) {
       console.error('Exceção durante logout:', err);
+    } finally {
+      setIsLoading(false);
     }
     
     // Force a small delay to ensure all auth listeners have processed the logout
@@ -173,6 +231,7 @@ export function useAuthSession() {
     user,
     setUser,
     isInitialized,
+    isLoading,
     loginUser,
     logoutUser,
     resetPassword,

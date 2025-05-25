@@ -16,6 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: sessionUser, 
     setUser: setSessionUser,
     isInitialized, 
+    isLoading,
     loginUser, 
     logoutUser, 
     resetPassword, 
@@ -26,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // If session user changes, update the profile user
   React.useEffect(() => {
-    if (sessionUser) {
+    if (sessionUser && !isLoading) {
       // Verificar nível de acesso diretamente do banco quando o usuário muda
       const verifyAccessLevel = async () => {
         if (sessionUser.id) {
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       verifyAccessLevel();
     }
-  }, [sessionUser, setSessionUser]);
+  }, [sessionUser, setSessionUser, isLoading]);
   
   // Check if user has required access level
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     updatePassword,
     updateUserProfile,
-    isInitialized
+    isInitialized: isInitialized && !isLoading
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
