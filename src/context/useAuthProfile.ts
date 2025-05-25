@@ -4,25 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { UserUpdateData } from '@/types/auth';
 import { updateUserProfile as updateProfile } from '@/services/userProfileService';
 
-export const useAuthProfile = () => {
-  const [user, setUser] = useState<any>(null);
-
-  // Get current user from supabase session when component mounts
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) {
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error('Error fetching current user:', error);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
-
+export const useAuthProfile = (sessionUser: any, setSessionUser: (user: any) => void) => {
   const updateUserProfile = async (data: UserUpdateData): Promise<boolean> => {
     try {
       // Get the current user ID
@@ -43,14 +25,16 @@ export const useAuthProfile = () => {
       }
       
       if (success) {
-        // Update local state
-        setUser(prev => {
+        // Update session user state immediately with new data
+        setSessionUser(prev => {
           if (!prev) return null;
-          return {
+          const updatedUser = {
             ...prev,
-            name: data.name || prev.name,
+            name: data.name !== undefined ? data.name : prev.name,
             photoUrl: data.photoUrl !== undefined ? data.photoUrl : prev.photoUrl,
           };
+          console.log('Estado do usuário atualizado localmente:', updatedUser);
+          return updatedUser;
         });
         return true;
       }
@@ -62,5 +46,5 @@ export const useAuthProfile = () => {
     }
   };
 
-  return { user, setUser, updateUserProfile };
+  return { updateUserProfile };
 };

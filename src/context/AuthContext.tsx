@@ -14,6 +14,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Use custom hooks to separate concerns
   const { 
     user: sessionUser, 
+    setUser: setSessionUser,
     isInitialized, 
     loginUser, 
     logoutUser, 
@@ -21,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updatePassword 
   } = useAuthSession();
   
-  const { updateUserProfile } = useAuthProfile();
+  const { updateUserProfile } = useAuthProfile(sessionUser, setSessionUser);
   
   // If session user changes, update the profile user
   React.useEffect(() => {
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else if (accessLevel && accessLevel !== sessionUser.accessLevel) {
               console.log(`Atualizando nível de acesso: ${sessionUser.accessLevel} -> ${accessLevel}`);
               // Atualizar o nível de acesso no contexto local se estiver diferente
-              sessionUser.accessLevel = accessLevel;
+              setSessionUser(prev => prev ? { ...prev, accessLevel } : null);
             }
           } catch (err) {
             console.error('Erro ao verificar nível de acesso:', err);
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       verifyAccessLevel();
     }
-  }, [sessionUser]);
+  }, [sessionUser, setSessionUser]);
   
   // Check if user has required access level
   const hasAccess = (requiredLevel: AccessLevel): boolean => {
