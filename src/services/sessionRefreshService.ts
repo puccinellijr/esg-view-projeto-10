@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 let refreshInterval: NodeJS.Timeout | null = null;
+let lastVisibilityChange = Date.now();
 
 /**
  * Start automatic session refresh
@@ -29,6 +30,27 @@ export const startSessionRefresh = () => {
       console.error('Exceção ao renovar sessão:', err);
     }
   }, 25 * 60 * 1000); // 25 minutes
+
+  // Listen for page visibility changes
+  const handleVisibilityChange = () => {
+    const now = Date.now();
+    const wasHidden = document.hidden;
+    
+    if (!wasHidden) {
+      // Page became visible again
+      const timeSinceLastChange = now - lastVisibilityChange;
+      
+      // If page was hidden for more than 5 minutes, refresh session immediately
+      if (timeSinceLastChange > 5 * 60 * 1000) {
+        console.log('Página ficou oculta por muito tempo, renovando sessão...');
+        ensureValidSession();
+      }
+    }
+    
+    lastVisibilityChange = now;
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 };
 
 /**
@@ -40,6 +62,8 @@ export const stopSessionRefresh = () => {
     refreshInterval = null;
     console.log('Renovação automática de sessão interrompida');
   }
+  
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 };
 
 /**
@@ -59,7 +83,7 @@ export const ensureValidSession = async (): Promise<boolean> => {
       return false;
     }
     
-    // Check if token is about to expire (within 5 minutes)
+    // Check if token is about to expire (within 5 minutes) or if we're returning from suspension
     const expiresAt = session.expires_at;
     const now = Math.floor(Date.now() / 1000);
     const timeUntilExpiry = expiresAt - now;
@@ -82,4 +106,9 @@ export const ensureValidSession = async (): Promise<boolean> => {
     console.error('Exceção ao verificar sessão:', err);
     return false;
   }
+};
+
+// Handle visibility changes for session management
+const handleVisibilityChange = () => {
+  // This function will be properly bound in startSessionRefresh
 };

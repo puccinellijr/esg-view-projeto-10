@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ensureValidSession } from '@/services/sessionRefreshService';
+import { usePageVisibility } from './usePageVisibility';
 
 // Define indicator types
 export interface Indicator {
@@ -29,6 +30,9 @@ export const useESGDashboardData = ({
   const [isLoading, setIsLoading] = useState(true);
   const [tonnage, setTonnage] = useState<number>(0);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  
+  const isPageVisible = usePageVisibility();
   
   // Get month name for display
   const getMonthName = (month: string) => {
@@ -40,10 +44,10 @@ export const useESGDashboardData = ({
   };
 
   // Memoize the fetchData function to avoid recreation on each render
-  const fetchData = useCallback(async () => {
-    // Debounce requests that happen within 300ms of each other
+  const fetchData = useCallback(async (forceRefresh = false) => {
+    // Debounce requests that happen within 300ms of each other, unless forced
     const now = Date.now();
-    if (now - lastFetchTimestamp < 300) {
+    if (!forceRefresh && now - lastFetchTimestamp < 300) {
       console.log("Skipping fetch due to debounce");
       return;
     }
@@ -78,6 +82,7 @@ export const useESGDashboardData = ({
       
       // Process data and update indicators state
       processIndicatorData(data);
+      setHasInitialLoad(true);
       
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
@@ -95,27 +100,23 @@ export const useESGDashboardData = ({
     }
   }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp]);
   
-  // Fetch data effect
+  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  
-  // Define expected indicators that should always be displayed
-  const expectedIndicators = [
-    { name: 'litro_tm', category: 'environmental' as const, iconType: 'Droplet' },
-    { name: 'kg_tm', category: 'environmental' as const, iconType: 'Weight' },
-    { name: 'kwh_tm', category: 'environmental' as const, iconType: 'Zap' },
-    { name: 'litro_combustivel_tm', category: 'environmental' as const, iconType: 'Fuel' },
-    { name: 'residuo_tm', category: 'environmental' as const, iconType: 'Percent' },
-    { name: 'incidente', category: 'social' as const, iconType: 'AlertTriangle' },
-    { name: 'acidente', category: 'social' as const, iconType: 'Bandage' },
-    { name: 'denuncia_discriminacao', category: 'social' as const, iconType: 'Users' },
-    { name: 'mulher_trabalho', category: 'social' as const, iconType: 'Handshake' },
-    { name: 'denuncia_corrupcao', category: 'governance' as const, iconType: 'Gavel' },
-    { name: 'reclamacao_vizinho', category: 'governance' as const, iconType: 'Bell' },
-    { name: 'incidente_cibernetico', category: 'governance' as const, iconType: 'Server' },
-    { name: 'tonelada', category: 'environmental' as const, iconType: 'TruckIcon' },
-  ];
+
+  // Handle page visibility changes - refresh data when page becomes visible again
+  useEffect(() => {
+    if (isPageVisible && hasInitialLoad) {
+      console.log('Página ficou visível novamente, verificando se precisa atualizar dados...');
+      // Force refresh when page becomes visible after being hidden
+      const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
+      if (timeSinceLastFetch > 30000) { // If more than 30 seconds since last fetch
+        console.log('Atualizando dados após página ficar visível...');
+        fetchData(true);
+      }
+    }
+  }, [isPageVisible, hasInitialLoad, lastFetchTimestamp, fetchData]);
   
   const processIndicatorData = (data: any[] | null) => {
     // Inicializar todos os indicadores esperados como N/D
@@ -196,9 +197,26 @@ export const useESGDashboardData = ({
   // Expose a function to manually trigger a data refetch
   const refetch = () => {
     console.log("Manual refetch triggered");
-    fetchData();
+    fetchData(true);
   };
   
+  // Define expected indicators that should always be displayed
+  const expectedIndicators = [
+    { name: 'litro_tm', category: 'environmental' as const, iconType: 'Droplet' },
+    { name: 'kg_tm', category: 'environmental' as const, iconType: 'Weight' },
+    { name: 'kwh_tm', category: 'environmental' as const, iconType: 'Zap' },
+    { name: 'litro_combustivel_tm', category: 'environmental' as const, iconType: 'Fuel' },
+    { name: 'residuo_tm', category: 'environmental' as const, iconType: 'Percent' },
+    { name: 'incidente', category: 'social' as const, iconType: 'AlertTriangle' },
+    { name: 'acidente', category: 'social' as const, iconType: 'Bandage' },
+    { name: 'denuncia_discriminacao', category: 'social' as const, iconType: 'Users' },
+    { name: 'mulher_trabalho', category: 'social' as const, iconType: 'Handshake' },
+    { name: 'denuncia_corrupcao', category: 'governance' as const, iconType: 'Gavel' },
+    { name: 'reclamacao_vizinho', category: 'governance' as const, iconType: 'Bell' },
+    { name: 'incidente_cibernetico', category: 'governance' as const, iconType: 'Server' },
+    { name: 'tonelada', category: 'environmental' as const, iconType: 'TruckIcon' },
+  ];
+
   // Filter indicators by category
   const environmentalIndicators = indicators
     .filter(ind => ind.category === 'environmental' && ind.name !== 'tonelada');

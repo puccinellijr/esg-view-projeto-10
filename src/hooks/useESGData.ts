@@ -4,6 +4,7 @@ import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
 import { toast } from 'sonner';
 import { ensureValidSession } from '@/services/sessionRefreshService';
+import { usePageVisibility } from './usePageVisibility';
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
@@ -14,6 +15,9 @@ export const useESGData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+
+  const isPageVisible = usePageVisibility();
 
   const updatePeriod1 = (field: 'month' | 'year', value: string) => {
     setPeriod1(prev => ({ ...prev, [field]: value }));
@@ -23,10 +27,10 @@ export const useESGData = () => {
     setPeriod2(prev => ({ ...prev, [field]: value }));
   };
 
-  const fetchData = async () => {
-    // Debounce requests that happen within 500ms of each other
+  const fetchData = async (forceRefresh = false) => {
+    // Debounce requests that happen within 500ms of each other, unless forced
     const now = Date.now();
-    if (now - lastFetchTimestamp < 500) {
+    if (!forceRefresh && now - lastFetchTimestamp < 500) {
       console.log("Skipping fetch request due to debounce");
       return;
     }
@@ -50,6 +54,7 @@ export const useESGData = () => {
       
       setESGData(data);
       setIsDataFetched(true);
+      setHasInitialLoad(true);
       
       if (!data) {
         toast.warning("Nenhum dado encontrado para os períodos selecionados.");
@@ -69,6 +74,19 @@ export const useESGData = () => {
       setIsLoading(false);
     }
   };
+
+  // Handle page visibility changes - refresh data when page becomes visible again
+  useEffect(() => {
+    if (isPageVisible && hasInitialLoad && isDataFetched) {
+      console.log('Página de comparação ficou visível novamente, verificando se precisa atualizar dados...');
+      // Force refresh when page becomes visible after being hidden
+      const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
+      if (timeSinceLastFetch > 30000) { // If more than 30 seconds since last fetch
+        console.log('Atualizando dados de comparação após página ficar visível...');
+        fetchData(true);
+      }
+    }
+  }, [isPageVisible, hasInitialLoad, isDataFetched, lastFetchTimestamp]);
 
   return {
     terminal,
