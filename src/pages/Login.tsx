@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -15,18 +16,36 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<"checking" | "ok" | "error">("checking");
+  const [authReady, setAuthReady] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, user, isInitialized } = useAuth();
+  
+  // Safely get auth context with error boundary
+  let authContext;
+  try {
+    authContext = useAuth();
+  } catch (error) {
+    console.error("Auth context not available:", error);
+    authContext = null;
+  }
+  
+  const { login, user, isInitialized } = authContext || { login: null, user: null, isInitialized: false };
+  
+  // Wait for auth context to be ready
+  useEffect(() => {
+    if (authContext && isInitialized !== undefined) {
+      setAuthReady(true);
+    }
+  }, [authContext, isInitialized]);
   
   // Redirect if already logged in
   useEffect(() => {
-    if (isInitialized && user) {
+    if (authReady && isInitialized && user) {
       console.log("Login: Usuário já autenticado, redirecionando para dashboard");
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
-  }, [user, isInitialized, navigate, location.state]);
+  }, [user, isInitialized, authReady, navigate, location.state]);
 
   // Verificar conexão com Supabase ao carregar
   useEffect(() => {
@@ -56,6 +75,12 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    
+    // Check if auth context is available
+    if (!authContext || !login) {
+      toast.error("Sistema de autenticação não está disponível. Recarregue a página.");
+      return;
+    }
     
     // Validação básica
     if (!email || !password) {
@@ -97,6 +122,22 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while auth context is being established
+  if (!authReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-b from-sidebar to-sidebar/70 p-4">
+        <Card className="w-full max-w-md bg-white/95 shadow-lg">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-blue"></div>
+              <p className="text-gray-600">Inicializando sistema de autenticação...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-b from-sidebar to-sidebar/70 p-4">

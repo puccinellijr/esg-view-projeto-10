@@ -51,15 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [sessionUser, setSessionUser, isLoading]);
   
   // Check if user has required access level
-  const hasAccess = (requiredLevel: AccessLevel): boolean => {
+  const hasAccess = React.useCallback((requiredLevel: AccessLevel): boolean => {
     if (!sessionUser) return false;
     
     console.log(`AuthContext: verificando se ${sessionUser.email} com nível ${sessionUser.accessLevel} pode acessar ${requiredLevel}`);
     
     return checkAccessLevel(sessionUser.accessLevel, requiredLevel);
-  };
+  }, [sessionUser]);
 
-  const value = {
+  const value = React.useMemo(() => ({
     user: sessionUser,
     login: loginUser,
     logout: logoutUser,
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updatePassword,
     updateUserProfile,
     isInitialized: isInitialized && !isLoading
-  };
+  }), [sessionUser, loginUser, logoutUser, hasAccess, resetPassword, updatePassword, updateUserProfile, isInitialized, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -76,6 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    // Add more detailed error information for debugging
+    console.error('useAuth foi chamado fora do AuthProvider. Stack trace:', new Error().stack);
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
