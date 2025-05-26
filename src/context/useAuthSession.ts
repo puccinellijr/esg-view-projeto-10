@@ -23,29 +23,46 @@ export function useAuthSession() {
     console.log("AuthProvider: Inicializando...");
     let initializationTimeout: NodeJS.Timeout;
     let isComponentMounted = true;
+    let hasStartedInitialization = false;
     
     const checkSession = async () => {
+      // Prevent multiple simultaneous initializations
+      if (hasStartedInitialization && !document.hidden) {
+        console.log("AuthProvider: Inicialização já em andamento, ignorando");
+        return;
+      }
+      
+      // Don't start timeout if page is hidden during initialization
+      if (document.hidden) {
+        console.log("AuthProvider: Página oculta durante inicialização, aguardando...");
+        return;
+      }
+      
+      hasStartedInitialization = true;
+      
       try {
         console.log("AuthProvider: Verificando sessão...");
         setIsLoading(true);
         
-        // Increase timeout to 30 seconds for better mobile support
-        initializationTimeout = setTimeout(() => {
-          if (!isComponentMounted) return;
-          console.warn("AuthProvider: Timeout na inicialização após 30s");
-          setUser(null);
-          setIsInitialized(true);
-          setIsLoading(false);
-        }, 30000); // 30 seconds timeout
+        // Only set timeout if page is visible
+        if (!document.hidden) {
+          initializationTimeout = setTimeout(() => {
+            if (!isComponentMounted || document.hidden) return;
+            console.warn("AuthProvider: Timeout na inicialização após 30s");
+            setUser(null);
+            setIsInitialized(true);
+            setIsLoading(false);
+          }, 30000);
+        }
         
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
         
         // Clear timeout if we get a response and component is still mounted
-        if (isComponentMounted) {
+        if (isComponentMounted && initializationTimeout) {
           clearTimeout(initializationTimeout);
         }
         
-        if (!isComponentMounted) return; // Component unmounted, don't continue
+        if (!isComponentMounted) return;
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
@@ -62,10 +79,10 @@ export function useAuthSession() {
           startSessionRefresh();
           
           try {
-            // Increase timeout for profile loading to 15 seconds
+            // Reduce timeout for profile loading to 10 seconds
             const profilePromise = loadUserProfile(sessionUser.id);
             const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile loading timeout')), 15000)
+              setTimeout(() => reject(new Error('Profile loading timeout')), 10000)
             );
             
             const { profileData: loadedProfile, error } = await Promise.race([
@@ -73,7 +90,7 @@ export function useAuthSession() {
               timeoutPromise
             ]) as any;
 
-            if (!isComponentMounted) return; // Component unmounted
+            if (!isComponentMounted) return;
 
             if (!error && loadedProfile) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
@@ -136,6 +153,18 @@ export function useAuthSession() {
       }
     };
 
+    // Handle page visibility changes to restart initialization if needed
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !isInitialized && !hasStartedInitialization) {
+        console.log("AuthProvider: Página voltou a ficar visível, reiniciando verificação");
+        checkSession();
+      }
+    };
+
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Start initial check
     checkSession();
 
     // Set up auth state change listener
@@ -173,6 +202,7 @@ export function useAuthSession() {
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       stopSessionRefresh();
       cleanupListener();
     };

@@ -6,6 +6,7 @@ export const usePageVisibility = () => {
   const [lastVisibilityChange, setLastVisibilityChange] = useState(Date.now());
   const lastVisibleTime = useRef(Date.now());
   const visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -20,50 +21,54 @@ export const usePageVisibility = () => {
       
       if (newVisibility) {
         // Page became visible
-        const timeSinceHidden = now - lastVisibleTime.current;
-        console.log(`Página ficou visível novamente após ${Math.round(timeSinceHidden / 1000)}s oculta`);
+        if (isInitialized.current) {
+          const timeSinceHidden = now - lastVisibleTime.current;
+          console.log(`Página ficou visível novamente após ${Math.round(timeSinceHidden / 1000)}s oculta`);
+        }
         
         // Always update visibility immediately when page becomes visible
         setIsVisible(true);
         setLastVisibilityChange(now);
         lastVisibleTime.current = now;
+        isInitialized.current = true;
       } else {
         // Page became hidden
         console.log('Página ficou oculta');
         lastVisibleTime.current = now;
         
-        // Add a small delay before marking as not visible to avoid rapid changes
+        // Don't immediately mark as not visible to avoid disrupting ongoing processes
         visibilityTimeout.current = setTimeout(() => {
           setIsVisible(false);
           setLastVisibilityChange(now);
-        }, 100);
+        }, 500); // Increased delay to 500ms
       }
     };
 
-    // Handle focus/blur events as well for better mobile support
     const handleFocus = () => {
-      if (document.hidden) return; // Don't override if document is actually hidden
+      if (document.hidden) return;
       
       const now = Date.now();
       console.log('Janela ganhou foco');
       setIsVisible(true);
       setLastVisibilityChange(now);
       lastVisibleTime.current = now;
+      isInitialized.current = true;
     };
 
     const handleBlur = () => {
-      console.log('Janela perdeu foco');
-      // Don't immediately set as not visible on blur, wait for visibilitychange
+      console.log('Janela perdeu foco - não alterando estado imediatamente');
+      // Don't change visibility state on blur alone
     };
 
-    // Add multiple event listeners for better cross-platform support
+    // Add event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
-    
-    // Also listen for page show/hide events (important for mobile)
     window.addEventListener('pageshow', handleFocus);
-    window.addEventListener('pagehide', handleBlur);
+    
+    // Initialize the state properly
+    setIsVisible(!document.hidden);
+    isInitialized.current = true;
     
     return () => {
       if (visibilityTimeout.current) {
@@ -73,7 +78,6 @@ export const usePageVisibility = () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('pageshow', handleFocus);
-      window.removeEventListener('pagehide', handleBlur);
     };
   }, []);
 

@@ -21,10 +21,10 @@ export const startSessionRefresh = () => {
     document.removeEventListener('visibilitychange', visibilityChangeHandler);
   }
 
-  // Refresh session every 20 minutes (more frequent to prevent issues)
+  // Refresh session every 15 minutes (reduced from 20 to be more proactive)
   refreshInterval = setInterval(async () => {
-    if (isRefreshing) {
-      console.log('Renovação já em andamento, pulando...');
+    if (isRefreshing || document.hidden) {
+      console.log('Renovação pulada - já em andamento ou página oculta');
       return;
     }
     
@@ -35,7 +35,6 @@ export const startSessionRefresh = () => {
       
       if (error) {
         console.error('Erro ao renovar sessão:', error);
-        // Only show error if it's a critical auth issue
         if (error.message?.includes('refresh_token_not_found') || 
             error.message?.includes('invalid_refresh_token')) {
           console.warn('Token de renovação inválido - usuário precisa fazer login novamente');
@@ -48,19 +47,18 @@ export const startSessionRefresh = () => {
     } finally {
       isRefreshing = false;
     }
-  }, 20 * 60 * 1000); // 20 minutes
+  }, 15 * 60 * 1000); // 15 minutes
 
   // Create new visibility change handler with improved logic
   visibilityChangeHandler = async () => {
     const now = Date.now();
-    const wasHidden = document.hidden;
     
-    if (!wasHidden) {
+    if (!document.hidden) {
       // Page became visible again
       const timeSinceLastChange = now - lastVisibilityChange;
       
-      // If page was hidden for more than 10 seconds, check and refresh session
-      if (timeSinceLastChange > 10 * 1000) {
+      // If page was hidden for more than 5 seconds, check and refresh session
+      if (timeSinceLastChange > 5 * 1000) {
         console.log(`Página ficou oculta por ${Math.round(timeSinceLastChange / 1000)}s, verificando sessão...`);
         
         // Don't block if already refreshing
@@ -104,6 +102,12 @@ export const stopSessionRefresh = () => {
  */
 export const ensureValidSession = async (): Promise<boolean> => {
   try {
+    // Don't check session if page is hidden
+    if (document.hidden) {
+      console.log('Página oculta, pulando verificação de sessão');
+      return true;
+    }
+    
     // First check if we have a session
     const { data: { session }, error } = await supabase.auth.getSession();
     
@@ -117,12 +121,12 @@ export const ensureValidSession = async (): Promise<boolean> => {
       return false;
     }
     
-    // Check if token is about to expire (within 10 minutes instead of 5)
+    // Check if token is about to expire (within 5 minutes)
     const expiresAt = session.expires_at;
     const now = Math.floor(Date.now() / 1000);
     const timeUntilExpiry = expiresAt - now;
     
-    if (timeUntilExpiry < 600) { // Less than 10 minutes
+    if (timeUntilExpiry < 300) { // Less than 5 minutes
       console.log(`Token expira em ${Math.round(timeUntilExpiry / 60)} minutos, renovando...`);
       const { data, error: refreshError } = await supabase.auth.refreshSession();
       
