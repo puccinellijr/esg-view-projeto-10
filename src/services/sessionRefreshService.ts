@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 let refreshInterval: NodeJS.Timeout | null = null;
 let lastVisibilityChange = Date.now();
 let visibilityChangeHandler: (() => void) | null = null;
+let isRefreshing = false;
 
 /**
  * Start automatic session refresh
@@ -20,25 +21,37 @@ export const startSessionRefresh = () => {
     document.removeEventListener('visibilitychange', visibilityChangeHandler);
   }
 
-  // Refresh session every 25 minutes (Supabase tokens expire after 1 hour)
+  // Refresh session every 20 minutes (more frequent to prevent issues)
   refreshInterval = setInterval(async () => {
+    if (isRefreshing) {
+      console.log('Renovação já em andamento, pulando...');
+      return;
+    }
+    
     try {
       console.log('Renovando sessão automaticamente...');
+      isRefreshing = true;
       const { data, error } = await supabase.auth.refreshSession();
       
       if (error) {
         console.error('Erro ao renovar sessão:', error);
-        // Don't show error toast for automatic refresh failures
+        // Only show error if it's a critical auth issue
+        if (error.message?.includes('refresh_token_not_found') || 
+            error.message?.includes('invalid_refresh_token')) {
+          console.warn('Token de renovação inválido - usuário precisa fazer login novamente');
+        }
       } else {
         console.log('Sessão renovada com sucesso');
       }
     } catch (err) {
       console.error('Exceção ao renovar sessão:', err);
+    } finally {
+      isRefreshing = false;
     }
-  }, 25 * 60 * 1000); // 25 minutes
+  }, 20 * 60 * 1000); // 20 minutes
 
-  // Create new visibility change handler
-  visibilityChangeHandler = () => {
+  // Create new visibility change handler with improved logic
+  visibilityChangeHandler = async () => {
     const now = Date.now();
     const wasHidden = document.hidden;
     
@@ -46,10 +59,19 @@ export const startSessionRefresh = () => {
       // Page became visible again
       const timeSinceLastChange = now - lastVisibilityChange;
       
-      // If page was hidden for more than 30 seconds, refresh session immediately
-      if (timeSinceLastChange > 30 * 1000) {
-        console.log('Página ficou oculta por mais de 30 segundos, renovando sessão...');
-        ensureValidSession();
+      // If page was hidden for more than 10 seconds, check and refresh session
+      if (timeSinceLastChange > 10 * 1000) {
+        console.log(`Página ficou oculta por ${Math.round(timeSinceLastChange / 1000)}s, verificando sessão...`);
+        
+        // Don't block if already refreshing
+        if (!isRefreshing) {
+          try {
+            isRefreshing = true;
+            await ensureValidSession();
+          } finally {
+            isRefreshing = false;
+          }
+        }
       }
     }
     
@@ -73,6 +95,8 @@ export const stopSessionRefresh = () => {
     document.removeEventListener('visibilitychange', visibilityChangeHandler);
     visibilityChangeHandler = null;
   }
+  
+  isRefreshing = false;
 };
 
 /**
@@ -80,6 +104,7 @@ export const stopSessionRefresh = () => {
  */
 export const ensureValidSession = async (): Promise<boolean> => {
   try {
+    // First check if we have a session
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -92,13 +117,13 @@ export const ensureValidSession = async (): Promise<boolean> => {
       return false;
     }
     
-    // Check if token is about to expire (within 5 minutes)
+    // Check if token is about to expire (within 10 minutes instead of 5)
     const expiresAt = session.expires_at;
     const now = Math.floor(Date.now() / 1000);
     const timeUntilExpiry = expiresAt - now;
     
-    if (timeUntilExpiry < 300) { // Less than 5 minutes
-      console.log('Token próximo do vencimento, renovando...');
+    if (timeUntilExpiry < 600) { // Less than 10 minutes
+      console.log(`Token expira em ${Math.round(timeUntilExpiry / 60)} minutos, renovando...`);
       const { data, error: refreshError } = await supabase.auth.refreshSession();
       
       if (refreshError) {

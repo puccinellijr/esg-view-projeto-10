@@ -22,24 +22,30 @@ export function useAuthSession() {
   useEffect(() => {
     console.log("AuthProvider: Inicializando...");
     let initializationTimeout: NodeJS.Timeout;
+    let isComponentMounted = true;
     
     const checkSession = async () => {
       try {
         console.log("AuthProvider: Verificando sessão...");
         setIsLoading(true);
         
-        // Set a timeout to prevent infinite loading
+        // Increase timeout to 30 seconds for better mobile support
         initializationTimeout = setTimeout(() => {
-          console.warn("AuthProvider: Timeout na inicialização, definindo como não autenticado");
+          if (!isComponentMounted) return;
+          console.warn("AuthProvider: Timeout na inicialização após 30s");
           setUser(null);
           setIsInitialized(true);
           setIsLoading(false);
-        }, 10000); // 10 seconds timeout
+        }, 30000); // 30 seconds timeout
         
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
         
-        // Clear timeout if we get a response
-        clearTimeout(initializationTimeout);
+        // Clear timeout if we get a response and component is still mounted
+        if (isComponentMounted) {
+          clearTimeout(initializationTimeout);
+        }
+        
+        if (!isComponentMounted) return; // Component unmounted, don't continue
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
@@ -56,10 +62,10 @@ export function useAuthSession() {
           startSessionRefresh();
           
           try {
-            // Add timeout for profile loading
+            // Increase timeout for profile loading to 15 seconds
             const profilePromise = loadUserProfile(sessionUser.id);
             const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile loading timeout')), 8000)
+              setTimeout(() => reject(new Error('Profile loading timeout')), 15000)
             );
             
             const { profileData: loadedProfile, error } = await Promise.race([
@@ -67,13 +73,12 @@ export function useAuthSession() {
               timeoutPromise
             ]) as any;
 
+            if (!isComponentMounted) return; // Component unmounted
+
             if (!error && loadedProfile) {
               console.log("AuthProvider: Perfil de usuário carregado:", loadedProfile.name);
-              
-              // Log the raw access level from the database
               console.log("AuthProvider: Nível de acesso bruto do banco:", loadedProfile.access_level);
               
-              // Normalizar nível de acesso
               const accessLevel = normalizeAccessLevel(loadedProfile.access_level);
               console.log("AuthProvider: Nível de acesso normalizado:", accessLevel);
               
@@ -98,8 +103,8 @@ export function useAuthSession() {
               });
             }
           } catch (profileErr) {
+            if (!isComponentMounted) return;
             console.error('Exceção ao buscar perfil:', profileErr);
-            // Create minimal user data to prevent blocking
             setUser({
               id: sessionUser.id,
               email: sessionUser.email || '',
@@ -115,13 +120,16 @@ export function useAuthSession() {
           stopSessionRefresh();
         }
       } catch (err) {
+        if (!isComponentMounted) return;
         console.error("AuthProvider: Erro ao inicializar:", err);
         setUser(null);
         stopSessionRefresh();
       } finally {
-        console.log("AuthProvider: Inicialização concluída");
-        setIsInitialized(true);
-        setIsLoading(false);
+        if (isComponentMounted) {
+          console.log("AuthProvider: Inicialização concluída");
+          setIsInitialized(true);
+          setIsLoading(false);
+        }
         if (initializationTimeout) {
           clearTimeout(initializationTimeout);
         }
@@ -132,14 +140,14 @@ export function useAuthSession() {
 
     // Set up auth state change listener
     const cleanupListener = setupAuthListener((authUser, profileData) => {
+      if (!isComponentMounted) return;
+      
       if (authUser && profileData) {
         // Start session refresh when user is authenticated
         startSessionRefresh();
         
-        // Log the raw access level value from the database
         console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
         
-        // Normalizar nível de acesso
         const accessLevel = normalizeAccessLevel(profileData.access_level);
         console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
         
@@ -161,6 +169,7 @@ export function useAuthSession() {
     });
 
     return () => {
+      isComponentMounted = false;
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }

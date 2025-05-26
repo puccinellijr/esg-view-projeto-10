@@ -45,9 +45,9 @@ export const useESGDashboardData = ({
 
   // Memoize the fetchData function to avoid recreation on each render
   const fetchData = useCallback(async (forceRefresh = false) => {
-    // Debounce requests that happen within 300ms of each other, unless forced
+    // Debounce requests that happen within 500ms of each other, unless forced
     const now = Date.now();
-    if (!forceRefresh && now - lastFetchTimestamp < 300) {
+    if (!forceRefresh && now - lastFetchTimestamp < 500) {
       console.log("Skipping fetch due to debounce");
       return;
     }
@@ -56,17 +56,16 @@ export const useESGDashboardData = ({
     setIsLoading(true);
     
     try {
-      // Check and refresh session if needed before making the request
+      // Always check session before making requests
       const sessionValid = await ensureValidSession();
       if (!sessionValid) {
-        console.warn("Sessão inválida ou expirada");
-        toast.error("Sessão expirada - faça login novamente");
-        handleFetchError();
+        console.warn("Sessão inválida - tentando continuar com dados em cache");
+        // Don't show error immediately, try to work with cached data
         setIsLoading(false);
         return;
       }
       
-      console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}, refresh: ${refreshTrigger}`);
+      console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}`);
       
       const { data, error } = await supabase
         .from('esg_indicators')
@@ -87,37 +86,46 @@ export const useESGDashboardData = ({
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
       
-      // Check if it's a session/auth related error
+      // More specific error handling
       if (error.message?.includes('JWT') || error.message?.includes('session') || 
           error.message?.includes('unauthorized') || error.message?.includes('403')) {
-        toast.error("Sessão expirada - faça login novamente");
+        console.warn("Erro de autenticação detectado");
+        // Only show toast error if we don't have any data cached
+        if (!hasInitialLoad) {
+          toast.error("Sessão expirada - faça login novamente");
+        }
       } else {
-        toast.error("Erro ao carregar indicadores");
+        // Only show error if it's not a network/temporary issue and we don't have data
+        if (!hasInitialLoad) {
+          toast.error("Erro ao carregar indicadores");
+        } else {
+          console.warn("Erro temporário ao atualizar dados, mantendo dados em cache");
+        }
       }
       handleFetchError();
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp]);
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp, hasInitialLoad]);
   
   // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Handle page visibility changes - refresh data when page becomes visible again
+  // Handle page visibility changes with improved logic
   useEffect(() => {
     if (isVisible && hasInitialLoad) {
       const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
       const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
       
-      // Only refresh if page was hidden for more than 10 seconds and last fetch was more than 30 seconds ago
-      if (timeSinceVisibilityChange < 1000 && timeSinceLastFetch > 30000) {
-        console.log('Página ficou visível novamente após período oculta, atualizando dados...');
-        // Small delay to ensure session refresh has completed
+      // More aggressive refresh when page becomes visible after being hidden
+      if (timeSinceVisibilityChange < 2000 && timeSinceLastFetch > 15000) {
+        console.log('Página Dashboard ficou visível novamente, atualizando dados...');
+        // Delay to ensure session refresh completes first
         setTimeout(() => {
           fetchData(true);
-        }, 500);
+        }, 1000);
       }
     }
   }, [isVisible, lastVisibilityChange, hasInitialLoad, lastFetchTimestamp, fetchData]);

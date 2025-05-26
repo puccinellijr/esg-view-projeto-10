@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
@@ -38,11 +39,10 @@ export const useESGData = () => {
     setIsLoading(true);
     
     try {
-      // Check and refresh session if needed before making the request
+      // Always check session before making requests
       const sessionValid = await ensureValidSession();
       if (!sessionValid) {
-        console.warn("Sessão inválida ou expirada");
-        toast.error("Sessão expirada - faça login novamente");
+        console.warn("Sessão inválida para comparação - tentando continuar");
         setIsLoading(false);
         return;
       }
@@ -61,12 +61,16 @@ export const useESGData = () => {
     } catch (error) {
       console.error("Error fetching ESG data:", error);
       
-      // Check if it's a session/auth related error
+      // More specific error handling
       if (error.message?.includes('JWT') || error.message?.includes('session') || 
           error.message?.includes('unauthorized') || error.message?.includes('403')) {
-        toast.error("Sessão expirada - faça login novamente");
+        if (!hasInitialLoad) {
+          toast.error("Sessão expirada - faça login novamente");
+        }
       } else {
-        toast.error("Erro ao buscar dados para comparação");
+        if (!hasInitialLoad) {
+          toast.error("Erro ao buscar dados para comparação");
+        }
       }
       setESGData(null);
     } finally {
@@ -74,19 +78,18 @@ export const useESGData = () => {
     }
   };
 
-  // Handle page visibility changes - refresh data when page becomes visible again
+  // Handle page visibility changes with improved logic
   useEffect(() => {
     if (isVisible && hasInitialLoad && isDataFetched) {
       const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
       const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
       
-      // Only refresh if page was just made visible and last fetch was more than 30 seconds ago
-      if (timeSinceVisibilityChange < 1000 && timeSinceLastFetch > 30000) {
+      // More aggressive refresh for comparison page
+      if (timeSinceVisibilityChange < 2000 && timeSinceLastFetch > 15000) {
         console.log('Página de comparação ficou visível novamente, atualizando dados...');
-        // Small delay to ensure session refresh has completed
         setTimeout(() => {
           fetchData(true);
-        }, 500);
+        }, 1000);
       }
     }
   }, [isVisible, lastVisibilityChange, hasInitialLoad, isDataFetched, lastFetchTimestamp]);
