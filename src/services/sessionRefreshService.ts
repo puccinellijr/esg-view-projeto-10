@@ -1,10 +1,7 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
 let refreshInterval: NodeJS.Timeout | null = null;
-let lastVisibilityChange = Date.now();
-let visibilityChangeHandler: (() => void) | null = null;
 let isRefreshing = false;
 
 /**
@@ -16,15 +13,10 @@ export const startSessionRefresh = () => {
     clearInterval(refreshInterval);
   }
 
-  // Remove existing visibility listener
-  if (visibilityChangeHandler) {
-    document.removeEventListener('visibilitychange', visibilityChangeHandler);
-  }
-
-  // Refresh session every 15 minutes (reduced from 20 to be more proactive)
+  // Refresh session every 15 minutes
   refreshInterval = setInterval(async () => {
-    if (isRefreshing || document.hidden) {
-      console.log('Renovação pulada - já em andamento ou página oculta');
+    if (isRefreshing) {
+      console.log('Renovação pulada - já em andamento');
       return;
     }
     
@@ -48,35 +40,6 @@ export const startSessionRefresh = () => {
       isRefreshing = false;
     }
   }, 15 * 60 * 1000); // 15 minutes
-
-  // Create new visibility change handler with improved logic
-  visibilityChangeHandler = async () => {
-    const now = Date.now();
-    
-    if (!document.hidden) {
-      // Page became visible again
-      const timeSinceLastChange = now - lastVisibilityChange;
-      
-      // If page was hidden for more than 5 seconds, check and refresh session
-      if (timeSinceLastChange > 5 * 1000) {
-        console.log(`Página ficou oculta por ${Math.round(timeSinceLastChange / 1000)}s, verificando sessão...`);
-        
-        // Don't block if already refreshing
-        if (!isRefreshing) {
-          try {
-            isRefreshing = true;
-            await ensureValidSession();
-          } finally {
-            isRefreshing = false;
-          }
-        }
-      }
-    }
-    
-    lastVisibilityChange = now;
-  };
-
-  document.addEventListener('visibilitychange', visibilityChangeHandler);
 };
 
 /**
@@ -89,11 +52,6 @@ export const stopSessionRefresh = () => {
     console.log('Renovação automática de sessão interrompida');
   }
   
-  if (visibilityChangeHandler) {
-    document.removeEventListener('visibilitychange', visibilityChangeHandler);
-    visibilityChangeHandler = null;
-  }
-  
   isRefreshing = false;
 };
 
@@ -102,12 +60,6 @@ export const stopSessionRefresh = () => {
  */
 export const ensureValidSession = async (): Promise<boolean> => {
   try {
-    // Don't check session if page is hidden
-    if (document.hidden) {
-      console.log('Página oculta, pulando verificação de sessão');
-      return true;
-    }
-    
     // First check if we have a session
     const { data: { session }, error } = await supabase.auth.getSession();
     

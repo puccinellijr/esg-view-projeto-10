@@ -4,7 +4,6 @@ import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
 import { toast } from 'sonner';
 import { ensureValidSession } from '@/services/sessionRefreshService';
-import { usePageVisibility } from './usePageVisibility';
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
@@ -16,8 +15,6 @@ export const useESGData = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
-
-  const { isVisible, lastVisibilityChange } = usePageVisibility();
 
   const updatePeriod1 = (field: 'month' | 'year', value: string) => {
     setPeriod1(prev => ({ ...prev, [field]: value }));
@@ -77,22 +74,6 @@ export const useESGData = () => {
       setIsLoading(false);
     }
   };
-
-  // Handle page visibility changes with improved logic
-  useEffect(() => {
-    if (isVisible && hasInitialLoad && isDataFetched) {
-      const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
-      const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
-      
-      // More aggressive refresh for comparison page
-      if (timeSinceVisibilityChange < 2000 && timeSinceLastFetch > 15000) {
-        console.log('Página de comparação ficou visível novamente, atualizando dados...');
-        setTimeout(() => {
-          fetchData(true);
-        }, 1000);
-      }
-    }
-  }, [isVisible, lastVisibilityChange, hasInitialLoad, isDataFetched, lastFetchTimestamp]);
 
   return {
     terminal,

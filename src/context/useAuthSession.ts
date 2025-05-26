@@ -27,14 +27,8 @@ export function useAuthSession() {
     
     const checkSession = async () => {
       // Prevent multiple simultaneous initializations
-      if (hasStartedInitialization && !document.hidden) {
+      if (hasStartedInitialization) {
         console.log("AuthProvider: Inicialização já em andamento, ignorando");
-        return;
-      }
-      
-      // Don't start timeout if page is hidden during initialization
-      if (document.hidden) {
-        console.log("AuthProvider: Página oculta durante inicialização, aguardando...");
         return;
       }
       
@@ -44,16 +38,13 @@ export function useAuthSession() {
         console.log("AuthProvider: Verificando sessão...");
         setIsLoading(true);
         
-        // Only set timeout if page is visible
-        if (!document.hidden) {
-          initializationTimeout = setTimeout(() => {
-            if (!isComponentMounted || document.hidden) return;
-            console.warn("AuthProvider: Timeout na inicialização após 30s");
-            setUser(null);
-            setIsInitialized(true);
-            setIsLoading(false);
-          }, 30000);
-        }
+        initializationTimeout = setTimeout(() => {
+          if (!isComponentMounted) return;
+          console.warn("AuthProvider: Timeout na inicialização após 30s");
+          setUser(null);
+          setIsInitialized(true);
+          setIsLoading(false);
+        }, 30000);
         
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
         
@@ -153,17 +144,6 @@ export function useAuthSession() {
       }
     };
 
-    // Handle page visibility changes to restart initialization if needed
-    const handleVisibilityChange = () => {
-      if (!document.hidden && !isInitialized && !hasStartedInitialization) {
-        console.log("AuthProvider: Página voltou a ficar visível, reiniciando verificação");
-        checkSession();
-      }
-    };
-
-    // Add visibility change listener
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     // Start initial check
     checkSession();
 
@@ -202,7 +182,6 @@ export function useAuthSession() {
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
       stopSessionRefresh();
       cleanupListener();
     };

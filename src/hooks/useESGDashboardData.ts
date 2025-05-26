@@ -1,8 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { ensureValidSession } from '@/services/sessionRefreshService';
-import { usePageVisibility } from './usePageVisibility';
 
 // Define indicator types
 export interface Indicator {
@@ -31,8 +31,6 @@ export const useESGDashboardData = ({
   const [tonnage, setTonnage] = useState<number>(0);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
-  
-  const { isVisible, lastVisibilityChange } = usePageVisibility();
   
   // Get month name for display
   const getMonthName = (month: string) => {
@@ -112,23 +110,6 @@ export const useESGDashboardData = ({
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Handle page visibility changes with improved logic
-  useEffect(() => {
-    if (isVisible && hasInitialLoad) {
-      const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
-      const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
-      
-      // More aggressive refresh when page becomes visible after being hidden
-      if (timeSinceVisibilityChange < 2000 && timeSinceLastFetch > 15000) {
-        console.log('Página Dashboard ficou visível novamente, atualizando dados...');
-        // Delay to ensure session refresh completes first
-        setTimeout(() => {
-          fetchData(true);
-        }, 1000);
-      }
-    }
-  }, [isVisible, lastVisibilityChange, hasInitialLoad, lastFetchTimestamp, fetchData]);
   
   const processIndicatorData = (data: any[] | null) => {
     // Inicializar todos os indicadores esperados como N/D
