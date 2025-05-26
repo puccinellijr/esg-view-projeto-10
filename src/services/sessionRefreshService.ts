@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 let refreshInterval: NodeJS.Timeout | null = null;
 let lastVisibilityChange = Date.now();
+let visibilityChangeHandler: (() => void) | null = null;
 
 /**
  * Start automatic session refresh
@@ -12,6 +13,11 @@ export const startSessionRefresh = () => {
   // Clear any existing interval
   if (refreshInterval) {
     clearInterval(refreshInterval);
+  }
+
+  // Remove existing visibility listener
+  if (visibilityChangeHandler) {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler);
   }
 
   // Refresh session every 25 minutes (Supabase tokens expire after 1 hour)
@@ -31,8 +37,8 @@ export const startSessionRefresh = () => {
     }
   }, 25 * 60 * 1000); // 25 minutes
 
-  // Listen for page visibility changes
-  const handleVisibilityChange = () => {
+  // Create new visibility change handler
+  visibilityChangeHandler = () => {
     const now = Date.now();
     const wasHidden = document.hidden;
     
@@ -40,9 +46,9 @@ export const startSessionRefresh = () => {
       // Page became visible again
       const timeSinceLastChange = now - lastVisibilityChange;
       
-      // If page was hidden for more than 5 minutes, refresh session immediately
-      if (timeSinceLastChange > 5 * 60 * 1000) {
-        console.log('Página ficou oculta por muito tempo, renovando sessão...');
+      // If page was hidden for more than 30 seconds, refresh session immediately
+      if (timeSinceLastChange > 30 * 1000) {
+        console.log('Página ficou oculta por mais de 30 segundos, renovando sessão...');
         ensureValidSession();
       }
     }
@@ -50,7 +56,7 @@ export const startSessionRefresh = () => {
     lastVisibilityChange = now;
   };
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  document.addEventListener('visibilitychange', visibilityChangeHandler);
 };
 
 /**
@@ -63,7 +69,10 @@ export const stopSessionRefresh = () => {
     console.log('Renovação automática de sessão interrompida');
   }
   
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  if (visibilityChangeHandler) {
+    document.removeEventListener('visibilitychange', visibilityChangeHandler);
+    visibilityChangeHandler = null;
+  }
 };
 
 /**
@@ -83,7 +92,7 @@ export const ensureValidSession = async (): Promise<boolean> => {
       return false;
     }
     
-    // Check if token is about to expire (within 5 minutes) or if we're returning from suspension
+    // Check if token is about to expire (within 5 minutes)
     const expiresAt = session.expires_at;
     const now = Math.floor(Date.now() / 1000);
     const timeUntilExpiry = expiresAt - now;
@@ -106,9 +115,4 @@ export const ensureValidSession = async (): Promise<boolean> => {
     console.error('Exceção ao verificar sessão:', err);
     return false;
   }
-};
-
-// Handle visibility changes for session management
-const handleVisibilityChange = () => {
-  // This function will be properly bound in startSessionRefresh
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
@@ -17,7 +16,7 @@ export const useESGData = () => {
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
-  const isPageVisible = usePageVisibility();
+  const { isVisible, lastVisibilityChange } = usePageVisibility();
 
   const updatePeriod1 = (field: 'month' | 'year', value: string) => {
     setPeriod1(prev => ({ ...prev, [field]: value }));
@@ -77,16 +76,20 @@ export const useESGData = () => {
 
   // Handle page visibility changes - refresh data when page becomes visible again
   useEffect(() => {
-    if (isPageVisible && hasInitialLoad && isDataFetched) {
-      console.log('Página de comparação ficou visível novamente, verificando se precisa atualizar dados...');
-      // Force refresh when page becomes visible after being hidden
+    if (isVisible && hasInitialLoad && isDataFetched) {
+      const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
       const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
-      if (timeSinceLastFetch > 30000) { // If more than 30 seconds since last fetch
-        console.log('Atualizando dados de comparação após página ficar visível...');
-        fetchData(true);
+      
+      // Only refresh if page was just made visible and last fetch was more than 30 seconds ago
+      if (timeSinceVisibilityChange < 1000 && timeSinceLastFetch > 30000) {
+        console.log('Página de comparação ficou visível novamente, atualizando dados...');
+        // Small delay to ensure session refresh has completed
+        setTimeout(() => {
+          fetchData(true);
+        }, 500);
       }
     }
-  }, [isPageVisible, hasInitialLoad, isDataFetched, lastFetchTimestamp]);
+  }, [isVisible, lastVisibilityChange, hasInitialLoad, isDataFetched, lastFetchTimestamp]);
 
   return {
     terminal,

@@ -32,7 +32,7 @@ export const useESGDashboardData = ({
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
   
-  const isPageVisible = usePageVisibility();
+  const { isVisible, lastVisibilityChange } = usePageVisibility();
   
   // Get month name for display
   const getMonthName = (month: string) => {
@@ -107,16 +107,20 @@ export const useESGDashboardData = ({
 
   // Handle page visibility changes - refresh data when page becomes visible again
   useEffect(() => {
-    if (isPageVisible && hasInitialLoad) {
-      console.log('Página ficou visível novamente, verificando se precisa atualizar dados...');
-      // Force refresh when page becomes visible after being hidden
+    if (isVisible && hasInitialLoad) {
+      const timeSinceVisibilityChange = Date.now() - lastVisibilityChange;
       const timeSinceLastFetch = Date.now() - lastFetchTimestamp;
-      if (timeSinceLastFetch > 30000) { // If more than 30 seconds since last fetch
-        console.log('Atualizando dados após página ficar visível...');
-        fetchData(true);
+      
+      // Only refresh if page was hidden for more than 10 seconds and last fetch was more than 30 seconds ago
+      if (timeSinceVisibilityChange < 1000 && timeSinceLastFetch > 30000) {
+        console.log('Página ficou visível novamente após período oculta, atualizando dados...');
+        // Small delay to ensure session refresh has completed
+        setTimeout(() => {
+          fetchData(true);
+        }, 500);
       }
     }
-  }, [isPageVisible, hasInitialLoad, lastFetchTimestamp, fetchData]);
+  }, [isVisible, lastVisibilityChange, hasInitialLoad, lastFetchTimestamp, fetchData]);
   
   const processIndicatorData = (data: any[] | null) => {
     // Inicializar todos os indicadores esperados como N/D
