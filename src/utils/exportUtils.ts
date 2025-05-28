@@ -251,100 +251,31 @@ export const exportToPDF = async (
     yPosition += 6;
   });
   
-  // Second page with dimension cards
+  // Second page with bar charts only
   pdf.addPage();
   yPosition = 20;
   
   try {
-    // Capture Environmental dimension section
-    const envSection = document.querySelector('[data-category="environmental"]') || 
-                      Array.from(document.querySelectorAll('h2')).find(h => h.textContent?.includes('Dimensão Ambiental'))?.closest('div');
+    // Capture the charts section from the comparison page
+    const chartsSection = document.querySelector('.comparison-bar-chart')?.parentElement?.parentElement;
     
-    if (envSection) {
+    if (chartsSection) {
       pdf.setFontSize(16);
-      pdf.text('Dimensão Ambiental', 105, yPosition, { align: 'center' });
-      yPosition += 10;
+      pdf.text('Visão Geral de Indicadores', 105, yPosition, { align: 'center' });
+      yPosition += 15;
       
-      const canvas = await html2canvas(envSection as HTMLElement, {
-        scale: 1.2,
+      const canvas = await html2canvas(chartsSection as HTMLElement, {
+        scale: 1.5,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        height: chartsSection.scrollHeight,
+        width: chartsSection.scrollWidth
       });
       const imgData = canvas.toDataURL('image/png');
       
       const imgWidth = 180;
       const imgHeight = canvas.height * imgWidth / canvas.width;
-      const maxHeight = 80;
-      
-      if (imgHeight > maxHeight) {
-        const scaledHeight = maxHeight;
-        const scaledWidth = canvas.width * scaledHeight / canvas.height;
-        pdf.addImage(imgData, 'PNG', (210 - scaledWidth) / 2, yPosition, scaledWidth, scaledHeight);
-        yPosition += scaledHeight + 10;
-      } else {
-        pdf.addImage(imgData, 'PNG', 15, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 10;
-      }
-    }
-    
-    // Capture Social dimension section
-    const socialSection = Array.from(document.querySelectorAll('h2')).find(h => h.textContent?.includes('Dimensão Social'))?.closest('div');
-    
-    if (socialSection) {
-      if (yPosition > 200) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      pdf.setFontSize(16);
-      pdf.text('Dimensão Social', 105, yPosition, { align: 'center' });
-      yPosition += 10;
-      
-      const canvas = await html2canvas(socialSection as HTMLElement, {
-        scale: 1.2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const imgWidth = 180;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      const maxHeight = 80;
-      
-      if (imgHeight > maxHeight) {
-        const scaledHeight = maxHeight;
-        const scaledWidth = canvas.width * scaledHeight / canvas.height;
-        pdf.addImage(imgData, 'PNG', (210 - scaledWidth) / 2, yPosition, scaledWidth, scaledHeight);
-        yPosition += scaledHeight + 10;
-      } else {
-        pdf.addImage(imgData, 'PNG', 15, yPosition, imgWidth, imgHeight);
-        yPosition += imgHeight + 10;
-      }
-    }
-    
-    // Capture Governance dimension section
-    const govSection = Array.from(document.querySelectorAll('h2')).find(h => h.textContent?.includes('Dimensão Governança'))?.closest('div');
-    
-    if (govSection) {
-      if (yPosition > 200) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      pdf.setFontSize(16);
-      pdf.text('Dimensão Governança', 105, yPosition, { align: 'center' });
-      yPosition += 10;
-      
-      const canvas = await html2canvas(govSection as HTMLElement, {
-        scale: 1.2,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      });
-      const imgData = canvas.toDataURL('image/png');
-      
-      const imgWidth = 180;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      const maxHeight = 80;
+      const maxHeight = 240;
       
       if (imgHeight > maxHeight) {
         const scaledHeight = maxHeight;
@@ -356,7 +287,10 @@ export const exportToPDF = async (
     }
     
   } catch (error) {
-    console.error('Error capturing page elements:', error);
+    console.error('Error capturing charts:', error);
+    // Fallback: add text indicating charts could not be captured
+    pdf.setFontSize(12);
+    pdf.text('Gráficos não puderam ser capturados', 105, yPosition + 50, { align: 'center' });
   }
   
   // Save the PDF
