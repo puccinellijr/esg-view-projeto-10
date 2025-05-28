@@ -62,8 +62,37 @@ const ImageUpload = ({
       fileInputRef.current.value = '';
     }
   };
+
+  // Check if camera access is available
+  const isCameraAvailable = () => {
+    // Check if getUserMedia is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return false;
+    }
+    
+    // Check if running on HTTPS or localhost
+    const isSecureContext = window.isSecureContext || 
+                           location.hostname === 'localhost' || 
+                           location.hostname === '127.0.0.1' ||
+                           location.protocol === 'https:';
+    
+    return isSecureContext;
+  };
   
   const handleStartCamera = async () => {
+    // First check if camera is available
+    if (!isCameraAvailable()) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Câmera não está disponível neste navegador.");
+        return;
+      }
+      
+      if (!window.isSecureContext && location.protocol !== 'https:') {
+        toast.error("A câmera só está disponível em conexões HTTPS. Por favor, acesse o site através de uma conexão segura.");
+        return;
+      }
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -88,9 +117,22 @@ const ImageUpload = ({
         }
       }, 100);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error accessing camera:", err);
-      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+      
+      // Provide specific error messages based on the error type
+      if (err.name === 'NotAllowedError') {
+        toast.error("Permissão para acessar a câmera foi negada. Verifique as configurações do navegador.");
+      } else if (err.name === 'NotFoundError') {
+        toast.error("Nenhuma câmera foi encontrada no dispositivo.");
+      } else if (err.name === 'NotSupportedError') {
+        toast.error("Acesso à câmera não é suportado neste ambiente. Certifique-se de estar usando HTTPS.");
+      } else if (err.name === 'NotReadableError') {
+        toast.error("A câmera está sendo usada por outro aplicativo.");
+      } else {
+        toast.error("Erro ao acessar a câmera. Verifique as permissões e se está usando uma conexão HTTPS.");
+      }
+      
       setIsCapturing(false);
     }
   };
@@ -217,6 +259,8 @@ const ImageUpload = ({
               size="sm"
               onClick={handleStartCamera}
               className="flex items-center"
+              disabled={!isCameraAvailable()}
+              title={!isCameraAvailable() ? "Câmera disponível apenas em conexões HTTPS" : "Usar câmera"}
             >
               <Camera className="h-4 w-4 mr-1" />
               Usar câmera
