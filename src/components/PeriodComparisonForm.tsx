@@ -33,8 +33,10 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
   // Generate arrays for months (1-12) and years
   // FIXED: Month values should be 1-12 rather than 0-11
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  
+  // Generate years: current year and last 4 years (total of 5 years)
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());
+  const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
   return (
     <div className="p-3 sm:p-4 bg-gray-50 rounded-lg shadow-sm mb-4 sm:mb-8">
