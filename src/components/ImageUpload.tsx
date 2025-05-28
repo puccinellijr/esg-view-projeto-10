@@ -65,18 +65,6 @@ const ImageUpload = ({
   
   const handleStartCamera = async () => {
     try {
-      // Check if we're in a secure context (HTTPS or localhost)
-      if (!window.isSecureContext) {
-        toast.error("A câmera só funciona em conexões seguras (HTTPS). Por favor, acesse o site via HTTPS.");
-        return;
-      }
-
-      // Check if getUserMedia is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Seu navegador não suporta acesso à câmera ou você precisa acessar via HTTPS.");
-        return;
-      }
-
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           width: { ideal: 1280 },
@@ -102,26 +90,7 @@ const ImageUpload = ({
       
     } catch (err) {
       console.error("Error accessing camera:", err);
-      
-      // More specific error messages
-      if (err instanceof DOMException) {
-        switch (err.name) {
-          case 'NotAllowedError':
-            toast.error("Permissão para acessar a câmera foi negada. Verifique as configurações do navegador.");
-            break;
-          case 'NotFoundError':
-            toast.error("Nenhuma câmera foi encontrada no dispositivo.");
-            break;
-          case 'NotSupportedError':
-            toast.error("Acesso à câmera não é suportado. Certifique-se de estar usando HTTPS.");
-            break;
-          default:
-            toast.error("Erro ao acessar a câmera. Verifique se está usando HTTPS e se a câmera está disponível.");
-        }
-      } else {
-        toast.error("Erro ao acessar a câmera. Verifique as permissões e se está usando HTTPS.");
-      }
-      
+      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
       setIsCapturing(false);
     }
   };
