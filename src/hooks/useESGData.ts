@@ -7,7 +7,6 @@ import { ensureValidSession } from '@/services/sessionRefreshService';
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
-  // FIXED: Month values should be 1-12 rather than 0-11
   const [period1, setPeriod1] = useState<Period>({ month: '1', year: '2020' });
   const [period2, setPeriod2] = useState<Period>({ month: '1', year: '2021' });
   const [esgData, setESGData] = useState<ESGComparisonData | null>(null);
@@ -25,7 +24,6 @@ export const useESGData = () => {
   };
 
   const fetchData = async (forceRefresh = false) => {
-    // Debounce requests that happen within 500ms of each other, unless forced
     const now = Date.now();
     if (!forceRefresh && now - lastFetchTimestamp < 500) {
       console.log("Skipping fetch request due to debounce");
@@ -36,12 +34,14 @@ export const useESGData = () => {
     setIsLoading(true);
     
     try {
-      // Always check session before making requests
-      const sessionValid = await ensureValidSession();
-      if (!sessionValid) {
-        console.warn("Sessão inválida para comparação - tentando continuar");
-        setIsLoading(false);
-        return;
+      // Verificar sessão apenas quando explicitamente solicitado
+      if (forceRefresh) {
+        const sessionValid = await ensureValidSession();
+        if (!sessionValid) {
+          console.warn("Sessão inválida para comparação");
+          setIsLoading(false);
+          return;
+        }
       }
       
       console.log(`Fetching ESG comparison data for terminal: ${terminal}, periods: ${period1.month}/${period1.year} and ${period2.month}/${period2.year}`);
@@ -58,7 +58,6 @@ export const useESGData = () => {
     } catch (error) {
       console.error("Error fetching ESG data:", error);
       
-      // More specific error handling
       if (error.message?.includes('JWT') || error.message?.includes('session') || 
           error.message?.includes('unauthorized') || error.message?.includes('403')) {
         if (!hasInitialLoad) {

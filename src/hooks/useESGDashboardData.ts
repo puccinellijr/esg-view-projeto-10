@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -31,8 +30,8 @@ export const useESGDashboardData = ({
   const [tonnage, setTonnage] = useState<number>(0);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [cachedData, setCachedData] = useState<any[] | null>(null);
   
-  // Get month name for display
   const getMonthName = (month: string) => {
     const monthNames = [
       "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -41,9 +40,7 @@ export const useESGDashboardData = ({
     return monthNames[parseInt(month) - 1];
   };
 
-  // Memoize the fetchData function to avoid recreation on each render
   const fetchData = useCallback(async (forceRefresh = false) => {
-    // Debounce requests that happen within 500ms of each other, unless forced
     const now = Date.now();
     if (!forceRefresh && now - lastFetchTimestamp < 500) {
       console.log("Skipping fetch due to debounce");
@@ -54,13 +51,17 @@ export const useESGDashboardData = ({
     setIsLoading(true);
     
     try {
-      // Always check session before making requests
-      const sessionValid = await ensureValidSession();
-      if (!sessionValid) {
-        console.warn("Sessão inválida - tentando continuar com dados em cache");
-        // Don't show error immediately, try to work with cached data
-        setIsLoading(false);
-        return;
+      // Verificar sessão apenas em refresh forçado (mudança de página)
+      if (forceRefresh) {
+        const sessionValid = await ensureValidSession();
+        if (!sessionValid) {
+          console.warn("Sessão inválida - usando dados em cache se disponíveis");
+          if (cachedData) {
+            processIndicatorData(cachedData);
+          }
+          setIsLoading(false);
+          return;
+        }
       }
       
       console.log(`Buscando dados para terminal: ${selectedTerminal}, mês ${selectedMonth} e ano ${selectedYear}`);
@@ -77,36 +78,40 @@ export const useESGDashboardData = ({
         throw error;
       }
       
-      // Process data and update indicators state
+      // Cache dos dados para usar em caso de problemas de conexão
+      setCachedData(data);
       processIndicatorData(data);
       setHasInitialLoad(true);
       
     } catch (error) {
       console.error("Erro ao buscar dados:", error);
       
-      // More specific error handling
       if (error.message?.includes('JWT') || error.message?.includes('session') || 
           error.message?.includes('unauthorized') || error.message?.includes('403')) {
         console.warn("Erro de autenticação detectado");
-        // Only show toast error if we don't have any data cached
         if (!hasInitialLoad) {
           toast.error("Sessão expirada - faça login novamente");
         }
       } else {
-        // Only show error if it's not a network/temporary issue and we don't have data
         if (!hasInitialLoad) {
           toast.error("Erro ao carregar indicadores");
         } else {
-          console.warn("Erro temporário ao atualizar dados, mantendo dados em cache");
+          console.warn("Erro temporário - mantendo dados em cache");
         }
       }
-      handleFetchError();
+      
+      // Usar dados em cache se disponíveis
+      if (cachedData) {
+        console.log("Usando dados em cache devido a erro");
+        processIndicatorData(cachedData);
+      } else {
+        handleFetchError();
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp, hasInitialLoad]);
+  }, [selectedMonth, selectedYear, selectedTerminal, refreshTrigger, lastFetchTimestamp, hasInitialLoad, cachedData]);
   
-  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -177,7 +182,6 @@ export const useESGDashboardData = ({
   };
   
   const handleFetchError = () => {
-    // Em caso de erro, manter os indicadores com N/D
     const fallbackIndicators = expectedIndicators.map(indicator => ({
       id: `${indicator.name}-error`,
       name: indicator.name,

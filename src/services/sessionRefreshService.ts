@@ -5,18 +5,17 @@ let refreshInterval: NodeJS.Timeout | null = null;
 let isRefreshing = false;
 
 /**
- * Start automatic session refresh
+ * Start automatic session refresh - mantém conexão ativa
  */
 export const startSessionRefresh = () => {
-  // Clear any existing interval
   if (refreshInterval) {
     clearInterval(refreshInterval);
   }
 
-  // Refresh session every 15 minutes
+  // Refresh session every 25 minutes (before 30min expiry)
   refreshInterval = setInterval(async () => {
     if (isRefreshing) {
-      console.log('Renovação pulada - já em andamento');
+      console.log('Renovação já em andamento - pulando');
       return;
     }
     
@@ -29,7 +28,7 @@ export const startSessionRefresh = () => {
         console.error('Erro ao renovar sessão:', error);
         if (error.message?.includes('refresh_token_not_found') || 
             error.message?.includes('invalid_refresh_token')) {
-          console.warn('Token de renovação inválido - usuário precisa fazer login novamente');
+          console.warn('Token de renovação inválido');
         }
       } else {
         console.log('Sessão renovada com sucesso');
@@ -39,7 +38,7 @@ export const startSessionRefresh = () => {
     } finally {
       isRefreshing = false;
     }
-  }, 15 * 60 * 1000); // 15 minutes
+  }, 25 * 60 * 1000); // 25 minutes
 };
 
 /**
@@ -56,11 +55,10 @@ export const stopSessionRefresh = () => {
 };
 
 /**
- * Check if session is valid and refresh if needed
+ * Check if session is valid - usado apenas em mudanças de página
  */
 export const ensureValidSession = async (): Promise<boolean> => {
   try {
-    // First check if we have a session
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {

@@ -17,16 +17,15 @@ export function useAuthSession() {
   const [user, setUser] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastUserState, setLastUserState] = useState<UserData | null>(null);
 
   // Initialize session and set up listener
   useEffect(() => {
     console.log("AuthProvider: Inicializando...");
-    let initializationTimeout: NodeJS.Timeout;
     let isComponentMounted = true;
     let hasStartedInitialization = false;
     
     const checkSession = async () => {
-      // Prevent multiple simultaneous initializations
       if (hasStartedInitialization) {
         console.log("AuthProvider: Inicialização já em andamento, ignorando");
         return;
@@ -38,26 +37,19 @@ export function useAuthSession() {
         console.log("AuthProvider: Verificando sessão...");
         setIsLoading(true);
         
-        initializationTimeout = setTimeout(() => {
-          if (!isComponentMounted) return;
-          console.warn("AuthProvider: Timeout na inicialização após 30s");
-          setUser(null);
-          setIsInitialized(true);
-          setIsLoading(false);
-        }, 30000);
-        
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
-        
-        // Clear timeout if we get a response and component is still mounted
-        if (isComponentMounted && initializationTimeout) {
-          clearTimeout(initializationTimeout);
-        }
         
         if (!isComponentMounted) return;
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
-          setUser(null);
+          // Manter último estado conhecido se houver erro de rede
+          if (lastUserState) {
+            console.log("Mantendo último estado de usuário conhecido");
+            setUser(lastUserState);
+          } else {
+            setUser(null);
+          }
           setIsInitialized(true);
           setIsLoading(false);
           return;
@@ -70,16 +62,7 @@ export function useAuthSession() {
           startSessionRefresh();
           
           try {
-            // Reduce timeout for profile loading to 10 seconds
-            const profilePromise = loadUserProfile(sessionUser.id);
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile loading timeout')), 10000)
-            );
-            
-            const { profileData: loadedProfile, error } = await Promise.race([
-              profilePromise,
-              timeoutPromise
-            ]) as any;
+            const { profileData: loadedProfile, error } = await loadUserProfile(sessionUser.id);
 
             if (!isComponentMounted) return;
 
@@ -90,56 +73,81 @@ export function useAuthSession() {
               const accessLevel = normalizeAccessLevel(loadedProfile.access_level);
               console.log("AuthProvider: Nível de acesso normalizado:", accessLevel);
               
-              setUser({
+              const userData = {
                 id: sessionUser.id,
                 email: sessionUser.email || '',
                 accessLevel: accessLevel,
                 name: loadedProfile.name,
                 photoUrl: loadedProfile.photo_url,
                 terminal: loadedProfile.terminal
-              });
+              };
+              
+              setUser(userData);
+              setLastUserState(userData); // Salvar como último estado conhecido
             } else {
               console.error('Erro ao buscar perfil:', error);
-              // Create minimal user data to prevent blocking
-              setUser({
-                id: sessionUser.id,
-                email: sessionUser.email || '',
-                accessLevel: 'viewer',
-                name: sessionUser.email?.split('@')[0] || 'Usuário',
-                photoUrl: null,
-                terminal: 'Rio Grande'
-              });
+              // Se temos um estado anterior, mantê-lo
+              if (lastUserState) {
+                console.log("Mantendo dados de usuário do estado anterior");
+                setUser(lastUserState);
+              } else {
+                // Create minimal user data to prevent blocking
+                const minimalUser = {
+                  id: sessionUser.id,
+                  email: sessionUser.email || '',
+                  accessLevel: 'viewer' as const,
+                  name: sessionUser.email?.split('@')[0] || 'Usuário',
+                  photoUrl: null,
+                  terminal: 'Rio Grande'
+                };
+                setUser(minimalUser);
+                setLastUserState(minimalUser);
+              }
             }
           } catch (profileErr) {
             if (!isComponentMounted) return;
             console.error('Exceção ao buscar perfil:', profileErr);
-            setUser({
-              id: sessionUser.id,
-              email: sessionUser.email || '',
-              accessLevel: 'viewer',
-              name: sessionUser.email?.split('@')[0] || 'Usuário',
-              photoUrl: null,
-              terminal: 'Rio Grande'
-            });
+            
+            // Manter estado anterior se disponível
+            if (lastUserState) {
+              console.log("Mantendo dados de usuário do estado anterior após erro");
+              setUser(lastUserState);
+            } else {
+              const fallbackUser = {
+                id: sessionUser.id,
+                email: sessionUser.email || '',
+                accessLevel: 'viewer' as const,
+                name: sessionUser.email?.split('@')[0] || 'Usuário',
+                photoUrl: null,
+                terminal: 'Rio Grande'
+              };
+              setUser(fallbackUser);
+              setLastUserState(fallbackUser);
+            }
           }
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
           setUser(null);
+          setLastUserState(null);
           stopSessionRefresh();
         }
       } catch (err) {
         if (!isComponentMounted) return;
         console.error("AuthProvider: Erro ao inicializar:", err);
-        setUser(null);
-        stopSessionRefresh();
+        
+        // Manter estado anterior em caso de erro de rede
+        if (lastUserState) {
+          console.log("Mantendo estado anterior devido a erro de rede");
+          setUser(lastUserState);
+        } else {
+          setUser(null);
+          stopSessionRefresh();
+        }
       } finally {
         if (isComponentMounted) {
           console.log("AuthProvider: Inicialização concluída");
           setIsInitialized(true);
           setIsLoading(false);
-        }
-        if (initializationTimeout) {
-          clearTimeout(initializationTimeout);
         }
       }
     };
@@ -152,7 +160,6 @@ export function useAuthSession() {
       if (!isComponentMounted) return;
       
       if (authUser && profileData) {
-        // Start session refresh when user is authenticated
         startSessionRefresh();
         
         console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
@@ -160,18 +167,22 @@ export function useAuthSession() {
         const accessLevel = normalizeAccessLevel(profileData.access_level);
         console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
         
-        setUser({
+        const userData = {
           id: authUser.id,
           email: authUser.email || '',
           accessLevel: accessLevel,
           name: profileData.name,
           photoUrl: profileData.photo_url,
           terminal: profileData.terminal
-        });
+        };
+        
+        setUser(userData);
+        setLastUserState(userData); // Salvar como último estado conhecido
         setIsLoading(false);
       } else {
         console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
+        setLastUserState(null);
         stopSessionRefresh();
         setIsLoading(false);
       }
@@ -179,9 +190,6 @@ export function useAuthSession() {
 
     return () => {
       isComponentMounted = false;
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
       stopSessionRefresh();
       cleanupListener();
     };
@@ -194,26 +202,25 @@ export function useAuthSession() {
       const { success, user: authUser, profileData } = await login(email, password);
       
       if (success && authUser && profileData) {
-        // Start session refresh on successful login
         startSessionRefresh();
         
-        // Log the raw access level from the database
         console.log(`Login: Nível de acesso bruto do banco: "${profileData.access_level}"`);
         
-        // Normalize access level
         const accessLevel = normalizeAccessLevel(profileData.access_level);
         console.log(`Login bem-sucedido para ${email} com nível de acesso ${accessLevel}`);
         
-        setUser({
+        const userData = {
           id: authUser.id,
           email: authUser.email || '',
           accessLevel: accessLevel,
           name: profileData.name,
           photoUrl: profileData.photo_url,
           terminal: profileData.terminal
-        });
+        };
         
-        // Wait a brief moment to ensure the event has time to process
+        setUser(userData);
+        setLastUserState(userData); // Salvar como último estado conhecido
+        
         await new Promise(resolve => setTimeout(resolve, 300));
       }
       
@@ -223,16 +230,13 @@ export function useAuthSession() {
     }
   };
 
-  // Improved logout function
   const logoutUser = async (): Promise<void> => {
     console.log('Iniciando processo de logout...');
     setIsLoading(true);
     
-    // Stop session refresh immediately
     stopSessionRefresh();
-    
-    // Clear user state immediately to prevent UI inconsistencies
     setUser(null);
+    setLastUserState(null); // Limpar estado salvo
     
     try {
       const { success, error } = await logout();
@@ -247,7 +251,6 @@ export function useAuthSession() {
       setIsLoading(false);
     }
     
-    // Force a small delay to ensure all auth listeners have processed the logout
     await new Promise(resolve => setTimeout(resolve, 100));
     console.log('Logout concluído');
   };
