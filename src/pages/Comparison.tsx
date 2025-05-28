@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
@@ -121,10 +122,10 @@ const Comparison = () => {
                   {/* Desktop layout: 40% larger charts side by side */}
                   {!isMobile && (
                     <div className="flex justify-center">
-                      <div className="w-full max-w-[98rem]">
-                        <div className="grid grid-cols-2 gap-8">
+                      <div className="w-full max-w-7xl">
+                        <div className="grid grid-cols-2 gap-6">
                           {/* Environmental Chart - 40% larger */}
-                          <div className="bg-green-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="bg-green-50 rounded-lg p-3 shadow-md hover:shadow-lg transition-shadow">
                             <ComparisonBarChart 
                               esgData={esgData} 
                               category="environmental"
@@ -134,7 +135,7 @@ const Comparison = () => {
                           </div>
                           
                           {/* Social and Governance Chart - 40% larger */}
-                          <div className="bg-blue-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="bg-blue-50 rounded-lg p-3 shadow-md hover:shadow-lg transition-shadow">
                             <ComparisonBarChart 
                               esgData={esgData} 
                               category="social_governance"

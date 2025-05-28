@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -62,24 +63,7 @@ const ImageUpload = ({
     }
   };
   
-  const isCameraAvailable = () => {
-    return (
-      navigator.mediaDevices && 
-      navigator.mediaDevices.getUserMedia &&
-      (window.location.protocol === 'https:' || window.location.hostname === 'localhost')
-    );
-  };
-  
   const handleStartCamera = async () => {
-    if (!isCameraAvailable()) {
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        toast.error("A câmera só funciona em conexões seguras (HTTPS). Por favor, acesse o site via HTTPS.");
-      } else {
-        toast.error("Câmera não disponível neste dispositivo ou navegador.");
-      }
-      return;
-    }
-
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -100,25 +84,13 @@ const ImageUpload = ({
           videoRef.current.play().catch(err => {
             console.error("Error playing video:", err);
             toast.error("Erro ao iniciar visualização da câmera");
-            handleStopCamera();
           });
         }
       }, 100);
       
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error accessing camera:", err);
-      
-      // Provide more specific error messages
-      if (err.name === 'NotAllowedError') {
-        toast.error("Acesso à câmera negado. Verifique as permissões do navegador.");
-      } else if (err.name === 'NotFoundError') {
-        toast.error("Nenhuma câmera encontrada neste dispositivo.");
-      } else if (err.name === 'NotSupportedError') {
-        toast.error("Câmera não suportada neste navegador.");
-      } else {
-        toast.error("Não foi possível acessar a câmera. Verifique as permissões e tente novamente.");
-      }
-      
+      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
       setIsCapturing(false);
     }
   };
@@ -245,8 +217,6 @@ const ImageUpload = ({
               size="sm"
               onClick={handleStartCamera}
               className="flex items-center"
-              disabled={!isCameraAvailable()}
-              title={!isCameraAvailable() ? "Câmera não disponível (requer HTTPS)" : "Usar câmera"}
             >
               <Camera className="h-4 w-4 mr-1" />
               Usar câmera
