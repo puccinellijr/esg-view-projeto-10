@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { UserData } from '@/types/auth';
 import { 
@@ -155,30 +154,35 @@ export function useAuthSession() {
     // Start initial check
     checkSession();
 
-    // Set up auth state change listener - apenas para mudanças reais de autenticação
+    // Set up auth state change listener - APENAS para mudanças reais de login/logout
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (!isComponentMounted) return;
       
       if (authUser && profileData) {
-        startSessionRefresh();
-        
-        console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
-        
-        const accessLevel = normalizeAccessLevel(profileData.access_level);
-        console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
-        
-        const userData = {
-          id: authUser.id,
-          email: authUser.email || '',
-          accessLevel: accessLevel,
-          name: profileData.name,
-          photoUrl: profileData.photo_url,
-          terminal: profileData.terminal
-        };
-        
-        setUser(userData);
-        setPersistedUserState(userData); // Persistir estado
-        setIsLoading(false);
+        // Só processar se realmente não temos um usuário ativo ou se é um usuário diferente
+        if (!user || user.id !== authUser.id) {
+          startSessionRefresh();
+          
+          console.log(`AuthProvider: Nível de acesso bruto do banco: "${profileData.access_level}"`);
+          
+          const accessLevel = normalizeAccessLevel(profileData.access_level);
+          console.log(`AuthProvider: Atualizando usuário com nível ${accessLevel}`);
+          
+          const userData = {
+            id: authUser.id,
+            email: authUser.email || '',
+            accessLevel: accessLevel,
+            name: profileData.name,
+            photoUrl: profileData.photo_url,
+            terminal: profileData.terminal
+          };
+          
+          setUser(userData);
+          setPersistedUserState(userData); // Persistir estado
+          setIsLoading(false);
+        } else {
+          console.log('AuthProvider: Usuário já está ativo - ignorando evento duplicado');
+        }
       } else {
         console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
@@ -193,7 +197,7 @@ export function useAuthSession() {
       // Não parar refresh da sessão ao desmontar - manter conexão ativa
       cleanupListener();
     };
-  }, []);
+  }, []); // Remover dependência do user para evitar loops
 
   // Login function
   const loginUser = async (email: string, password: string): Promise<boolean> => {
