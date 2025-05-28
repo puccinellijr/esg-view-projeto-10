@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardHeader from '@/components/DashboardHeader';
@@ -115,17 +114,17 @@ const Comparison = () => {
                   period2={period2}
                 />
 
-                {/* Charts section with desktop enlargement */}
+                {/* Charts section with compact 80% smaller layout */}
                 <div className="mt-6 sm:mt-8">
                   <h2 className="text-lg sm:text-xl font-bold text-center mb-3 sm:mb-4">Visão Geral de Indicadores</h2>
                   
-                  {/* Desktop layout: 30% larger containers */}
+                  {/* Desktop layout: compact side by side */}
                   {!isMobile && (
                     <div className="flex justify-center">
-                      <div className="w-full max-w-6xl scale-130 origin-center">
-                        <div className="grid grid-cols-2 gap-6">
+                      <div className="w-full max-w-4xl">
+                        <div className="grid grid-cols-2 gap-4">
                           {/* Environmental Chart */}
-                          <div className="bg-green-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="bg-green-50 rounded-lg p-2 shadow-md hover:shadow-lg transition-shadow">
                             <ComparisonBarChart 
                               esgData={esgData} 
                               category="environmental"
@@ -135,7 +134,7 @@ const Comparison = () => {
                           </div>
                           
                           {/* Social and Governance Chart */}
-                          <div className="bg-blue-50 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
+                          <div className="bg-blue-50 rounded-lg p-2 shadow-md hover:shadow-lg transition-shadow">
                             <ComparisonBarChart 
                               esgData={esgData} 
                               category="social_governance"
