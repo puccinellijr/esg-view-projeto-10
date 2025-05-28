@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout: logoutUser,
     hasAccess,
     resetPassword,
-    updatePassword,
+    updatePassword, // This now matches the interface signature
     updateUserProfile,
     isInitialized: isInitialized && !isLoading,
     validateSessionOnNavigation

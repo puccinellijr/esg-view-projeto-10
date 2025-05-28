@@ -260,7 +260,7 @@ export function useAuthSession() {
     return success;
   };
 
-  const updatePassword = async (email: string, newPassword: string): Promise<boolean> => {
+  const updatePassword = async (newPassword: string): Promise<boolean> => {
     const { success } = await updatePwd(newPassword);
     return success;
   };
