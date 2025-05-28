@@ -7,7 +7,8 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   hasAccess: (requiredLevel: AccessLevel) => boolean;
   resetPassword: (email: string) => Promise<boolean>;
-  updatePassword: (email: string, newPassword: string) => Promise<boolean>;
-  updateUserProfile: (data: UserUpdateData) => Promise<boolean>;
+  updatePassword: (newPassword: string) => Promise<boolean>;
+  updateUserProfile: (updateData: UserUpdateData) => Promise<boolean>;
   isInitialized: boolean;
+  validateSessionOnNavigation?: () => Promise<boolean>;
 }

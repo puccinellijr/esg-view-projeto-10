@@ -2,14 +2,23 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AccessLevel } from '@/types/auth';
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   requiredLevel?: AccessLevel;
 }
 
 export default function ProtectedRoute({ requiredLevel = 'operational' }: ProtectedRouteProps) {
-  const { user, hasAccess, isInitialized } = useAuth();
+  const { user, hasAccess, isInitialized, validateSessionOnNavigation } = useAuth();
   const location = useLocation();
+
+  // Verificar sessão apenas quando navegar para uma nova rota protegida
+  useEffect(() => {
+    if (isInitialized && user && validateSessionOnNavigation) {
+      console.log("ProtectedRoute: Validando sessão para navegação");
+      validateSessionOnNavigation();
+    }
+  }, [location.pathname, isInitialized, user, validateSessionOnNavigation]);
 
   // Show loading state while auth is initializing
   if (!isInitialized) {

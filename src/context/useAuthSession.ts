@@ -17,7 +17,7 @@ export function useAuthSession() {
   const [user, setUser] = useState<UserData | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUserState, setLastUserState] = useState<UserData | null>(null);
+  const [persistedUserState, setPersistedUserState] = useState<UserData | null>(null);
 
   // Initialize session and set up listener
   useEffect(() => {
@@ -34,7 +34,7 @@ export function useAuthSession() {
       hasStartedInitialization = true;
       
       try {
-        console.log("AuthProvider: Verificando sessão...");
+        console.log("AuthProvider: Verificando sessão inicial...");
         setIsLoading(true);
         
         const { session, user: sessionUser, error: sessionError } = await getCurrentSession();
@@ -43,10 +43,10 @@ export function useAuthSession() {
         
         if (sessionError) {
           console.error("AuthProvider: Erro ao verificar sessão:", sessionError);
-          // Manter último estado conhecido se houver erro de rede
-          if (lastUserState) {
-            console.log("Mantendo último estado de usuário conhecido");
-            setUser(lastUserState);
+          // Usar estado persistido se disponível
+          if (persistedUserState) {
+            console.log("Usando estado persistido devido a erro de sessão");
+            setUser(persistedUserState);
           } else {
             setUser(null);
           }
@@ -83,13 +83,13 @@ export function useAuthSession() {
               };
               
               setUser(userData);
-              setLastUserState(userData); // Salvar como último estado conhecido
+              setPersistedUserState(userData); // Persistir estado
             } else {
               console.error('Erro ao buscar perfil:', error);
-              // Se temos um estado anterior, mantê-lo
-              if (lastUserState) {
-                console.log("Mantendo dados de usuário do estado anterior");
-                setUser(lastUserState);
+              // Se temos um estado persistido, mantê-lo
+              if (persistedUserState) {
+                console.log("Mantendo dados de usuário do estado persistido");
+                setUser(persistedUserState);
               } else {
                 // Create minimal user data to prevent blocking
                 const minimalUser = {
@@ -101,17 +101,17 @@ export function useAuthSession() {
                   terminal: 'Rio Grande'
                 };
                 setUser(minimalUser);
-                setLastUserState(minimalUser);
+                setPersistedUserState(minimalUser);
               }
             }
           } catch (profileErr) {
             if (!isComponentMounted) return;
             console.error('Exceção ao buscar perfil:', profileErr);
             
-            // Manter estado anterior se disponível
-            if (lastUserState) {
-              console.log("Mantendo dados de usuário do estado anterior após erro");
-              setUser(lastUserState);
+            // Manter estado persistido se disponível
+            if (persistedUserState) {
+              console.log("Mantendo dados de usuário do estado persistido após erro");
+              setUser(persistedUserState);
             } else {
               const fallbackUser = {
                 id: sessionUser.id,
@@ -122,23 +122,23 @@ export function useAuthSession() {
                 terminal: 'Rio Grande'
               };
               setUser(fallbackUser);
-              setLastUserState(fallbackUser);
+              setPersistedUserState(fallbackUser);
             }
           }
         } else {
           console.log("AuthProvider: Nenhuma sessão ativa");
           setUser(null);
-          setLastUserState(null);
+          setPersistedUserState(null);
           stopSessionRefresh();
         }
       } catch (err) {
         if (!isComponentMounted) return;
         console.error("AuthProvider: Erro ao inicializar:", err);
         
-        // Manter estado anterior em caso de erro de rede
-        if (lastUserState) {
-          console.log("Mantendo estado anterior devido a erro de rede");
-          setUser(lastUserState);
+        // Manter estado persistido em caso de erro de rede
+        if (persistedUserState) {
+          console.log("Mantendo estado persistido devido a erro de rede");
+          setUser(persistedUserState);
         } else {
           setUser(null);
           stopSessionRefresh();
@@ -155,7 +155,7 @@ export function useAuthSession() {
     // Start initial check
     checkSession();
 
-    // Set up auth state change listener
+    // Set up auth state change listener - apenas para mudanças reais de autenticação
     const cleanupListener = setupAuthListener((authUser, profileData) => {
       if (!isComponentMounted) return;
       
@@ -177,12 +177,12 @@ export function useAuthSession() {
         };
         
         setUser(userData);
-        setLastUserState(userData); // Salvar como último estado conhecido
+        setPersistedUserState(userData); // Persistir estado
         setIsLoading(false);
       } else {
         console.log('AuthProvider: Limpando estado do usuário');
         setUser(null);
-        setLastUserState(null);
+        setPersistedUserState(null);
         stopSessionRefresh();
         setIsLoading(false);
       }
@@ -190,7 +190,7 @@ export function useAuthSession() {
 
     return () => {
       isComponentMounted = false;
-      stopSessionRefresh();
+      // Não parar refresh da sessão ao desmontar - manter conexão ativa
       cleanupListener();
     };
   }, []);
@@ -219,7 +219,7 @@ export function useAuthSession() {
         };
         
         setUser(userData);
-        setLastUserState(userData); // Salvar como último estado conhecido
+        setPersistedUserState(userData); // Persistir estado
         
         await new Promise(resolve => setTimeout(resolve, 300));
       }
@@ -236,7 +236,7 @@ export function useAuthSession() {
     
     stopSessionRefresh();
     setUser(null);
-    setLastUserState(null); // Limpar estado salvo
+    setPersistedUserState(null); // Limpar estado persistido
     
     try {
       const { success, error } = await logout();
@@ -265,6 +265,31 @@ export function useAuthSession() {
     return success;
   };
 
+  // Função para verificar sessão apenas na navegação entre páginas
+  const validateSessionOnNavigation = async (): Promise<boolean> => {
+    try {
+      console.log("Validando sessão durante navegação...");
+      const { session, error } = await getCurrentSession();
+      
+      if (error || !session) {
+        console.warn("Sessão inválida detectada durante navegação");
+        if (!persistedUserState) {
+          setUser(null);
+          return false;
+        }
+        // Manter estado persistido mesmo com sessão inválida
+        return true;
+      }
+      
+      console.log("Sessão válida durante navegação");
+      return true;
+    } catch (err) {
+      console.error("Erro ao validar sessão:", err);
+      // Manter estado atual em caso de erro
+      return persistedUserState !== null;
+    }
+  };
+
   return {
     user,
     setUser,
@@ -273,6 +298,7 @@ export function useAuthSession() {
     loginUser,
     logoutUser,
     resetPassword,
-    updatePassword
+    updatePassword,
+    validateSessionOnNavigation
   };
 }

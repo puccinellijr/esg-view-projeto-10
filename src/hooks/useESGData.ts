@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { fetchESGData } from '@/services/esgComparisonService';
 import { Period, ESGComparisonData } from '@/types/esg';
 import { toast } from 'sonner';
-import { ensureValidSession } from '@/services/sessionRefreshService';
 
 export const useESGData = () => {
   const [terminal, setTerminal] = useState('Rio Grande');
@@ -14,6 +13,7 @@ export const useESGData = () => {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [lastFetchTimestamp, setLastFetchTimestamp] = useState<number>(0);
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [cachedData, setCachedData] = useState<ESGComparisonData | null>(null);
 
   const updatePeriod1 = (field: 'month' | 'year', value: string) => {
     setPeriod1(prev => ({ ...prev, [field]: value }));
@@ -34,21 +34,12 @@ export const useESGData = () => {
     setIsLoading(true);
     
     try {
-      // Verificar sessão apenas quando explicitamente solicitado
-      if (forceRefresh) {
-        const sessionValid = await ensureValidSession();
-        if (!sessionValid) {
-          console.warn("Sessão inválida para comparação");
-          setIsLoading(false);
-          return;
-        }
-      }
-      
       console.log(`Fetching ESG comparison data for terminal: ${terminal}, periods: ${period1.month}/${period1.year} and ${period2.month}/${period2.year}`);
       
       const data = await fetchESGData(terminal, period1, period2);
       
       setESGData(data);
+      setCachedData(data); // Cache dos dados
       setIsDataFetched(true);
       setHasInitialLoad(true);
       
@@ -58,17 +49,23 @@ export const useESGData = () => {
     } catch (error) {
       console.error("Error fetching ESG data:", error);
       
-      if (error.message?.includes('JWT') || error.message?.includes('session') || 
-          error.message?.includes('unauthorized') || error.message?.includes('403')) {
-        if (!hasInitialLoad) {
-          toast.error("Sessão expirada - faça login novamente");
-        }
+      // Usar dados em cache se disponíveis
+      if (cachedData) {
+        console.log("Usando dados em cache devido a erro");
+        setESGData(cachedData);
       } else {
-        if (!hasInitialLoad) {
-          toast.error("Erro ao buscar dados para comparação");
+        if (error.message?.includes('JWT') || error.message?.includes('session') || 
+            error.message?.includes('unauthorized') || error.message?.includes('403')) {
+          if (!hasInitialLoad) {
+            toast.error("Sessão expirada - faça login novamente");
+          }
+        } else {
+          if (!hasInitialLoad) {
+            toast.error("Erro ao buscar dados para comparação");
+          }
         }
+        setESGData(null);
       }
-      setESGData(null);
     } finally {
       setIsLoading(false);
     }

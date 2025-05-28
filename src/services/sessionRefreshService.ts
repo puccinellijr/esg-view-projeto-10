@@ -5,7 +5,7 @@ let refreshInterval: NodeJS.Timeout | null = null;
 let isRefreshing = false;
 
 /**
- * Start automatic session refresh - mantém conexão ativa
+ * Start automatic session refresh - mantém conexão ativa sempre
  */
 export const startSessionRefresh = () => {
   if (refreshInterval) {
@@ -26,15 +26,17 @@ export const startSessionRefresh = () => {
       
       if (error) {
         console.error('Erro ao renovar sessão:', error);
+        // Não limpar estado persistido em caso de erro de renovação
         if (error.message?.includes('refresh_token_not_found') || 
             error.message?.includes('invalid_refresh_token')) {
-          console.warn('Token de renovação inválido');
+          console.warn('Token de renovação inválido - mantendo conexão');
         }
       } else {
         console.log('Sessão renovada com sucesso');
       }
     } catch (err) {
       console.error('Exceção ao renovar sessão:', err);
+      // Continuar tentando renovar mesmo com erros
     } finally {
       isRefreshing = false;
     }
@@ -55,7 +57,7 @@ export const stopSessionRefresh = () => {
 };
 
 /**
- * Check if session is valid - usado apenas em mudanças de página
+ * Check if session is valid - usado apenas em navegação entre páginas
  */
 export const ensureValidSession = async (): Promise<boolean> => {
   try {

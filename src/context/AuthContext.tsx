@@ -20,35 +20,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginUser, 
     logoutUser, 
     resetPassword, 
-    updatePassword 
+    updatePassword,
+    validateSessionOnNavigation
   } = useAuthSession();
   
   const { updateUserProfile } = useAuthProfile(sessionUser, setSessionUser);
-  
-  // If session user changes, update the profile user
-  React.useEffect(() => {
-    if (sessionUser && !isLoading) {
-      // Verificar nível de acesso diretamente do banco quando o usuário muda
-      const verifyAccessLevel = async () => {
-        if (sessionUser.id) {
-          try {
-            const { accessLevel, error } = await verifyUserAccessLevel(sessionUser.id);
-            if (error) {
-              console.error('Erro ao verificar nível de acesso:', error);
-            } else if (accessLevel && accessLevel !== sessionUser.accessLevel) {
-              console.log(`Atualizando nível de acesso: ${sessionUser.accessLevel} -> ${accessLevel}`);
-              // Atualizar o nível de acesso no contexto local se estiver diferente
-              setSessionUser(prev => prev ? { ...prev, accessLevel } : null);
-            }
-          } catch (err) {
-            console.error('Erro ao verificar nível de acesso:', err);
-          }
-        }
-      };
-      
-      verifyAccessLevel();
-    }
-  }, [sessionUser, setSessionUser, isLoading]);
   
   // Check if user has required access level
   const hasAccess = React.useCallback((requiredLevel: AccessLevel): boolean => {
@@ -67,8 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     resetPassword,
     updatePassword,
     updateUserProfile,
-    isInitialized: isInitialized && !isLoading
-  }), [sessionUser, loginUser, logoutUser, hasAccess, resetPassword, updatePassword, updateUserProfile, isInitialized, isLoading]);
+    isInitialized: isInitialized && !isLoading,
+    validateSessionOnNavigation
+  }), [sessionUser, loginUser, logoutUser, hasAccess, resetPassword, updatePassword, updateUserProfile, isInitialized, isLoading, validateSessionOnNavigation]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
