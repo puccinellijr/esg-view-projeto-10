@@ -63,7 +63,23 @@ const ImageUpload = ({
     }
   };
   
+  const isHTTPS = () => {
+    return window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+  };
+  
   const handleStartCamera = async () => {
+    // Check if getUserMedia is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast.error("A câmera não está disponível neste navegador.");
+      return;
+    }
+
+    // Check if running on HTTPS or localhost
+    if (!isHTTPS()) {
+      toast.error("A câmera só funciona em conexões seguras (HTTPS). Use o upload de arquivo como alternativa.");
+      return;
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -90,7 +106,24 @@ const ImageUpload = ({
       
     } catch (err) {
       console.error("Error accessing camera:", err);
-      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+      
+      // More specific error handling
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          toast.error("Acesso à câmera foi negado. Verifique as permissões do navegador.");
+        } else if (err.name === 'NotFoundError') {
+          toast.error("Nenhuma câmera foi encontrada neste dispositivo.");
+        } else if (err.name === 'NotSupportedError') {
+          toast.error("A câmera não é suportada neste navegador.");
+        } else if (err.name === 'NotReadableError') {
+          toast.error("A câmera está sendo usada por outro aplicativo.");
+        } else {
+          toast.error("Erro ao acessar a câmera. Tente usar o upload de arquivo.");
+        }
+      } else {
+        toast.error("Erro ao acessar a câmera. Tente usar o upload de arquivo.");
+      }
+      
       setIsCapturing(false);
     }
   };
