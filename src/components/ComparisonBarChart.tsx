@@ -136,38 +136,38 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ esgData, catego
   return (
     <div className="w-full h-auto p-1 sm:p-2 comparison-bar-chart">
       <h3 className="text-sm sm:text-base font-bold text-center mb-2">{getTitle()}</h3>
-      <ChartContainer config={chartConfig} className={`${isMobile ? 'h-[160px]' : 'h-[280px]'}`}>
+      <ChartContainer config={chartConfig} className={`${isMobile ? 'h-[96px]' : 'h-[280px]'}`}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
             margin={{ 
               top: 10, 
-              right: isMobile ? 5 : 20, 
-              left: isMobile ? 5 : 20, 
-              bottom: isMobile ? 40 : 60 
+              right: isMobile ? 3 : 20, 
+              left: isMobile ? 3 : 20, 
+              bottom: isMobile ? 24 : 60 
             }}
             barGap={isMobile ? 0 : 4}
-            barSize={isMobile ? 4 : 12}
+            barSize={isMobile ? 2 : 12}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="name" 
               angle={-45} 
               textAnchor="end" 
-              height={isMobile ? 40 : 60}
-              tick={{ fontSize: isMobile ? 6 : 10 }}
+              height={isMobile ? 24 : 60}
+              tick={{ fontSize: isMobile ? 4 : 10 }}
               interval={0}
-              tickMargin={isMobile ? 8 : 12}
+              tickMargin={isMobile ? 5 : 12}
             />
             <YAxis 
-              tick={{ fontSize: isMobile ? 6 : 10 }}
-              width={isMobile ? 25 : 40}
+              tick={{ fontSize: isMobile ? 4 : 10 }}
+              width={isMobile ? 15 : 40}
             />
             <Tooltip content={<CustomTooltip period1={period1} period2={period2} />} />
             <Legend
               wrapperStyle={{ 
-                fontSize: isMobile ? 8 : 12,
-                paddingTop: isMobile ? 2 : 8
+                fontSize: isMobile ? 5 : 12,
+                paddingTop: isMobile ? 1 : 8
               }}
             />
             <Bar 
