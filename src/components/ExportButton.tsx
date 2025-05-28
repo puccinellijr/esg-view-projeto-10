@@ -31,6 +31,10 @@ interface ExportButtonProps {
         value2: number;
       };
     };
+    tonnage?: {
+      value1: number;
+      value2: number;
+    };
   };
   period1: {
     month: string;

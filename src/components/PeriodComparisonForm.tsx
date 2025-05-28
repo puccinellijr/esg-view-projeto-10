@@ -30,11 +30,10 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  // Generate arrays for months (1-12) and years
-  // FIXED: Month values should be 1-12 rather than 0-11
+  // Generate arrays for months (1-12) and years (current year + last 4 years)
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => (2020 + i).toString());
+  const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
   return (
     <div className="p-3 sm:p-4 bg-gray-50 rounded-lg shadow-sm mb-4 sm:mb-8">
@@ -53,7 +52,7 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
               </SelectContent>
             </Select>
             
-            <Select value={period1.year} onValueChange={(value) => onPeriod1Change('year', value)}>
+            <Select value={period1.year || currentYear.toString()} onValueChange={(value) => onPeriod1Change('year', value)}>
               <SelectTrigger className="w-full sm:w-[100px]">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
@@ -80,7 +79,7 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
               </SelectContent>
             </Select>
             
-            <Select value={period2.year} onValueChange={(value) => onPeriod2Change('year', value)}>
+            <Select value={period2.year || currentYear.toString()} onValueChange={(value) => onPeriod2Change('year', value)}>
               <SelectTrigger className="w-full sm:w-[100px]">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>

@@ -16,6 +16,9 @@ interface PeriodSelectorProps {
 }
 
 export const PeriodSelector: React.FC<PeriodSelectorProps> = ({ form }) => {
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
   return (
     <>
       <FormField
@@ -52,7 +55,7 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({ form }) => {
             <FormLabel>Ano</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              defaultValue={field.value}
+              defaultValue={field.value || currentYear.toString()}
             >
               <FormControl>
                 <SelectTrigger>
@@ -60,7 +63,7 @@ export const PeriodSelector: React.FC<PeriodSelectorProps> = ({ form }) => {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                {years.map(year => (
                   <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                 ))}
               </SelectContent>
