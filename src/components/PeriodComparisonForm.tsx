@@ -54,7 +54,7 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
             
             <Select value={period1.year || currentYear.toString()} onValueChange={(value) => onPeriod1Change('year', value)}>
               <SelectTrigger className="w-full sm:w-[100px]">
-                <SelectValue placeholder="Ano" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {years.map((year) => (
@@ -81,7 +81,7 @@ const PeriodComparisonForm: React.FC<PeriodComparisonFormProps> = ({
             
             <Select value={period2.year || currentYear.toString()} onValueChange={(value) => onPeriod2Change('year', value)}>
               <SelectTrigger className="w-full sm:w-[100px]">
-                <SelectValue placeholder="Ano" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {years.map((year) => (

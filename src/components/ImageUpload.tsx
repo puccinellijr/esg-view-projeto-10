@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -63,20 +62,10 @@ const ImageUpload = ({
     }
   };
   
-  const isHTTPS = () => {
-    return window.location.protocol === 'https:' || window.location.hostname === 'localhost';
-  };
-  
   const handleStartCamera = async () => {
     // Check if getUserMedia is available
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast.error("A câmera não está disponível neste navegador.");
-      return;
-    }
-
-    // Check if running on HTTPS or localhost
-    if (!isHTTPS()) {
-      toast.error("A câmera só funciona em conexões seguras (HTTPS). Use o upload de arquivo como alternativa.");
       return;
     }
 
